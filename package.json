@@ -1,0 +1,67 @@
+{
+  "name": "@jonoblander-sandbox/dev-enablement-oidc",
+  "version": "0.1.0-alpha",
+  "description": "Library of Javascript modules to automate IAM protocol flows when integrating with Ping Identity solutions.4",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "webpack",
+    "test": "jest ./test/*.js",
+    "coverage": "jest ./test/* --coverage --collectCoverageFrom=src/**/*.js --runInBand --forceExit",
+    "eslint": "eslint -c .eslintrc ./src/**"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Technical-Enablement-PingIdentity/dev-enablement-oidc.git"
+  },
+  "keywords": [
+    "Ping Identity",
+    "IAM",
+    "oauth",
+    "oidc",
+    "saml",
+    "PingOne",
+    "PingFederate"
+  ],
+  "author": "Ping Technical Enablement (https://www.pingidentity.com/)",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/Technical-Enablement-PingIdentity/dev-enablement-oidc/issues"
+  },
+  "homepage": "https://github.com/Technical-Enablement-PingIdentity/dev-enablement-oidc#readme",
+  "jest": {
+    "setupFiles": [
+      "./test/setup.js"
+    ],
+    "collectCoverageFrom": [
+      "./**/*.js"
+    ],
+    "moduleFileExtensions": [
+      "js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 50,
+        "functions": 50,
+        "lines": 50,
+        "statements": 50
+      }
+    }
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.17.0",
+    "@babel/core": "^7.17.2",
+    "@babel/preset-env": "^7.16.11",
+    "babel-loader": "^8.1.0",
+    "eslint": "^8.9.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-jest": "^26.1.0",
+    "git-hooks": "^1.1.10",
+    "jest": "^27.5.1",
+    "webpack": "^5.69.0",
+    "webpack-cli": "^4.9.2"
+  }
+}

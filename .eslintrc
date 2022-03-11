@@ -1,0 +1,19 @@
+{
+    "plugins": [
+        "jest"
+    ],
+    "extends": [
+        "airbnb-base"
+    ],
+    "env": {
+        "jest": true
+    },
+    "rules": {
+        "linebreak-style": [
+            0,
+            "error",
+            "unix"
+        ],
+        "import/prefer-default-export": "off"
+    }
+}
