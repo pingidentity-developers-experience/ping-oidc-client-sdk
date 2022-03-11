@@ -48,3 +48,6 @@
  * @see https://medium.com/backticks-tildes/introduction-to-es6-modules-49956f580da
  *
  */
+const oidc = () => console.log('developer enablement pingone oidc library');
+
+export default oidc;

@@ -1,5 +1,4 @@
-import { oidc as pingone } from './pingone.oidc';
+import pingOneOidc from './pingone.oidc';
+import pingAsOidc from './ping.as.oidc';
 
-const oidc = () => console.log('developer enablement library');
-
-export { pingone, oidc };
+export { pingOneOidc, pingAsOidc };
