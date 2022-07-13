@@ -11,7 +11,7 @@
  * @author Technical Enablement Demo Team, Ping Identity.
  * @version See Github for current stable version. https://github.com/Technical-Enablement-PingIdentity/libraries-sdks
  * @see https://apidocs.pingidentity.com/pingone/platform/v1/api/#openid-connectoauth-2
-*/
+ */
 
 /**
  * // TODO
@@ -30,7 +30,7 @@
  *
  *  implement.
  *
-*/
+ */
 
 // JUST DUMPING OUT THOUGHTS AND PSUEDO CODE TO START.
 
