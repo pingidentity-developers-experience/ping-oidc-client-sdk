@@ -2,22 +2,25 @@ const path = require("path")
 
 module.exports = {
   entry: {
-    index: path.resolve(__dirname, "./src/index.js"),
-    pingone: path.resolve(__dirname, "./src/pingone.oidc.js"),
-    pingas: path.resolve(__dirname, "./src/ping.as.oidc.js")
+    index: path.resolve(__dirname, "./src/index.ts"),
+    pingone: path.resolve(__dirname, "./src/pingone.oidc.ts"),
+    pingas: path.resolve(__dirname, "./src/ping.as.oidc.ts")
   },
   output: {
-    path: path.resolve(__dirname, "./dist"),
+    path: path.resolve(__dirname, "./dist/"),
     filename: '[name].js',
     library: "pingDevLib",
     libraryTarget: "umd",
   },
+  resolve: {
+    extensions: ['.ts', '.js'],
+  },
   module: {
     rules: [
       {
-        test: /\.(js)$/,
+        test: /\.ts?$/,
         exclude: /node_modules/,
-        use: "babel-loader",
+        loader: 'babel-loader',
       },
     ],
   },
