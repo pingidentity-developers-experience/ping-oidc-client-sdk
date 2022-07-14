@@ -1,0 +1,55 @@
+{
+    "root": true,
+    "plugins": [
+        "jest",
+        "@typescript-eslint"
+    ],
+    "extends": [
+        "airbnb-base",
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:prettier/recommended"
+    ],
+    "env": {
+        "jest": true
+    },
+    "parser": "@typescript-eslint/parser",
+    "rules": {
+        "linebreak-style": [
+            0,
+            "error",
+            "unix"
+        ],
+        "indent": [2, 2, {
+            "SwitchCase": 1
+        }],
+        "no-shadow": "off",
+        "@typescript-eslint/no-shadow": ["error"],
+        "@typescript-eslint/no-explicit-any": "off",
+        "class-methods-use-this": "off",
+        "lines-between-class-members": "off",
+        "import/extensions": [
+            "error",
+            "ignorePackages",
+            {
+                "js": "never",
+                "ts": "never"
+            }
+        ]
+    },
+    "overrides": [{
+        "files": ["test/**.*.ts"],
+        "rules": {
+            "dot-notation": "off", // Allows access to private variables in tests
+            "@typescript-eslint/no-empty-function": "off" // Useful for mocking, don't usually need to do anything
+        }
+    }],
+    "settings": {
+        "import/resolver": {
+            "node": {
+                "extensions": [".js", ".ts"]
+            }
+        }
+    }
+}
