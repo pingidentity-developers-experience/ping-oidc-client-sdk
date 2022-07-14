@@ -1,3 +1,6 @@
+import { AuthZOptions, InitOptions, TokenOptions } from './types';
+import { Logger } from './utilities';
+
 /**
  * Ping Identity
  * Module representing OIDC endpoints.
@@ -48,6 +51,38 @@
  * @see https://medium.com/backticks-tildes/introduction-to-es6-modules-49956f580da
  *
  */
-const oidc = () => console.log('developer enablement pingone oidc library');
+// const oidc = () => console.log('developer enablement pingone oidc library');
 
-export default oidc;
+class PingOneOidc {
+  private readonly authzEndpoint = '/as/authorize';
+  private readonly tokenEndpoint = '/as/token';
+  private readonly pingOneAuthPath;
+  private readonly pingOneEnvId;
+  private readonly logger;
+
+  constructor(options: InitOptions) {
+    this.pingOneAuthPath = options.PingOneAuthPath || 'https://auth.pingone.com';
+    this.pingOneEnvId = options.PingOneEnvId;
+    this.logger = new Logger(options.LoggingLevel);
+  }
+
+  authorize(options: AuthZOptions) {
+    if (!this.pingOneAuthPath || !this.pingOneEnvId) {
+      this.logger.error('PingOneOidc', 'You must run init method with applicable options before you can authorize');
+      return;
+    }
+
+    this.logger.debug('PingOneOidc', 'authorize called', options);
+  }
+
+  token(options: TokenOptions) {
+    if (!this.pingOneAuthPath || !this.pingOneEnvId) {
+      this.logger.error('PingOneOidc', 'You must run init method with applicable options before you can get a token');
+      return;
+    }
+
+    this.logger.debug('PingOneOidc', 'token called', options);
+  }
+}
+
+export default PingOneOidc;
