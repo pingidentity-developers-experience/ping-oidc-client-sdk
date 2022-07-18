@@ -127,8 +127,8 @@ class PingOneOidc {
           this.logger.debug(PingOneOidc.name, 'options.CodeChallengeMethod was applied to url', pkceArtifacts.CodeChallengeMethod);
         }
 
-        sessionStorage.set('state', pkceArtifacts.State);
-        sessionStorage.set('code_verifier', pkceArtifacts.CodeVerifier);
+        sessionStorage.setItem('state', pkceArtifacts.State);
+        sessionStorage.setItem('code_verifier', pkceArtifacts.CodeVerifier);
       }
 
       this.logger.debug(PingOneOidc.name, 'authorize URL generated, your browser will now navigate to it', url);

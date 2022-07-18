@@ -25,5 +25,5 @@ export interface AuthZOptions {
 
   /** Optional - defaults to empty, The CodeChallengeMethod property is required if the application's
    * pkceEnforcement property is set to S256_REQUIRED in PingOne. Otherwise, it is optional. */
-  CodeChallengeMethod?: '' | 'S259';
+  CodeChallengeMethod?: '' | 'S256';
 }
