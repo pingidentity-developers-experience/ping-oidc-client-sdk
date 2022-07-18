@@ -24,6 +24,7 @@
         "indent": [2, 2, {
             "SwitchCase": 1
         }],
+        "no-plusplus": "off",
         "no-shadow": "off",
         "@typescript-eslint/no-shadow": ["error"],
         "@typescript-eslint/no-explicit-any": "off",

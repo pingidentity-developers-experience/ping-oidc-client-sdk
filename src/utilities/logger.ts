@@ -13,9 +13,9 @@ export class Logger {
   /**
    * Calls console.error with provided information, will always be called
    *
-   * @param className Class where error originated from
-   * @param error Error message that will displayed in the console
-   * @param additionalData Optional additional data that will be shown in console
+   * @param {string} className Class where error originated from
+   * @param {string} error Error message that will displayed in the console
+   * @param {object} additionalData Optional additional data that will be shown in console
    */
   error(className: string, error: string, additionalData?: any): void {
     if (additionalData) {
@@ -29,9 +29,9 @@ export class Logger {
    * Calls console.warn with provided information,
    * will only be called if LogLevel is Debug, Info or Warning
    *
-   * @param className Class where warning originated from
-   * @param warning Warning message that will displayed in the console
-   * @param additionalData Optional additional data that will be shown in console
+   * @param {string} className Class where warning originated from
+   * @param {string} warning Warning message that will displayed in the console
+   * @param {object} additionalData Optional additional data that will be shown in console
    */
   warn(className: string, warning: string, additionalData?: any): void {
     const logConditions = [LogLevel.Debug, LogLevel.Info, LogLevel.Warning];
@@ -50,10 +50,9 @@ export class Logger {
    * Calls console.info with provided information,
    * will only be called if LogLevel is Debug or Info
    *
-   * @param className Class where info message originated from
-   * @param message Info message that will displayed in the console
-   * @param additionalData Optional additional data that will be shown in console
-   * @returns
+   * @param {string} className Class where info message originated from
+   * @param {string} message Info message that will displayed in the console
+   * @param {object} additionalData Optional additional data that will be shown in console
    */
   info(className: string, message: string, additionalData?: any): void {
     const logConditions = [LogLevel.Debug, LogLevel.Info];
@@ -72,10 +71,9 @@ export class Logger {
    * Calls console.debug with provided information,
    * will only be called if LogLevel is Debug
    *
-   * @param className Class where debug message originated from
-   * @param message Debug message that will displayed in the console
-   * @param additionalData Optional additional data that will be shown in console
-   * @returns
+   * @param {string} className Class where debug message originated from
+   * @param {string} message Debug message that will displayed in the console
+   * @param {object} additionalData Optional additional data that will be shown in console
    */
   debug(className: string, message: string, additionalData?: any): void {
     const logConditions = [LogLevel.Debug];
