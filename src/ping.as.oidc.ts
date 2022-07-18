@@ -69,12 +69,12 @@ class PingAsOidc {
   /**
   Get Authorization URL
   Creates client specific authorization url
-  @param {string} responseType oAuth grant type
+  @param {string} [responseType] oAuth grant type. default to authorization code grant type.
   @param {string} [scopes] additional access requested by the application
   @param {string} [state] parameter used by the application to store request-specific data and/or prevent CSRF attacks
   @returns {string} 
   */
-  async getAuthorizationURL(responseType: string, scopes = '', state = ''): Promise<string> {
+  async getAuthorizationURL(responseType = 'code', scopes = 'openid profile', state = ''): Promise<string> {
     let url = `${this.configs.basePath}${authzEndpointURI}?response_type=${responseType}&client_id=${this.configs.clientID}&redirect_uri=${this.configs.redirectURI}&scope=${scopes}`;
 
     if (responseType === 'code') {
