@@ -21,6 +21,8 @@ export class OAuth {
     const digest = await window.crypto.subtle.digest('SHA-256', data);
     // btoa is the way to do this in browser, we'd need to use Buffer.from to support Node
     const base64Digest = window.btoa(String.fromCharCode(...new Uint8Array(digest)));
+
+    // .replaces are for URL Encoding
     return base64Digest.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 

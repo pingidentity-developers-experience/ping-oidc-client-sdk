@@ -91,7 +91,7 @@ class PingOneOidc {
     }
 
     if (!options.ClientId) {
-      const message = 'options.ClientId is required to get an authorization url from PingOne';
+      const message = 'options.ClientId is required to send an authorization request to PingOne';
       this.logger.error(PingOneOidc.name, message);
       throw Error(message);
     } else {
@@ -99,7 +99,7 @@ class PingOneOidc {
     }
 
     if (!options.RedirectUri) {
-      const message = 'options.ClientId is required to get an authorization url from PingOne';
+      const message = 'options.RedirectUri is required to send an authorization request to PingOne';
       this.logger.error(PingOneOidc.name, message);
       throw Error(message);
     } else {
