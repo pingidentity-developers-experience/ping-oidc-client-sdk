@@ -18,29 +18,5 @@ describe('pingone', () => {
 
       expect(loggerSpy).toHaveBeenCalled();
     });
-
-    it('should throw error if ClientId is not set', async () => {
-      const p1 = new PingOneOidc({ PingOneAuthPath: '', PingOneEnvId: '123' });
-
-      const loggerSpy = jest.spyOn(p1['logger'], 'error').mockImplementation(() => {});
-
-      await expect(async () => {
-        await p1.authorize({ ClientId: '', RedirectUri: '' });
-      }).rejects.toThrow('options.ClientId is required to send an authorization request to PingOne');
-
-      expect(loggerSpy).toHaveBeenCalled();
-    });
-
-    it('should throw error if ClientId is not set', async () => {
-      const p1 = new PingOneOidc({ PingOneAuthPath: '', PingOneEnvId: '123' });
-
-      const loggerSpy = jest.spyOn(p1['logger'], 'error').mockImplementation(() => {});
-
-      await expect(async () => {
-        await p1.authorize({ ClientId: '123', RedirectUri: '' });
-      }).rejects.toThrow('options.RedirectUri is required to send an authorization request to PingOne');
-
-      expect(loggerSpy).toHaveBeenCalled();
-    });
   });
 });

@@ -16,6 +16,7 @@
  * @see https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-01
  * @see https://datatracker.ietf.org/doc/html/rfc6749
  */
+import { AuthZOptionsValidator } from './schemas';
 import { AsInitOptions, AuthZOptions, ResponseType } from './types';
 import { Logger } from './utilities';
 import OAuth from './utilities/oauth';
@@ -69,37 +70,19 @@ class PingAsOidc {
    *
    * @param {AuthZOptions} options Options that will be used to generate and send the request
    */
-  async authorize(options: AuthZOptions): Promise<any> {
-    this.logger.debug(PingAsOidc.name, 'authorize called', options);
+  async authorize(inputOptions: AuthZOptions): Promise<any> {
+    this.logger.debug(PingAsOidc.name, 'authorize called', inputOptions);
 
-    if (!options.ClientId) {
-      const message = 'options.ClientId is required to get an authorization url from PingFederate';
-      this.logger.error(PingAsOidc.name, message);
-      throw Error(message);
-    } else {
-      this.logger.debug(PingAsOidc.name, 'options.ClientId verified', options.ClientId);
-    }
+    const validatedOptions = new AuthZOptionsValidator(this.logger).validate(inputOptions);
 
-    if (!options.RedirectUri) {
-      const message = 'options.ClientId is required to get an authorization url from PingFederate';
-      this.logger.error(PingAsOidc.name, message);
-      throw Error(message);
-    } else {
-      this.logger.debug(PingAsOidc.name, 'options.RedirectUri verified', options.RedirectUri);
-    }
+    if (validatedOptions.HttpMethod === 'GET') {
+      let url = `${this.options.BasePath}${this.authzEndpoint}?response_type=${validatedOptions.ResponseType}&client_id=${validatedOptions.ClientId}&redirect_uri=${validatedOptions.RedirectUri}&scope=${validatedOptions.Scope}`;
 
-    const scope = this.getScope(options);
-    const authorizeHttpMethod = this.getAuthorizeHttpMethod(options);
-    const responseType = this.getResponseType(options);
-
-    if (authorizeHttpMethod === 'GET') {
-      let url = `${this.options.BasePath}${this.authzEndpoint}?response_type=${options.ResponseType}&client_id=${options.ClientId}&redirect_uri=${options.RedirectUri}&scope=${options.Scope}`;
-
-      if (options.ResponseType !== ResponseType.Code && options.PkceRequest) {
+      if (validatedOptions.ResponseType !== ResponseType.Code && validatedOptions.PkceRequest) {
         this.logger.warn(PingAsOidc.name, `options.PkceRequest is true but ResponseType is not 'code', PKCE parameters are only supported on authorization_code endpoints`);
-      } else if (options.PkceRequest) {
+      } else if (validatedOptions.PkceRequest) {
         this.logger.info(PingAsOidc.name, 'options.PkceRequest is true, generating artifacts for request parameters');
-        const pkceArtifacts = await OAuth.generatePkceArtifacts(options, this.logger);
+        const pkceArtifacts = await OAuth.generatePkceArtifacts(validatedOptions, this.logger);
         url = url.concat(`&state=${pkceArtifacts.State}&code_challenge=${pkceArtifacts.CodeChallenge}`);
 
         if (pkceArtifacts.CodeChallengeMethod) {
@@ -122,13 +105,13 @@ class PingAsOidc {
     headers.append('Content-Type', 'application/x-www-form-urlencoded');
 
     const body = new URLSearchParams();
-    body.append('response_type', responseType);
-    body.append('client_id', options.ClientId);
-    body.append('redirect_uri', options.RedirectUri);
-    body.append('scope', scope);
+    body.append('response_type', validatedOptions.ResponseType);
+    body.append('client_id', validatedOptions.ClientId);
+    body.append('redirect_uri', validatedOptions.RedirectUri);
+    body.append('scope', validatedOptions.Scope);
 
     const request: RequestInit = {
-      method: authorizeHttpMethod,
+      method: validatedOptions.HttpMethod,
       redirect: 'manual',
       headers,
       body,
@@ -175,72 +158,6 @@ class PingAsOidc {
     const response = await fetch(url, requestOptions);
     const jsonResponse = await response.json();
     return jsonResponse;
-  }
-
-  /**
-   * Does verification of HttpMethod sent in through options and sets a default of 'GET' if not present or invalid
-   *
-   * @param {AuthZOptions} options Options sent into authorize method
-   * @returns {string} HttpMethod that will be used
-   */
-  private getAuthorizeHttpMethod(options: AuthZOptions): string {
-    let method = options.HttpMethod;
-    if (method !== 'GET' && method !== 'POST') {
-      method = 'GET';
-
-      if (options.HttpMethod) {
-        this.logger.warn(PingAsOidc.name, 'options.HttpMethod contained an invalid option, valid options are GET and POST', options.HttpMethod);
-      } else {
-        this.logger.info(PingAsOidc.name, `options.HttpMethod not provided, defaulting to 'GET'`);
-      }
-    } else {
-      this.logger.debug(PingAsOidc.name, 'options.HttpMethod passed and valid', options.HttpMethod);
-    }
-
-    return method;
-  }
-
-  /**
-   * Does verification of ResponseType sent in through options and sets default of 'code' if not present or invalid
-   *
-   * @param {AuthZOptions} options Options sent into authorize method
-   * @returns {string} ResponseType that will be used
-   */
-  private getResponseType(options: AuthZOptions): ResponseType {
-    let authZType = options.ResponseType;
-    const validResponseTypes = Object.values(ResponseType);
-
-    if (!validResponseTypes.includes(authZType)) {
-      authZType = ResponseType.Code;
-
-      if (options.ResponseType) {
-        this.logger.warn(PingAsOidc.name, `options.ResponseType contained an invalid option, valid options are '${validResponseTypes.join(', ')}'`, options.ResponseType);
-      } else {
-        this.logger.info(PingAsOidc.name, `options.ResponseType not provided, defaulting to 'code'`);
-      }
-    } else {
-      this.logger.debug(PingAsOidc.name, 'options.ResponseType passed and valid', options.ResponseType);
-    }
-
-    return authZType;
-  }
-
-  /**
-   * Does verification of Scope sent in through options and sets default of 'openid profile' if not present or invalid
-   *
-   * @param {AuthZOptions} options Options sent into authorize method
-   * @returns {string} Scope that will be passed to PingOne endpoint
-   */
-  private getScope(options: AuthZOptions): string {
-    const defaultScope = 'openid profile';
-
-    if (!options.Scope) {
-      this.logger.info(PingAsOidc.name, `options.Scope not provided, defaulting to '${defaultScope}'`);
-    } else {
-      this.logger.debug(PingAsOidc.name, 'options.Scope passed', options.Scope);
-    }
-
-    return options.Scope || defaultScope;
   }
 }
 
