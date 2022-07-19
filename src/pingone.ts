@@ -1,5 +1,6 @@
-import { AuthZOptions, InitOptions, TokenOptions } from './types';
-import { Logger } from './utilities';
+import { AuthZOptions, InitOptions, ResponseType, TokenOptions } from './types';
+import { Logger, Url } from './utilities';
+import OAuth from './utilities/oauth';
 
 /**
  * Ping Identity
@@ -61,27 +62,176 @@ class PingOneOidc {
   private readonly logger;
 
   constructor(options: InitOptions) {
-    this.pingOneAuthPath = options.PingOneAuthPath || 'https://auth.pingone.com';
+    this.pingOneAuthPath = Url.ensureTrailingSlash(options.PingOneAuthPath || 'https://auth.pingone.com');
     this.pingOneEnvId = options.PingOneEnvId;
     this.logger = new Logger(options.LoggingLevel);
   }
 
-  authorize(options: AuthZOptions) {
-    if (!this.pingOneAuthPath || !this.pingOneEnvId) {
-      this.logger.error('PingOneOidc', 'You must run init method with applicable options before you can authorize');
-      return;
+  /**
+   * Request to Authorize endpoing in PingOne
+   *
+   * options.ClientId - Required
+   * options.RedirectUri - Required
+   * options.Scope - Optional (defualts to 'openid profile')
+   * options.HttpMethod - Optional (defaults to 'GET')
+   * options.ResponseType - Optional (defaults to 'code')
+   * options.PkceRequest - Optional (defaults to false) - whether to add code challenge and state to url
+   * options.CodeChallenge - Optional (no default) - required if pkceEnforcement property is set to S256_REQUIRED in PingOne
+   * options.Nonce - Optional (no default) - Nonce token sent with request to prevent replay attacks
+   *
+   * @param {AuthZOptions} options Options that will be used to generate and send the request
+   */
+  async authorize(options: AuthZOptions): Promise<any> {
+    this.logger.debug(PingOneOidc.name, 'authorize called', options);
+
+    if (!this.pingOneEnvId) {
+      const message = 'You must provide a PingOneEnvId through the constructor to authorize';
+      this.logger.error(PingOneOidc.name, message);
+      throw Error(message);
     }
 
-    this.logger.debug('PingOneOidc', 'authorize called', options);
+    if (!options.ClientId) {
+      const message = 'options.ClientId is required to get an authorization url from PingOne';
+      this.logger.error(PingOneOidc.name, message);
+      throw Error(message);
+    } else {
+      this.logger.debug(PingOneOidc.name, 'options.ClientId verified', options.ClientId);
+    }
+
+    if (!options.RedirectUri) {
+      const message = 'options.ClientId is required to get an authorization url from PingOne';
+      this.logger.error(PingOneOidc.name, message);
+      throw Error(message);
+    } else {
+      this.logger.debug(PingOneOidc.name, 'options.RedirectUri verified', options.RedirectUri);
+    }
+
+    const scope = this.getScope(options);
+    const authorizeHttpMethod = this.getAuthorizeHttpMethod(options);
+    const responseType = this.getResponseType(options);
+
+    if (authorizeHttpMethod === 'GET') {
+      const url = `${this.pingOneAuthPath + this.pingOneEnvId}/${this.authzEndpoint}?response_type=${options.ResponseType}&client_id=${options.ClientId}&redirect_uri=${options.RedirectUri}&scope=${
+        options.Scope
+      }`;
+
+      if (options.ResponseType !== ResponseType.Code && options.PkceRequest) {
+        this.logger.warn(PingOneOidc.name, `options.PkceRequest is true but ResponseType is not 'code', PKCE parameters are only supported on authorization_code endpoints`);
+      } else if (options.PkceRequest) {
+        this.logger.info(PingOneOidc.name, 'options.PkceRequest is true, generating artifacts for request parameters');
+        const pkceArtifacts = await OAuth.generatePkceArtifacts(options, this.logger);
+        url.concat(`&state=${pkceArtifacts.State}&code_challenge=${pkceArtifacts.CodeChallenge}`);
+
+        if (pkceArtifacts.CodeChallengeMethod) {
+          url.concat(`&code_challenge_method=${pkceArtifacts.CodeChallengeMethod}`);
+          this.logger.debug(PingOneOidc.name, 'options.CodeChallengeMethod was applied to url', pkceArtifacts.CodeChallengeMethod);
+        }
+
+        sessionStorage.setItem('state', pkceArtifacts.State);
+        sessionStorage.setItem('code_verifier', pkceArtifacts.CodeVerifier);
+      }
+
+      this.logger.debug(PingOneOidc.name, 'authorize URL generated, your browser will now navigate to it', url);
+      window.location.assign(url);
+    } else {
+      const url = `${this.pingOneAuthPath + this.pingOneEnvId}/${this.authzEndpoint}`;
+
+      const headers = new Headers();
+      headers.append('Content-Type', 'application/x-www-form-urlencoded');
+
+      const body = new URLSearchParams();
+      body.append('response_type', responseType);
+      body.append('client_id', options.ClientId);
+      body.append('redirect_uri', options.RedirectUri);
+      body.append('scope', scope);
+
+      const request: RequestInit = {
+        method: authorizeHttpMethod,
+        redirect: 'manual',
+        headers,
+        body,
+      };
+
+      this.logger.debug(PingOneOidc.name, 'Authorize POST url', url);
+      this.logger.debug(PingOneOidc.name, 'Authorize POST request', request);
+
+      const response = await fetch(url, request);
+      await response.json();
+    }
   }
 
   token(options: TokenOptions) {
+    this.logger.debug(PingOneOidc.name, 'token called', options);
+
     if (!this.pingOneAuthPath || !this.pingOneEnvId) {
-      this.logger.error('PingOneOidc', 'You must run init method with applicable options before you can get a token');
-      return;
+      this.logger.error(PingOneOidc.name, 'You must provide a PingOneEnvId through the constructor before you can get a token');
+    }
+  }
+
+  /**
+   * Does verification of HttpMethod sent in through options and sets a default of 'GET' if not present or invalid
+   *
+   * @param {AuthZOptions} options Options sent into authorize method
+   * @returns {string} HttpMethod that will be used
+   */
+  private getAuthorizeHttpMethod(options: AuthZOptions): string {
+    let method = options.HttpMethod;
+    if (method !== 'GET' && method !== 'POST') {
+      method = 'GET';
+
+      if (options.HttpMethod) {
+        this.logger.warn(PingOneOidc.name, 'options.HttpMethod contained an invalid option, valid options are GET and POST', options.HttpMethod);
+      } else {
+        this.logger.info(PingOneOidc.name, `options.HttpMethod not provided, defaulting to 'GET'`);
+      }
+    } else {
+      this.logger.debug(PingOneOidc.name, 'options.HttpMethod passed and valid', options.HttpMethod);
     }
 
-    this.logger.debug('PingOneOidc', 'token called', options);
+    return method;
+  }
+
+  /**
+   * Does verification of ResponseType sent in through options and sets default of 'code' if not present or invalid
+   *
+   * @param {AuthZOptions} options Options sent into authorize method
+   * @returns {string} ResponseType that will be used
+   */
+  private getResponseType(options: AuthZOptions): ResponseType {
+    let authZType = options.ResponseType;
+    const validResponseTypes = Object.values(ResponseType);
+
+    if (!validResponseTypes.includes(authZType)) {
+      authZType = ResponseType.Code;
+
+      if (options.ResponseType) {
+        this.logger.warn(PingOneOidc.name, `options.ResponseType contained an invalid option, valid options are '${validResponseTypes.join(', ')}'`, options.ResponseType);
+      } else {
+        this.logger.info(PingOneOidc.name, `options.ResponseType not provided, defaulting to 'code'`);
+      }
+    } else {
+      this.logger.debug(PingOneOidc.name, 'options.ResponseType passed and valid', options.ResponseType);
+    }
+
+    return authZType;
+  }
+
+  /**
+   * Does verification of Scope sent in through options and sets default of 'openid profile' if not present or invalid
+   *
+   * @param {AuthZOptions} options Options sent into authorize method
+   * @returns {string} Scope that will be passed to PingOne endpoint
+   */
+  private getScope(options: AuthZOptions): string {
+    const defaultScope = 'openid profile';
+
+    if (!options.Scope) {
+      this.logger.info(PingOneOidc.name, `options.Scope not provided, defaulting to '${defaultScope}'`);
+    } else {
+      this.logger.debug(PingOneOidc.name, 'options.Scope passed', options.Scope);
+    }
+
+    return options.Scope || defaultScope;
   }
 }
 
