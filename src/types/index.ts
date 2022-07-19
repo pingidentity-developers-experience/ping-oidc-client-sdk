@@ -3,3 +3,4 @@ export * from './init-options';
 export * from './log-level';
 export * from './response-type';
 export * from './token-options';
+export * from './as-init-options';
