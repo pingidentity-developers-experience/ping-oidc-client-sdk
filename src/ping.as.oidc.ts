@@ -16,7 +16,7 @@
  * @see https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-01
  * @see https://datatracker.ietf.org/doc/html/rfc6749
  */
-import { AuthZOptionsValidator } from './schemas';
+import { AuthZOptionsValidator } from './validators';
 import { AsInitOptions, AuthZOptions, ResponseType } from './types';
 import { Logger } from './utilities';
 import OAuth from './utilities/oauth';
@@ -71,7 +71,7 @@ class PingAsOidc {
    * @param {AuthZOptions} options Options that will be used to generate and send the request
    */
   async authorize(inputOptions: AuthZOptions): Promise<any> {
-    this.logger.debug(PingAsOidc.name, 'authorize called', inputOptions);
+    this.logger.debug('PingAsOidc', 'authorize called', inputOptions);
 
     const validatedOptions = new AuthZOptionsValidator(this.logger).validate(inputOptions);
 
@@ -79,27 +79,28 @@ class PingAsOidc {
       let url = `${this.options.BasePath}${this.authzEndpoint}?response_type=${validatedOptions.ResponseType}&client_id=${validatedOptions.ClientId}&redirect_uri=${validatedOptions.RedirectUri}&scope=${validatedOptions.Scope}`;
 
       if (validatedOptions.ResponseType !== ResponseType.Code && validatedOptions.PkceRequest) {
-        this.logger.warn(PingAsOidc.name, `options.PkceRequest is true but ResponseType is not 'code', PKCE parameters are only supported on authorization_code endpoints`);
+        this.logger.warn('PingAsOidc', `options.PkceRequest is true but ResponseType is not 'code', PKCE parameters are only supported on authorization_code endpoints`);
       } else if (validatedOptions.PkceRequest) {
-        this.logger.info(PingAsOidc.name, 'options.PkceRequest is true, generating artifacts for request parameters');
+        this.logger.info('PingAsOidc', 'options.PkceRequest is true, generating artifacts for request parameters');
         const pkceArtifacts = await OAuth.generatePkceArtifacts(validatedOptions, this.logger);
         url = url.concat(`&state=${pkceArtifacts.State}&code_challenge=${pkceArtifacts.CodeChallenge}`);
 
         if (pkceArtifacts.CodeChallengeMethod) {
           url = url.concat(`&code_challenge_method=${pkceArtifacts.CodeChallengeMethod}`);
-          this.logger.debug(PingAsOidc.name, 'options.CodeChallengeMethod was applied to url', pkceArtifacts.CodeChallengeMethod);
+          this.logger.debug('PingAsOidc', 'options.CodeChallengeMethod was applied to url', pkceArtifacts.CodeChallengeMethod);
         }
 
         sessionStorage.setItem('state', pkceArtifacts.State);
         sessionStorage.setItem('code_verifier', pkceArtifacts.CodeVerifier);
       }
 
-      this.logger.debug(PingAsOidc.name, 'authorize URL generated, your browser will now navigate to it', url);
+      this.logger.debug('PingAsOidc', 'authorize URL generated, your browser will now navigate to it', url);
 
       return url;
       // window.location.assign(url);
     }
-    const url = `${this.options.BasePath}${this.authzEndpoint}`;
+    // TODO - future iteration
+    /* const url = `${this.options.BasePath}${this.authzEndpoint}`;
 
     const headers = new Headers();
     headers.append('Content-Type', 'application/x-www-form-urlencoded');
@@ -117,11 +118,11 @@ class PingAsOidc {
       body,
     };
 
-    this.logger.debug(PingAsOidc.name, 'Authorize POST url', url);
-    this.logger.debug(PingAsOidc.name, 'Authorize POST request', request);
+    this.logger.debug('PingAsOidc', 'Authorize POST url', url);
+    this.logger.debug('PingAsOidc', 'Authorize POST request', request);
 
     const response = await fetch(url, request);
-    await response.json();
+    await response.json(); */
 
     return '';
   }

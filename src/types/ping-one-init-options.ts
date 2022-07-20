@@ -1,6 +1,6 @@
 import LogLevel from './log-level';
 
-export interface InitOptions {
+export interface PingOneInitOptions {
   /** Required - your PingOne environment ID */
   PingOneEnvId: string;
 

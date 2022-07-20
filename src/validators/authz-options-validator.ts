@@ -8,28 +8,37 @@ export class AuthZOptionsValidator {
     this.logger = logger;
   }
 
+  /**
+   * Validates user passed options and gives nessessary feedback to console/through errors, will also set default values where applicable
+   *
+   * @param {AuthZOptions} options Options to be validated
+   * @returns {AuthZOptions} options with applicable default values
+   */
   validate(options: AuthZOptions): AuthZOptions {
+    let error = false;
     const result = options;
 
     if (!options.ClientId) {
-      const message = 'options.ClientId is required to send an authorization request';
-      this.logger.error(AuthZOptionsValidator.name, message);
-      throw Error(message);
+      this.logger.error('AuthZOptionsValidator', 'options.ClientId is required to send an authorization request');
+      error = true;
     } else {
-      this.logger.debug(AuthZOptionsValidator.name, 'options.ClientId verified', options.ClientId);
+      this.logger.debug('AuthZOptionsValidator', 'options.ClientId verified', options.ClientId);
     }
 
     if (!options.RedirectUri) {
-      const message = 'options.RedirectUri is required to send an authorization request';
-      this.logger.error(AuthZOptionsValidator.name, message);
-      throw Error(message);
+      this.logger.error('AuthZOptionsValidator', 'options.RedirectUri is required to send an authorization request');
+      error = true;
     } else {
-      this.logger.debug(AuthZOptionsValidator.name, 'options.RedirectUri verified', options.RedirectUri);
+      this.logger.debug('AuthZOptionsValidator', 'options.RedirectUri verified', options.RedirectUri);
     }
 
     result.HttpMethod = this.getAuthorizeHttpMethod(options);
     result.ResponseType = this.getResponseType(options);
     result.Scope = this.getScope(options);
+
+    if (error) {
+      throw Error('An error occured while validating AuthZOptions, see console.error messages for more information');
+    }
 
     return result;
   }
@@ -46,12 +55,12 @@ export class AuthZOptionsValidator {
       method = 'GET';
 
       if (options.HttpMethod) {
-        this.logger.warn(AuthZOptionsValidator.name, 'options.HttpMethod contained an invalid option, valid options are GET and POST', options.HttpMethod);
+        this.logger.warn('AuthZOptionsValidator', 'options.HttpMethod contained an invalid option, valid options are GET and POST', options.HttpMethod);
       } else {
-        this.logger.info(AuthZOptionsValidator.name, `options.HttpMethod not provided, defaulting to 'GET'`);
+        this.logger.info('AuthZOptionsValidator', `options.HttpMethod not provided, defaulting to 'GET'`);
       }
     } else {
-      this.logger.debug(AuthZOptionsValidator.name, 'options.HttpMethod passed and valid', options.HttpMethod);
+      this.logger.debug('AuthZOptionsValidator', 'options.HttpMethod passed and valid', options.HttpMethod);
     }
 
     return method;
@@ -71,12 +80,12 @@ export class AuthZOptionsValidator {
       authZType = ResponseType.Code;
 
       if (options.ResponseType) {
-        this.logger.warn(AuthZOptionsValidator.name, `options.ResponseType contained an invalid option, valid options are '${validResponseTypes.join(', ')}'`, options.ResponseType);
+        this.logger.warn('AuthZOptionsValidator', `options.ResponseType contained an invalid option, valid options are '${validResponseTypes.join(', ')}'`, options.ResponseType);
       } else {
-        this.logger.info(AuthZOptionsValidator.name, `options.ResponseType not provided, defaulting to 'code'`);
+        this.logger.info('AuthZOptionsValidator', `options.ResponseType not provided, defaulting to 'code'`);
       }
     } else {
-      this.logger.debug(AuthZOptionsValidator.name, 'options.ResponseType passed and valid', options.ResponseType);
+      this.logger.debug('AuthZOptionsValidator', 'options.ResponseType passed and valid', options.ResponseType);
     }
 
     return authZType;
@@ -92,9 +101,9 @@ export class AuthZOptionsValidator {
     const defaultScope = 'openid profile';
 
     if (!options.Scope) {
-      this.logger.info(AuthZOptionsValidator.name, `options.Scope not provided, defaulting to '${defaultScope}'`);
+      this.logger.info('AuthZOptionsValidator', `options.Scope not provided, defaulting to '${defaultScope}'`);
     } else {
-      this.logger.debug(AuthZOptionsValidator.name, 'options.Scope passed', options.Scope);
+      this.logger.debug('AuthZOptionsValidator', 'options.Scope passed', options.Scope);
     }
 
     return options.Scope || defaultScope;

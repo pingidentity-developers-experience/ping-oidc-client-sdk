@@ -1,7 +1,8 @@
-import { AuthZOptionsValidator } from './schemas';
-import { AuthZOptions, InitOptions, ResponseType, TokenOptions } from './types';
+import { AuthZOptionsValidator, PingOneInitOptionsValidator } from './validators';
+import { AuthZOptions, PingOneInitOptions, ResponseType, TokenOptions } from './types';
 import { Logger, Url } from './utilities';
 import OAuth from './utilities/oauth';
+import TokenOptionsValidator from './validators/token-options-validator';
 
 /**
  * Ping Identity
@@ -56,20 +57,24 @@ import OAuth from './utilities/oauth';
 // const oidc = () => console.log('developer enablement pingone oidc library');
 
 class PingOneOidc {
+  private readonly defaultAuthPath = 'https://auth.pingone.com';
   private readonly authzEndpoint = '/as/authorize';
   private readonly tokenEndpoint = '/as/token';
   private readonly pingOneAuthPath;
   private readonly pingOneEnvId;
   private readonly logger;
 
-  constructor(options: InitOptions) {
-    this.pingOneAuthPath = Url.ensureTrailingSlash(options.PingOneAuthPath || 'https://auth.pingone.com');
-    this.pingOneEnvId = options.PingOneEnvId;
+  constructor(options: PingOneInitOptions) {
     this.logger = new Logger(options.LoggingLevel);
+
+    const validatedOptions = new PingOneInitOptionsValidator(this.logger).validate(options);
+
+    this.pingOneAuthPath = Url.trimTrailingSlash(validatedOptions.PingOneAuthPath || this.defaultAuthPath);
+    this.pingOneEnvId = validatedOptions.PingOneEnvId;
   }
 
   /**
-   * Request to Authorize endpoing in PingOne
+   * Request to Authorize endpoint in PingOne
    *
    * options.ClientId - Required
    * options.RedirectUri - Required
@@ -82,42 +87,42 @@ class PingOneOidc {
    *
    * @param {AuthZOptions} options Options that will be used to generate and send the request
    */
-  async authorize(inputOptions: AuthZOptions): Promise<any> {
-    this.logger.debug(PingOneOidc.name, 'authorize called', inputOptions);
-
-    if (!this.pingOneEnvId) {
-      const message = 'You must provide a PingOneEnvId through the constructor to authorize';
-      this.logger.error(PingOneOidc.name, message);
-      throw Error(message);
-    }
+  async authorize(inputOptions: AuthZOptions): Promise<string> {
+    this.logger.debug('PingOneOidc', 'authorize called', inputOptions);
 
     const validatedOptions = new AuthZOptionsValidator(this.logger).validate(inputOptions);
 
+    let url = this.pingOneAuthPath === this.defaultAuthPath ? `${this.pingOneAuthPath}/${this.pingOneEnvId}` : this.pingOneAuthPath;
+
     if (validatedOptions.HttpMethod === 'GET') {
-      const url = `${this.pingOneAuthPath + this.pingOneEnvId}/${this.authzEndpoint}?response_type=${validatedOptions.ResponseType}&client_id=${validatedOptions.ClientId}&redirect_uri=${
-        validatedOptions.RedirectUri
-      }&scope=${validatedOptions.Scope}`;
+      url += `${this.authzEndpoint}?response_type=${validatedOptions.ResponseType}&client_id=${validatedOptions.ClientId}&redirect_uri=${validatedOptions.RedirectUri}&scope=${validatedOptions.Scope}`;
 
       if (validatedOptions.ResponseType !== ResponseType.Code && validatedOptions.PkceRequest) {
-        this.logger.warn(PingOneOidc.name, `options.PkceRequest is true but ResponseType is not 'code', PKCE parameters are only supported on authorization_code endpoints`);
+        this.logger.warn('PingOneOidc', `options.PkceRequest is true but ResponseType is not 'code', PKCE parameters are only supported on authorization_code endpoints`);
       } else if (validatedOptions.PkceRequest) {
-        this.logger.info(PingOneOidc.name, 'options.PkceRequest is true, generating artifacts for request parameters');
+        this.logger.info('PingOneOidc', 'options.PkceRequest is true, generating artifacts for request parameters');
         const pkceArtifacts = await OAuth.generatePkceArtifacts(validatedOptions, this.logger);
         url.concat(`&state=${pkceArtifacts.State}&code_challenge=${pkceArtifacts.CodeChallenge}`);
 
         if (pkceArtifacts.CodeChallengeMethod) {
           url.concat(`&code_challenge_method=${pkceArtifacts.CodeChallengeMethod}`);
-          this.logger.debug(PingOneOidc.name, 'options.CodeChallengeMethod was applied to url', pkceArtifacts.CodeChallengeMethod);
+          this.logger.debug('PingOneOidc', 'options.CodeChallengeMethod was applied to url', pkceArtifacts.CodeChallengeMethod);
         }
 
         sessionStorage.setItem('state', pkceArtifacts.State);
         sessionStorage.setItem('code_verifier', pkceArtifacts.CodeVerifier);
       }
 
-      this.logger.debug(PingOneOidc.name, 'authorize URL generated, your browser will now navigate to it', url);
-      window.location.assign(url);
-    } else {
-      const url = `${this.pingOneAuthPath + this.pingOneEnvId}/${this.authzEndpoint}`;
+      this.logger.debug('PingOneOidc', 'authorize URL generated', url);
+
+      return url;
+      // window.location.assign(url);
+    }
+
+    return '';
+    // TODO - future iteration
+    /* else {
+      url += `${this.authzEndpoint}`;
 
       const headers = new Headers();
       headers.append('Content-Type', 'application/x-www-form-urlencoded');
@@ -135,20 +140,56 @@ class PingOneOidc {
         body,
       };
 
-      this.logger.debug(PingOneOidc.name, 'Authorize POST url', url);
-      this.logger.debug(PingOneOidc.name, 'Authorize POST request', request);
+      this.logger.debug('PingOneOidc', 'Authorize POST url', url);
+      this.logger.debug('PingOneOidc', 'Authorize POST request', request);
 
       const response = await fetch(url, request);
-      await response.json();
-    }
+      const json = await response.json();
+
+      this.logger.info('PingOneOidc')
+
+      this.logger.info('PingOneOidc', 'JSON RESPONSE', json);
+    } */
   }
 
-  token(options: TokenOptions) {
-    this.logger.debug(PingOneOidc.name, 'token called', options);
+  /**
+   * Request to Token endpoint in PingOne, swaps OAuth code for an OAuth access token
+   *
+   * options.Code - Required
+   * options.RedirectUri - Required
+   * options.GrantType - Optional (defaults to authorization_code)
+   *
+   * @param options Options that will be used to generate and send the request
+   */
+  async getToken(inputOptions: TokenOptions) {
+    this.logger.debug('PingOneOidc', 'authorize called', inputOptions);
 
-    if (!this.pingOneAuthPath || !this.pingOneEnvId) {
-      this.logger.error(PingOneOidc.name, 'You must provide a PingOneEnvId through the constructor before you can get a token');
-    }
+    const validatedOptions = new TokenOptionsValidator(this.logger).validate(inputOptions);
+
+    const headers = new Headers();
+    headers.append('Authorization', `Basic ${window.btoa(`${validatedOptions.ClientId}:${validatedOptions.ClientSecret}`)}`);
+    headers.append('Content-Type', 'application/x-www-form-urlencoded');
+
+    const body = new URLSearchParams();
+    body.append('grant_type', inputOptions.GrantType);
+    body.append('code', validatedOptions.Code);
+    body.append('redirect_uri', validatedOptions.RedirectUri);
+    body.append('code_verifier', sessionStorage.getItem('code_verifier'));
+
+    const request: RequestInit = {
+      method: 'POST',
+      headers,
+      body,
+      redirect: 'manual',
+    };
+
+    const url = this.pingOneAuthPath + this.tokenEndpoint;
+
+    this.logger.debug('PingOneOidc', 'Authorize POST url', url);
+    this.logger.debug('PingOneOidc', 'Authorize POST request', request);
+
+    const response = await fetch(url, request);
+    return response.json();
   }
 }
 

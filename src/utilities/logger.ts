@@ -7,7 +7,7 @@ export class Logger {
 
   constructor(level?: LogLevel) {
     // Default level to Warning
-    this.logLevel = level || LogLevel.Warning;
+    this.logLevel = Object.values(LogLevel).includes(level) ? level : LogLevel.Warning;
   }
 
   /**
