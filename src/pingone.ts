@@ -83,11 +83,11 @@ class PingOneOidc {
    * @param {AuthZOptions} options Options that will be used to generate and send the request
    */
   async authorize(inputOptions: AuthZOptions): Promise<any> {
-    this.logger.debug(PingOneOidc.name, 'authorize called', inputOptions);
+    this.logger.debug('PingOneOidc', 'authorize called', inputOptions);
 
     if (!this.pingOneEnvId) {
       const message = 'You must provide a PingOneEnvId through the constructor to authorize';
-      this.logger.error(PingOneOidc.name, message);
+      this.logger.error('PingOneOidc', message);
       throw Error(message);
     }
 
@@ -99,22 +99,22 @@ class PingOneOidc {
       }&scope=${validatedOptions.Scope}`;
 
       if (validatedOptions.ResponseType !== ResponseType.Code && validatedOptions.PkceRequest) {
-        this.logger.warn(PingOneOidc.name, `options.PkceRequest is true but ResponseType is not 'code', PKCE parameters are only supported on authorization_code endpoints`);
+        this.logger.warn('PingOneOidc', `options.PkceRequest is true but ResponseType is not 'code', PKCE parameters are only supported on authorization_code endpoints`);
       } else if (validatedOptions.PkceRequest) {
-        this.logger.info(PingOneOidc.name, 'options.PkceRequest is true, generating artifacts for request parameters');
+        this.logger.info('PingOneOidc', 'options.PkceRequest is true, generating artifacts for request parameters');
         const pkceArtifacts = await OAuth.generatePkceArtifacts(validatedOptions, this.logger);
         url.concat(`&state=${pkceArtifacts.State}&code_challenge=${pkceArtifacts.CodeChallenge}`);
 
         if (pkceArtifacts.CodeChallengeMethod) {
           url.concat(`&code_challenge_method=${pkceArtifacts.CodeChallengeMethod}`);
-          this.logger.debug(PingOneOidc.name, 'options.CodeChallengeMethod was applied to url', pkceArtifacts.CodeChallengeMethod);
+          this.logger.debug('PingOneOidc', 'options.CodeChallengeMethod was applied to url', pkceArtifacts.CodeChallengeMethod);
         }
 
         sessionStorage.setItem('state', pkceArtifacts.State);
         sessionStorage.setItem('code_verifier', pkceArtifacts.CodeVerifier);
       }
 
-      this.logger.debug(PingOneOidc.name, 'authorize URL generated, your browser will now navigate to it', url);
+      this.logger.debug('PingOneOidc', 'authorize URL generated, your browser will now navigate to it', url);
       window.location.assign(url);
     } else {
       const url = `${this.pingOneAuthPath + this.pingOneEnvId}/${this.authzEndpoint}`;
@@ -135,8 +135,8 @@ class PingOneOidc {
         body,
       };
 
-      this.logger.debug(PingOneOidc.name, 'Authorize POST url', url);
-      this.logger.debug(PingOneOidc.name, 'Authorize POST request', request);
+      this.logger.debug('PingOneOidc', 'Authorize POST url', url);
+      this.logger.debug('PingOneOidc', 'Authorize POST request', request);
 
       const response = await fetch(url, request);
       await response.json();
@@ -144,10 +144,10 @@ class PingOneOidc {
   }
 
   token(options: TokenOptions) {
-    this.logger.debug(PingOneOidc.name, 'token called', options);
+    this.logger.debug('PingOneOidc', 'token called', options);
 
     if (!this.pingOneAuthPath || !this.pingOneEnvId) {
-      this.logger.error(PingOneOidc.name, 'You must provide a PingOneEnvId through the constructor before you can get a token');
+      this.logger.error('PingOneOidc', 'You must provide a PingOneEnvId through the constructor before you can get a token');
     }
   }
 }
