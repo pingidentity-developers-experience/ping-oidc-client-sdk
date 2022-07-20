@@ -16,7 +16,7 @@
  * @see https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-01
  * @see https://datatracker.ietf.org/doc/html/rfc6749
  */
-import { AuthZOptionsValidator } from './schemas';
+import { AuthZOptionsValidator } from './validators';
 import { AsInitOptions, AuthZOptions, ResponseType } from './types';
 import { Logger } from './utilities';
 import OAuth from './utilities/oauth';
@@ -99,7 +99,8 @@ class PingAsOidc {
       return url;
       // window.location.assign(url);
     }
-    const url = `${this.options.BasePath}${this.authzEndpoint}`;
+    // TODO - future iteration
+    /* const url = `${this.options.BasePath}${this.authzEndpoint}`;
 
     const headers = new Headers();
     headers.append('Content-Type', 'application/x-www-form-urlencoded');
@@ -121,7 +122,7 @@ class PingAsOidc {
     this.logger.debug('PingAsOidc', 'Authorize POST request', request);
 
     const response = await fetch(url, request);
-    await response.json();
+    await response.json(); */
 
     return '';
   }

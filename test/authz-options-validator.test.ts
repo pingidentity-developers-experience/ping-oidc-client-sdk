@@ -1,4 +1,4 @@
-import { AuthZOptionsValidator } from '../src/schemas';
+import { AuthZOptionsValidator } from '../src/validators';
 import { AuthZOptions, ResponseType } from '../src/types';
 import { Logger } from '../src/utilities';
 
@@ -11,11 +11,11 @@ describe('AuthZOptionsValidator', () => {
 
     const options: AuthZOptions = {
       ClientId: '',
-      RedirectUri: '',
+      RedirectUri: 'https://example.com',
     };
 
-    expect(() => validator.validate(options)).toThrow('options.ClientId is required to send an authorization request');
-    expect(loggerSpy).toHaveBeenCalledTimes(1);
+    expect(() => validator.validate(options)).toThrow('An error occured while validating AuthZOptions, see console.error messages for more information');
+    expect(loggerSpy).toHaveBeenCalledWith('AuthZOptionsValidator', 'options.ClientId is required to send an authorization request');
   });
 
   it('should throw error if RedirectUri is not set', () => {
@@ -29,8 +29,8 @@ describe('AuthZOptionsValidator', () => {
       RedirectUri: '',
     };
 
-    expect(() => validator.validate(options)).toThrow('options.RedirectUri is required to send an authorization request');
-    expect(loggerSpy).toHaveBeenCalledTimes(1);
+    expect(() => validator.validate(options)).toThrow('An error occured while validating AuthZOptions, see console.error messages for more information');
+    expect(loggerSpy).toHaveBeenCalledWith('AuthZOptionsValidator', 'options.RedirectUri is required to send an authorization request');
   });
 
   it('should default to HttpMethod GET if empty', () => {
@@ -70,7 +70,7 @@ describe('AuthZOptionsValidator', () => {
     };
 
     expect(validator.validate(options).HttpMethod).toBe('GET');
-    expect(loggerSpy).toHaveBeenCalledTimes(1);
+    expect(loggerSpy).toHaveBeenCalledWith('AuthZOptionsValidator', 'options.HttpMethod contained an invalid option, valid options are GET and POST', 'PUT');
   });
 
   it('should default to ResponseType GET if empty', () => {

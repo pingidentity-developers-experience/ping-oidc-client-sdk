@@ -8,21 +8,26 @@ export class AuthZOptionsValidator {
     this.logger = logger;
   }
 
+  /**
+   * Validates user passed options and gives nessessary feedback to console/through errors, will also set default values where applicable
+   *
+   * @param {AuthZOptions} options Options to be validated
+   * @returns {AuthZOptions} options with applicable default values
+   */
   validate(options: AuthZOptions): AuthZOptions {
+    let error = false;
     const result = options;
 
     if (!options.ClientId) {
-      const message = 'options.ClientId is required to send an authorization request';
-      this.logger.error('AuthZOptionsValidator', message);
-      throw Error(message);
+      this.logger.error('AuthZOptionsValidator', 'options.ClientId is required to send an authorization request');
+      error = true;
     } else {
       this.logger.debug('AuthZOptionsValidator', 'options.ClientId verified', options.ClientId);
     }
 
     if (!options.RedirectUri) {
-      const message = 'options.RedirectUri is required to send an authorization request';
-      this.logger.error('AuthZOptionsValidator', message);
-      throw Error(message);
+      this.logger.error('AuthZOptionsValidator', 'options.RedirectUri is required to send an authorization request');
+      error = true;
     } else {
       this.logger.debug('AuthZOptionsValidator', 'options.RedirectUri verified', options.RedirectUri);
     }
@@ -30,6 +35,10 @@ export class AuthZOptionsValidator {
     result.HttpMethod = this.getAuthorizeHttpMethod(options);
     result.ResponseType = this.getResponseType(options);
     result.Scope = this.getScope(options);
+
+    if (error) {
+      throw Error('An error occured while validating AuthZOptions, see console.error messages for more information');
+    }
 
     return result;
   }
