@@ -102,10 +102,10 @@ class PingOneOidc {
       } else if (validatedOptions.PkceRequest) {
         this.logger.info('PingOneOidc', 'options.PkceRequest is true, generating artifacts for request parameters');
         const pkceArtifacts = await OAuth.generatePkceArtifacts(validatedOptions, this.logger);
-        url.concat(`&state=${pkceArtifacts.State}&code_challenge=${pkceArtifacts.CodeChallenge}`);
+        url = url.concat(`&state=${pkceArtifacts.State}&code_challenge=${pkceArtifacts.CodeChallenge}`);
 
         if (pkceArtifacts.CodeChallengeMethod) {
-          url.concat(`&code_challenge_method=${pkceArtifacts.CodeChallengeMethod}`);
+          url = url.concat(`&code_challenge_method=${pkceArtifacts.CodeChallengeMethod}`);
           this.logger.debug('PingOneOidc', 'options.CodeChallengeMethod was applied to url', pkceArtifacts.CodeChallengeMethod);
         }
 
