@@ -11,7 +11,7 @@
     "build": "webpack && tsc --declaration --emitDeclarationOnly",
     "test": "jest ./test/*.ts",
     "test-watch": "jest ./test/*.ts --watch",
-    "coverage": "jest ./test/* --coverage --collectCoverageFrom=src/**/*.js --runInBand --forceExit",
+    "coverage": "jest ./test/* --coverage --collectCoverageFrom=src/**/*.ts --runInBand --forceExit",
     "eslint": "eslint -c .eslintrc ./src/**"
   },
   "repository": {
