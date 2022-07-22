@@ -5,8 +5,8 @@ export class Url {
    * @param {string} url url to check
    * @returns {string} url with trailing slash
    */
-  static ensureTrailingSlash(url: string): string {
-    return url.endsWith('/') ? url : `${url}/`;
+  static trimTrailingSlash(url: string): string {
+    return url.endsWith('/') ? url.substring(0, url.length - 1) : url;
   }
 }
 

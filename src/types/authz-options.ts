@@ -8,7 +8,7 @@ export interface AuthZOptions {
   RedirectUri: string;
 
   /** Optional - will default to 'openid profile' */
-  Scope: string;
+  Scope?: string;
 
   /** Optional - will default to code if not provided, valid options are 'code', 'token' or 'code token' */
   ResponseType?: ResponseType;
