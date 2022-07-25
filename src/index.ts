@@ -1,4 +1,4 @@
 import pingOneOidc from './pingone';
-import pingAsOidc from './ping.as.oidc';
+import pingAsOidc from './pingas';
 
 export { pingOneOidc, pingAsOidc };
