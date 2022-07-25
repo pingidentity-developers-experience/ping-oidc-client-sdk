@@ -122,9 +122,9 @@ class PingAsOidc {
     this.logger.debug('PingAsOidc', 'Authorize POST request', request);
 
     const response = await fetch(url, request);
-    await response.json(); 
+    await response.json(); */
 
-    return ''; */
+    return '';
   }
 
   /**
