@@ -66,7 +66,7 @@ Call authorize method of OIDC library to generate redirect url:
 
 ```javascript
       oidcClient.authorize(options).then(authUrl => {
-        // Redirect to authroization url
+        // Redirect to authorization url
         window.location.assign(authUrl);
       }).catch(err => console.log(err));
 ```
