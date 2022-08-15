@@ -16,3 +16,73 @@ Of course, if you are working on traditional, plain old JavaScript apps, then cl
 
 Test Apps
 : Create-React-App (CRA) bootstrapped applications Technical Enablement uses to test our code (includes JSON files for mock API responses to remove the backend dependency unique to each company.)
+
+#### Authorization Code Example:
+
+*Prerequisites*
+PingFederate Authorization server and oAuth client that supports authorization code grant type.
+
+Install oidc library into your project:
+
+```javascript
+npm install @ping-identity-developer-enablement/dev-enablement-oidc
+```
+
+Import the PingFederate OIDC module:
+
+```javascript
+import { pingAsOidc } from '@ping-identity-developer-enablement/dev-enablement-oidc';
+```
+
+Initiate config options:
+
+```javascript
+  const configs = {
+    /** PingFederate base path */
+    BasePath: 'https://yourpfbasepath.com',
+  }
+```
+
+Instantiate a new OIDC client:
+
+```javascript
+const oidcClient = new pingAsOidc(configs);
+```
+
+Initiate authorization url config options:
+
+```javascript
+      const options = {
+        ClientId: 'client_id',
+        Scope: 'openid profile',
+        RedirectUri: 'https://localhost:3000/app',
+        ResponseType: 'code',
+        PkceRequest: true,
+        CodeChallengeMethod: 'S256'
+      }
+```
+
+Call authorize method of OIDC library to generate redirect url:
+
+```javascript
+      oidcClient.authorize(options).then(authUrl => {
+        // Redirect to authroization url
+        window.location.assign(authUrl);
+      }).catch(err => console.log(err));
+```
+
+Call getToken method to exchange authorization code for access token (id_token):
+
+```javascript
+      oidcClient.getToken(
+          'code', 
+          'redirect_uri',  
+          'client_id', 
+          'client_secret'
+      )
+      .then(response => {
+        console.log(response.access_token);
+        console.log(response.id_token);
+      })
+      .catch(err => console.log(err))
+```
