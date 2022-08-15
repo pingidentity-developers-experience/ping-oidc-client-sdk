@@ -33,7 +33,7 @@ import { pingAsOidc } from '@ping-identity-developer-enablement/dev-enablement-o
 ##### Option 2: Manaully include oidc library into your project using script tag:
 
 ```javascript
-<script type="module" src="https://cdn.jsdelivr.net/npm/@ping-identity-developer-enablement/dev-enablement-oidc@0.1.0-alpha/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ping-identity-developer-enablement/dev-enablement-oidc@0.1.0-alpha/dist/index.min.js"></script>
 ```
 
 Initiate config options:
