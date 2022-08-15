@@ -12,17 +12,13 @@ With a developer-first focus and simplicity in design, native Javascript APIs we
 
 *DO NOT* clone this source code and add it to your projects source code. All packages are hosted in NPM and can simply be added to your package.json file.
 Of course, if you are working on traditional, plain old JavaScript apps, then cloning is your only option. We do not offer hosting our libraries on a CDN.
-#### Included:
-
-Test Apps
-: Create-React-App (CRA) bootstrapped applications Technical Enablement uses to test our code (includes JSON files for mock API responses to remove the backend dependency unique to each company.)
 
 #### Authorization Code Example:
 
 *Prerequisites*
 PingFederate Authorization server and oAuth client that supports authorization code grant type.
 
-Install oidc library into your project:
+##### Option 1: Install oidc library into your project using npm:
 
 ```javascript
 npm install @ping-identity-developer-enablement/dev-enablement-oidc
@@ -32,6 +28,12 @@ Import the PingFederate OIDC module:
 
 ```javascript
 import { pingAsOidc } from '@ping-identity-developer-enablement/dev-enablement-oidc';
+```
+
+##### Option 2: Manaully include oidc library into your project using script tag:
+
+```javascript
+<script type="module" src="https://cdn.jsdelivr.net/npm/@ping-identity-developer-enablement/dev-enablement-oidc@0.1.0-alpha/dist/index.min.js"></script>
 ```
 
 Initiate config options:
@@ -46,7 +48,15 @@ Initiate config options:
 Instantiate a new OIDC client:
 
 ```javascript
+// Via imported npm package
 const oidcClient = new pingAsOidc(configs);
+```
+
+*OR*
+
+```javascript
+// Via manually included javascript file
+const oidcClient = new pingDevLib.pingAsOidc(configs);
 ```
 
 Initiate authorization url config options:
