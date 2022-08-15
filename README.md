@@ -12,7 +12,87 @@ With a developer-first focus and simplicity in design, native Javascript APIs we
 
 *DO NOT* clone this source code and add it to your projects source code. All packages are hosted in NPM and can simply be added to your package.json file.
 Of course, if you are working on traditional, plain old JavaScript apps, then cloning is your only option. We do not offer hosting our libraries on a CDN.
-#### Included:
 
-Test Apps
-: Create-React-App (CRA) bootstrapped applications Technical Enablement uses to test our code (includes JSON files for mock API responses to remove the backend dependency unique to each company.)
+#### Authorization Code Example:
+
+*Prerequisites*
+PingFederate Authorization server and oAuth client that supports authorization code grant type.
+
+##### Option 1: Install oidc library into your project using npm:
+
+```javascript
+npm install @ping-identity-developer-enablement/dev-enablement-oidc
+```
+
+Import the PingFederate OIDC module:
+
+```javascript
+import { pingAsOidc } from '@ping-identity-developer-enablement/dev-enablement-oidc';
+```
+
+##### Option 2: Manaully include oidc library into your project using script tag:
+
+```javascript
+<script src="https://cdn.jsdelivr.net/npm/@ping-identity-developer-enablement/dev-enablement-oidc@0.1.0-alpha/dist/index.min.js"></script>
+```
+
+Initiate config options:
+
+```javascript
+  const configs = {
+    /** PingFederate base path */
+    BasePath: 'https://yourpfbasepath.com',
+  }
+```
+
+Instantiate a new OIDC client:
+
+```javascript
+// Via imported npm package
+const oidcClient = new pingAsOidc(configs);
+```
+
+*OR*
+
+```javascript
+// Via manually included javascript file
+const oidcClient = new pingDevLib.pingAsOidc(configs);
+```
+
+Initiate authorization url config options:
+
+```javascript
+      const options = {
+        ClientId: 'client_id',
+        Scope: 'openid profile',
+        RedirectUri: 'https://localhost:3000/app',
+        ResponseType: 'code',
+        PkceRequest: true,
+        CodeChallengeMethod: 'S256'
+      }
+```
+
+Call authorize method of OIDC library to generate redirect url:
+
+```javascript
+      oidcClient.authorize(options).then(authUrl => {
+        // Redirect to authorization url
+        window.location.assign(authUrl);
+      }).catch(err => console.log(err));
+```
+
+Call getToken method to exchange authorization code for access token (id_token):
+
+```javascript
+      oidcClient.getToken(
+          'code', 
+          'redirect_uri',  
+          'client_id', 
+          'client_secret'
+      )
+      .then(response => {
+        console.log(response.access_token);
+        console.log(response.id_token);
+      })
+      .catch(err => console.log(err))
+```
