@@ -1,2 +1,1 @@
-export * from './authz-options-validator';
-export * from './ping-one-init-options-validator';
+export * from './client-options-validator';

@@ -1,4 +1,3 @@
-import pingOneOidc from './pingone';
-import pingAsOidc from './ping.as.oidc';
+import OidcClient from './oidc-client';
 
-export { pingOneOidc, pingAsOidc };
+export default OidcClient;

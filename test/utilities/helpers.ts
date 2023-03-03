@@ -9,9 +9,10 @@ export class Helpers {
     return Buffer.from(str, 'binary').toString('base64');
   }
 
-  static atob(str: string): string {
-    return Buffer.from(str, 'base64').toString('binary');
-  }
+  // TODO: might be able to delete this, keeping for now for reference
+  // static atob(str: string): string {
+  //   return Buffer.from(str, 'base64').toString('binary');
+  // }
 }
 
 export default Helpers;

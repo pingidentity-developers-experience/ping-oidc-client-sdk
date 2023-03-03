@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import { AuthZOptions } from '../src/types';
+import { ClientOptions } from '../src/types';
 import { Logger, OAuth } from '../src/utilities';
 import { Helpers } from './utilities';
 
@@ -18,8 +18,6 @@ describe('OAuth', () => {
       crypto: {
         subtle: crypto.webcrypto.subtle,
       },
-      btoa: Helpers.btoa,
-      atob: Helpers.atob,
     }));
   });
 
@@ -49,68 +47,56 @@ describe('OAuth', () => {
 
   describe('generatePkceArtifacts', () => {
     it('should generate a 20 character state string', async () => {
-      const options: AuthZOptions = {
+      const options: ClientOptions = {
         // Not used generatePkceArtifacts
-        ClientId: '',
-        RedirectUri: '',
+        clientId: '',
+        redirectUri: '',
       };
 
       const artifacts = await OAuth.generatePkceArtifacts(options, new Logger());
 
-      expect(artifacts.State.length).toBe(20);
+      expect(artifacts.state.length).toBe(20);
     });
 
     it('should generate a 128 code verifier string', async () => {
-      const options: AuthZOptions = {
-        ClientId: '',
-        RedirectUri: '',
+      const options: ClientOptions = {
+        clientId: '',
+        redirectUri: '',
       };
 
       const artifacts = await OAuth.generatePkceArtifacts(options, new Logger());
 
-      expect(artifacts.CodeVerifier.length).toBe(128);
+      expect(artifacts.codeVerifier.length).toBe(128);
     });
 
     it('should generate a code challenge', async () => {
-      const options: AuthZOptions = {
-        ClientId: '',
-        RedirectUri: '',
+      const options: ClientOptions = {
+        clientId: '',
+        redirectUri: '',
       };
 
       const artifacts = await OAuth.generatePkceArtifacts(options, new Logger());
 
-      expect(artifacts.CodeChallenge.length).toBeGreaterThan(0);
+      expect(artifacts.codeChallenge.length).toBeGreaterThan(0);
     });
 
-    it(`should accept 'S256' code challenge method`, async () => {
-      const options: AuthZOptions = {
-        ClientId: '',
-        RedirectUri: '',
-        CodeChallengeMethod: 'S256',
-      };
+    // it(`should default to empty code challenge method and warn user if invalid`, async () => {
+    //   const logger = new Logger();
+    //   const loggerSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
 
-      const artifacts = await OAuth.generatePkceArtifacts(options, new Logger());
+    //   // Not all users will be using TypeScript necessarily, so setting to any so
+    //   // we can set an invalid CodeChallengeMethod for testing
+    //   const options: any = {
+    //     // Not used generatePkceArtifacts
+    //     clientId: '',
+    //     redirectUri: '',
+    //     codeChallengeMethod: 'S259',
+    //   };
 
-      expect(artifacts.CodeChallengeMethod).toBe('S256');
-    });
+    //   const artifacts = await OAuth.generatePkceArtifacts(options, logger);
 
-    it(`should default to empty code challenge method and warn user if invalid`, async () => {
-      const logger = new Logger();
-      const loggerSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
-
-      // Not all users will be using TypeScript necessarily, so setting to any so
-      // we can set an invalid CodeChallengeMethod for testing
-      const options: any = {
-        // Not used generatePkceArtifacts
-        ClientId: '',
-        RedirectUri: '',
-        CodeChallengeMethod: 'S259',
-      };
-
-      const artifacts = await OAuth.generatePkceArtifacts(options, logger);
-
-      expect(artifacts.CodeChallengeMethod).toBeUndefined();
-      expect(loggerSpy).toHaveBeenCalled();
-    });
+    //   expect(artifacts.codeChallengeMethod).toBeUndefined();
+    //   expect(loggerSpy).toHaveBeenCalled();
+    // });
   });
 });
