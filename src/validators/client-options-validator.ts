@@ -47,18 +47,29 @@ export class ClientOptionsValidator {
       state: options.state,
     };
 
-    if (result.grantType === GrantType.AuthorizationCode && !result.usePkce) {
-      if (!result.clientSecret) {
+    if (result.grantType === GrantType.AuthorizationCode) {
+      if (!result.usePkce && !result.clientSecret) {
         throw Error('You are trying to authenticate using a code without PKCE but did not provide a clientSecret, you will not be able to get a token');
-      } else {
-        result.clientSecretAuthMethod = this.getClientSecretAuthMethod(options);
+      } else if (result.clientSecretAuthMethod || result.clientSecret) {
+        if (result.usePkce) {
+          this.logger.warn(
+            'ClientOptionsValidator',
+            'You have passed a clientSecret and/or clientSecretAuthMethod but are also using PKCE, it is not recommended to use client secret authentication and PKCE',
+          );
+        }
+
+        if (!result.clientSecret) {
+          this.logger.warn('ClientOptionsValidator', 'You passed a clientSecretAuthMethod but no client secret, it will be ignored');
+        } else {
+          result.clientSecretAuthMethod = this.getClientSecretAuthMethod(options);
+        }
       }
     }
 
     // If window is undefined we are in a node app and it's fine
     if (result.clientSecret && window !== undefined) {
       // Don't want to block people from doing this, but do want to warn them
-      this.logger.warn('ClientOptionValidator', 'it is not recommended to use code grants without PKCE in browser applications, consider using PKCE and removing the client secret from your code');
+      this.logger.warn('ClientOptionsValidator', 'It is not recommended to use code grants without PKCE in browser applications, consider using PKCE and removing the client secret from your code');
     }
 
     return result;
