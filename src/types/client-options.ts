@@ -25,7 +25,7 @@ export interface ClientOptions {
   scope?: string;
 
   /** Optional - state passed in request, a default will be used if not provided */
-  state?: string;
+  state?: string | any;
 
   /** Optional - default is 'warn' */
   logLevel?: LogLevel;

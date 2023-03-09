@@ -28,7 +28,7 @@ export class OAuth {
     return btoa(encodeStr);
   }
 
-  static atob(encodeStr: string): string {
+  static atob(decodeStr: string): string {
     let atob = window?.atob;
 
     if (!atob) {
@@ -39,7 +39,7 @@ export class OAuth {
       }
     }
 
-    return atob(encodeStr);
+    return atob(decodeStr);
   }
 
   /**

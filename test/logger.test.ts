@@ -22,11 +22,11 @@ describe('Logger', () => {
       const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       let logger = new Logger(LogLevel.Info);
 
-      logger.error('logger.test.ts', 'test error');
+      logger.error('Logger', 'test error');
       expect(errorSpy).toHaveBeenCalledTimes(1);
 
       logger = new Logger();
-      logger.error('logger.test.ts', 'test error 2');
+      logger.error('Logger', 'test error 2');
       expect(errorSpy).toHaveBeenCalledTimes(2);
     });
 
@@ -35,11 +35,11 @@ describe('Logger', () => {
       const logger = new Logger(LogLevel.Error);
       const data = {};
 
-      logger.error('logger.test.ts', 'test error');
-      logger.error('logger.test.ts', 'test error 2', data);
+      logger.error('Logger', 'test error');
+      logger.error('Logger', 'test error 2', data);
 
-      expect(errorSpy).toHaveBeenNthCalledWith(1, 'logger.test.ts', 'test error');
-      expect(errorSpy).toHaveBeenNthCalledWith(2, 'logger.test.ts', 'test error 2', data);
+      expect(errorSpy).toHaveBeenNthCalledWith(1, 'OidcClient.Logger', 'test error');
+      expect(errorSpy).toHaveBeenNthCalledWith(2, 'OidcClient.Logger', 'test error 2', data);
     });
   });
 
@@ -48,19 +48,19 @@ describe('Logger', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       let logger = new Logger(LogLevel.Error);
 
-      logger.warn('logger.test.ts', 'test warning');
+      logger.warn('Logger', 'test warning');
       expect(warnSpy).not.toHaveBeenCalled();
 
       logger = new Logger(LogLevel.Warning);
-      logger.warn('logger.test.ts', 'test warning');
+      logger.warn('Logger', 'test warning');
       expect(warnSpy).toHaveBeenCalledTimes(1);
 
       logger = new Logger(LogLevel.Info);
-      logger.warn('logger.test.ts', 'test warning 2');
+      logger.warn('Logger', 'test warning 2');
       expect(warnSpy).toHaveBeenCalledTimes(2);
 
       logger = new Logger(LogLevel.Debug);
-      logger.warn('logger.test.ts', 'test warning 3');
+      logger.warn('Logger', 'test warning 3');
       expect(warnSpy).toHaveBeenCalledTimes(3);
     });
 
@@ -69,11 +69,11 @@ describe('Logger', () => {
       const logger = new Logger(LogLevel.Warning);
       const data = {};
 
-      logger.warn('logger.test.ts', 'test warn');
-      logger.warn('logger.test.ts', 'test warn 2', data);
+      logger.warn('Logger', 'test warn');
+      logger.warn('Logger', 'test warn 2', data);
 
-      expect(warnSpy).toHaveBeenNthCalledWith(1, 'logger.test.ts', 'test warn');
-      expect(warnSpy).toHaveBeenNthCalledWith(2, 'logger.test.ts', 'test warn 2', data);
+      expect(warnSpy).toHaveBeenNthCalledWith(1, 'OidcClient.Logger', 'test warn');
+      expect(warnSpy).toHaveBeenNthCalledWith(2, 'OidcClient.Logger', 'test warn 2', data);
     });
   });
 
@@ -82,19 +82,19 @@ describe('Logger', () => {
       const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
       let logger = new Logger(LogLevel.Error);
 
-      logger.info('logger.test.ts', 'test info');
+      logger.info('Logger', 'test info');
       expect(infoSpy).not.toHaveBeenCalled();
 
       logger = new Logger(LogLevel.Warning);
-      logger.info('logger.test.ts', 'test info');
+      logger.info('Logger', 'test info');
       expect(infoSpy).not.toHaveBeenCalled();
 
       logger = new Logger(LogLevel.Info);
-      logger.info('logger.test.ts', 'test info 2');
+      logger.info('Logger', 'test info 2');
       expect(infoSpy).toHaveBeenCalledTimes(1);
 
       logger = new Logger(LogLevel.Debug);
-      logger.info('logger.test.ts', 'test info 3');
+      logger.info('Logger', 'test info 3');
       expect(infoSpy).toHaveBeenCalledTimes(2);
     });
 
@@ -103,11 +103,11 @@ describe('Logger', () => {
       const logger = new Logger(LogLevel.Info);
       const data = {};
 
-      logger.info('logger.test.ts', 'test info');
-      logger.info('logger.test.ts', 'test info 2', data);
+      logger.info('Logger', 'test info');
+      logger.info('Logger', 'test info 2', data);
 
-      expect(infoSpy).toHaveBeenNthCalledWith(1, 'logger.test.ts', 'test info');
-      expect(infoSpy).toHaveBeenNthCalledWith(2, 'logger.test.ts', 'test info 2', data);
+      expect(infoSpy).toHaveBeenNthCalledWith(1, 'OidcClient.Logger', 'test info');
+      expect(infoSpy).toHaveBeenNthCalledWith(2, 'OidcClient.Logger', 'test info 2', data);
     });
   });
 
@@ -116,19 +116,19 @@ describe('Logger', () => {
       const debugSpy = jest.spyOn(console, 'debug').mockImplementation(() => {});
       let logger = new Logger(LogLevel.Error);
 
-      logger.debug('logger.test.ts', 'test warning');
+      logger.debug('Logger', 'test warning');
       expect(debugSpy).not.toHaveBeenCalled();
 
       logger = new Logger(LogLevel.Warning);
-      logger.debug('logger.test.ts', 'test warning');
+      logger.debug('Logger', 'test warning');
       expect(debugSpy).not.toHaveBeenCalled();
 
       logger = new Logger(LogLevel.Info);
-      logger.debug('logger.test.ts', 'test warning 2');
+      logger.debug('Logger', 'test warning 2');
       expect(debugSpy).not.toHaveBeenCalled();
 
       logger = new Logger(LogLevel.Debug);
-      logger.debug('logger.test.ts', 'test warning 3');
+      logger.debug('Logger', 'test warning 3');
       expect(debugSpy).toHaveBeenCalledTimes(1);
     });
 
@@ -137,11 +137,11 @@ describe('Logger', () => {
       const logger = new Logger(LogLevel.Debug);
       const data = {};
 
-      logger.debug('logger.test.ts', 'test debug');
-      logger.debug('logger.test.ts', 'test debug 2', data);
+      logger.debug('Logger', 'test debug');
+      logger.debug('Logger', 'test debug 2', data);
 
-      expect(debugSpy).toHaveBeenNthCalledWith(1, 'logger.test.ts', 'test debug');
-      expect(debugSpy).toHaveBeenNthCalledWith(2, 'logger.test.ts', 'test debug 2', data);
+      expect(debugSpy).toHaveBeenNthCalledWith(1, 'OidcClient.Logger', 'test debug');
+      expect(debugSpy).toHaveBeenNthCalledWith(2, 'OidcClient.Logger', 'test debug 2', data);
     });
   });
 });
