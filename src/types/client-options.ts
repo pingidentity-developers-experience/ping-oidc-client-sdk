@@ -1,7 +1,6 @@
 import ClientAuthMethod from './client-secret-auth-method';
 import GrantType from './grant-type';
 import LogLevel from './log-level';
-import { TokenResponse } from './token-response';
 
 export interface ClientOptions {
   /** Required - client id to authorize */

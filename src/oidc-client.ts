@@ -75,7 +75,7 @@ class OidcClient {
     }
 
     if (!safeCode) {
-      throw Error('An authorization code was not found ');
+      throw Error('An authorization code was not found');
     }
 
     const headers = new Headers();
@@ -88,15 +88,21 @@ class OidcClient {
     body.append('redirect_uri', this.clientOptions.redirectUri);
 
     if (this.clientOptions.grantType === GrantType.AuthorizationCode) {
-      if (!this.clientOptions.usePkce) {
-        if (this.clientOptions.clientSecretAuthMethod === ClientSecretAuthMethod.Post) {
-          body.append('client_secret', this.clientOptions.clientSecret);
-        } else {
-          headers.append('Authorization', `Basic ${window.btoa(`${this.clientOptions.clientId}:${this.clientOptions.clientSecret}`)}`);
-        }
-      } else {
+      if (this.clientOptions.usePkce) {
         // PKCE uses a code_verifier from client and does not require client secret authentication
+        const codeVerifier = localStorage.getItem(this.CODE_VERIFIER_KEY);
+
+        if (!codeVerifier) {
+          throw Error('usePkce is true but a code verifier was not found in localStorage');
+        }
+
         body.append('code_verifier', localStorage.getItem(this.CODE_VERIFIER_KEY));
+      }
+
+      if (this.clientOptions.clientSecretAuthMethod === ClientSecretAuthMethod.Post) {
+        body.append('client_secret', this.clientOptions.clientSecret);
+      } else if (this.clientOptions.clientSecretAuthMethod === ClientSecretAuthMethod.Basic) {
+        headers.append('Authorization', `Basic ${window.btoa(`${this.clientOptions.clientId}:${this.clientOptions.clientSecret}`)}`);
       }
     }
 
@@ -145,7 +151,6 @@ class OidcClient {
       const code = urlParams.get('code');
 
       if (code) {
-        // TODO Necessary to remove code from the URL?
         urlParams.delete('code');
         const query = urlParams.toString();
         const queryStr = query ? `?${query}` : '';
