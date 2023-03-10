@@ -1,13 +1,13 @@
 import * as crypto from 'crypto';
 import { ClientOptions } from '../src/types';
 import { Logger, OAuth } from '../src/utilities';
-import { Helpers } from './utilities';
+import { TestHelpers } from './utilities';
 
-describe.only('OAuth', () => {
+describe('OAuth', () => {
   let windowSpy: any;
 
   beforeAll(() => {
-    Helpers.initTextEncoder();
+    TestHelpers.initTextEncoder();
   });
 
   beforeEach(() => {

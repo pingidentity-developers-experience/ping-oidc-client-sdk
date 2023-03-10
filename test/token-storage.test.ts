@@ -38,6 +38,8 @@ describe('TokenStorage', () => {
     const tokenStorage = new TokenStorage();
     const token = tokenStorage.getToken();
 
+    expect(global.Storage.prototype.getItem).toHaveBeenCalledWith('oidc-client:response');
+
     expect(token.access_token).toBe('token');
     expect(token.expires_in).toBe(3600);
     expect(token.scope).toBe('profile');

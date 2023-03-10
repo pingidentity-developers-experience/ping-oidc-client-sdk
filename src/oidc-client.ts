@@ -164,7 +164,7 @@ class OidcClient {
   }
 
   static async fromIssuer(issuerUrl: string, clientOptions: ClientOptions): Promise<OidcClient> {
-    if (typeof issuerUrl !== 'string' || !Url.isValidUrl(issuerUrl)) {
+    if (typeof issuerUrl !== 'string' || !Url.isValidUrl(issuerUrl, true)) {
       const errorMsg = `Error creating an OpenIdClient please ensure you have entered a valid url ${issuerUrl}`;
       return Promise.reject(errorMsg);
     }

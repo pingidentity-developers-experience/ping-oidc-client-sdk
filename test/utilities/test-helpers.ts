@@ -1,9 +1,9 @@
 import { TextEncoder } from 'util';
 
-export class Helpers {
+export class TestHelpers {
   static initTextEncoder() {
     global.TextEncoder = TextEncoder;
   }
 }
 
-export default Helpers;
+export default TestHelpers;
