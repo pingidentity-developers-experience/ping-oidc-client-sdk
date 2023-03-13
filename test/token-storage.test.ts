@@ -8,6 +8,9 @@ describe('TokenStorage', () => {
       mockStorage[key] = value;
     });
     global.Storage.prototype.getItem = jest.fn(() => 'eyJhY2Nlc3NfdG9rZW4iOiJ0b2tlbiIsImV4cGlyZXNfaW4iOjM2MDAsInNjb3BlIjoicHJvZmlsZSIsInRva2VuX3R5cGUiOiJzb21lIHR5cGUifQ==');
+    global.Storage.prototype.removeItem = jest.fn((key) => {
+      delete mockStorage[key];
+    });
   });
 
   beforeEach(() => {
@@ -17,6 +20,7 @@ describe('TokenStorage', () => {
   afterAll(() => {
     (global.Storage.prototype.setItem as any).mockReset();
     (global.Storage.prototype.getItem as any).mockReset();
+    (global.Storage.prototype.removeItem as any).mockReset();
   });
 
   it('should store token base64 encoded', () => {
@@ -44,5 +48,12 @@ describe('TokenStorage', () => {
     expect(token.expires_in).toBe(3600);
     expect(token.scope).toBe('profile');
     expect(token.token_type).toBe('some type');
+  });
+
+  it('should remove token from localStorage', () => {
+    const tokenStorage = new TokenStorage();
+    tokenStorage.removeToken();
+
+    expect(global.Storage.prototype.removeItem).toHaveBeenCalledWith('oidc-client:response');
   });
 });

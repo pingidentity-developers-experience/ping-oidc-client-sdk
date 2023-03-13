@@ -25,11 +25,13 @@ class OidcClient {
   }
 
   /**
+   * Takes an optional login_hint and returns a Promise containing the url you will redirect the user to.
+   * Typically you will want to do window.location.assign(xxx) with the result.
    *
-   * @param param {ClientOptions} input options that will be used to generate and send the request
-   * @returns
+   * @param loginHint {string} login_hint url parameter that will be appended to URL in case you have a username/email already
+   * @returns {Promise<string>} Promise that will resolve with a url you should redirect to
    */
-  async authorize(): Promise<string> {
+  async authorize(loginHint?: string): Promise<string> {
     this.logger.debug('OidcClient', 'authorized called');
 
     let url = this.issuerConfiguration?.authorization_endpoint;
@@ -53,6 +55,10 @@ class OidcClient {
         url += `&code_challenge=${pkceArtifacts.codeChallenge}&code_challenge_method=S256`;
         localStorage.setItem(this.CODE_VERIFIER_KEY, pkceArtifacts.codeVerifier);
       }
+    }
+
+    if (loginHint) {
+      url += `&login_hint=${encodeURIComponent(loginHint)}`;
     }
 
     return Promise.resolve(url);
@@ -122,6 +128,43 @@ class OidcClient {
     const responseBody = await response.json();
 
     this.tokenStorage.storeToken(responseBody);
+
+    return responseBody;
+  }
+
+  async revokeToken(): Promise<any> {
+    const token = this.tokenStorage.getToken();
+
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/x-www-form-urlencoded');
+
+    // TODO uses same authn setting as token endpoint, room for consolidation
+    // headers.append('Authorization', `Basic`);
+
+    const body = new URLSearchParams();
+    // TODO this is not working unsupported_token_type,
+    // see https://apidocs.pingidentity.com/pingone/platform/v1/api/#post-token-revocation, PingOne configuration issue?
+    body.append('client_id', this.clientOptions.clientId);
+    // TODO need to support refresh tokens?
+    body.append('token', token.access_token);
+    body.append('token_type_hint', 'access_token');
+
+    const request: RequestInit = {
+      method: 'POST',
+      headers,
+      body,
+      redirect: 'manual',
+    };
+
+    const url = this.issuerConfiguration.revocation_endpoint;
+
+    this.logger.debug('OidcClient', 'Revoke POST url', url);
+    this.logger.debug('OidcClient', 'Revoke POST request', request);
+
+    const response = await fetch(url, request);
+    const responseBody = await response.json();
+
+    this.tokenStorage.removeToken();
 
     return responseBody;
   }

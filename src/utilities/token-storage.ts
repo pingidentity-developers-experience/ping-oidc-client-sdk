@@ -14,6 +14,10 @@ export class TokenStorage {
     const decodedStr = OAuth.atob(encodedStr);
     return JSON.parse(decodedStr);
   }
+
+  removeToken() {
+    localStorage.removeItem(this.TOKEN_KEY);
+  }
 }
 
 export default TokenStorage;

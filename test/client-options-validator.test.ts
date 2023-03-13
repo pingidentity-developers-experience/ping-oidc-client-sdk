@@ -3,6 +3,81 @@ import { Logger } from '../src/utilities';
 import { ClientOptionsValidator } from '../src/validators';
 
 describe('ClientOptionsValidator', () => {
+  it('should pass through client id', () => {
+    const logger = new Logger();
+    const validator = new ClientOptionsValidator(logger);
+
+    const options: ClientOptions = {
+      clientId: 'abc',
+      redirectUri: 'https://example.com',
+    };
+
+    expect(validator.validate(options).clientId).toBe('abc');
+  });
+
+  it('should pass through redirectUri', () => {
+    const logger = new Logger();
+    const validator = new ClientOptionsValidator(logger);
+
+    const options: ClientOptions = {
+      clientId: 'abc',
+      redirectUri: 'https://example.com',
+    };
+
+    expect(validator.validate(options).redirectUri).toBe('https://example.com');
+  });
+
+  it('should pass through client secret', () => {
+    const logger = new Logger();
+    jest.spyOn(logger, 'warn').mockImplementation(() => {});
+    const validator = new ClientOptionsValidator(logger);
+
+    const options: ClientOptions = {
+      clientId: 'abc',
+      redirectUri: 'https://example.com',
+      clientSecret: 'xyz',
+    };
+
+    expect(validator.validate(options).clientSecret).toBe('xyz');
+  });
+
+  it('should allow undefined client secret', () => {
+    const logger = new Logger();
+    const validator = new ClientOptionsValidator(logger);
+
+    const options: ClientOptions = {
+      clientId: 'abc',
+      redirectUri: 'https://example.com',
+    };
+
+    expect(validator.validate(options).clientSecret).toBeUndefined();
+  });
+
+  it('should pass through state', () => {
+    const logger = new Logger();
+    const validator = new ClientOptionsValidator(logger);
+
+    const options: ClientOptions = {
+      clientId: 'abc',
+      redirectUri: 'https://example.com',
+      state: 'test-state',
+    };
+
+    expect(validator.validate(options).state).toBe('test-state');
+  });
+
+  it('should allow undefined state', () => {
+    const logger = new Logger();
+    const validator = new ClientOptionsValidator(logger);
+
+    const options: ClientOptions = {
+      clientId: 'abc',
+      redirectUri: 'https://example.com',
+    };
+
+    expect(validator.validate(options).state).toBeUndefined();
+  });
+
   it('should throw error if ClientId is not set', () => {
     const logger = new Logger();
     const loggerSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
