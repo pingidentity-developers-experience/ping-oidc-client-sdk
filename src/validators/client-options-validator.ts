@@ -20,21 +20,21 @@ export class ClientOptionsValidator {
 
     // Need to validate required properies, users may not be using typescript so doublecheck them
     if (!options.clientId) {
-      this.logger.error('ClientOptionsValidator', 'options.ClientId is required to send an authorization request');
+      this.logger.error('ClientOptionsValidator', 'options.clientId is required to send an authorization request');
       error = true;
     } else {
-      this.logger.debug('ClientOptionsValidator', 'options.ClientId verified', options.clientId);
+      this.logger.debug('ClientOptionsValidator', 'options.clientId verified', options.clientId);
     }
 
     if (!options.redirectUri) {
-      this.logger.error('ClientOptionsValidator', 'options.RedirectUri is required to send an authorization request');
+      this.logger.error('ClientOptionsValidator', 'options.redirectUri is required to send an authorization request');
       error = true;
     } else {
-      this.logger.debug('ClientOptionsValidator', 'options.RedirectUri verified', options.redirectUri);
+      this.logger.debug('ClientOptionsValidator', 'options.redirectUri verified', options.redirectUri);
     }
 
     if (error) {
-      throw Error('An error occured while validating AuthZOptions, see console.error messages for more information');
+      throw Error('An error occured while validating ClientOptions, see console.error messages for more information');
     }
 
     const result: ValidatedClientOptions = {
@@ -50,7 +50,7 @@ export class ClientOptionsValidator {
     if (result.grantType === GrantType.AuthorizationCode) {
       if (!result.usePkce && !result.clientSecret) {
         throw Error('You are trying to authenticate using a code without PKCE but did not provide a clientSecret, you will not be able to get a token');
-      } else if (result.clientSecretAuthMethod || result.clientSecret) {
+      } else if (options.clientSecretAuthMethod || result.clientSecret) {
         if (result.usePkce) {
           this.logger.warn(
             'ClientOptionsValidator',

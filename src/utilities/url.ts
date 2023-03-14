@@ -9,10 +9,10 @@ export class Url {
     return url.endsWith('/') ? url.substring(0, url.length - 1) : url;
   }
 
-  static isValidUrl(urlString: string): boolean {
+  static isValidUrl(urlString: string, acceptHttp = false): boolean {
     try {
       const url = new URL(urlString);
-      return url.protocol === 'https:'; // Should we accept http? probably not?
+      return acceptHttp ? url.protocol === 'https:' || url.protocol === 'http:' : url.protocol === 'https:';
     } catch {
       return false;
     }

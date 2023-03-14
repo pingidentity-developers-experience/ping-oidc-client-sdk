@@ -1,12 +1,12 @@
 import { Url } from '../src/utilities';
 
 describe('Url', () => {
-  it('should add trailing slash if not already there', () => {
+  it('should pass through valid url', () => {
     const url = 'https://example.com';
     expect(Url.trimTrailingSlash(url)).toBe('https://example.com');
   });
 
-  it('should not add trailing slash if already there', () => {
+  it('should remove trailing slash', () => {
     const url = 'https://example.com/';
     expect(Url.trimTrailingSlash(url)).toBe('https://example.com');
   });
@@ -25,9 +25,14 @@ describe('Url', () => {
       expect(Url.isValidUrl(url)).toBe(false);
     });
 
-    it('should not accept http urls', () => {
+    it('should not accept http urls by default', () => {
       const url = 'http://google.com';
       expect(Url.isValidUrl(url)).toBe(false);
+    });
+
+    it('should not accept http urls if acceptHttp is true', () => {
+      const url = 'http://google.com';
+      expect(Url.isValidUrl(url, true)).toBe(true);
     });
   });
 });
