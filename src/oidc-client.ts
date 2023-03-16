@@ -40,8 +40,7 @@ class OidcClient {
    */
   static async fromIssuer(issuerUrl: string, clientOptions: ClientOptions): Promise<OidcClient> {
     if (typeof issuerUrl !== 'string' || !Url.isValidUrl(issuerUrl, true)) {
-      const errorMsg = `Error creating an OpenIdClient please ensure you have entered a valid url ${issuerUrl}`;
-      return Promise.reject(errorMsg);
+      return Promise.reject(new Error(`Error creating an OpenIdClient please ensure you have entered a valid url ${issuerUrl}`));
     }
 
     const wellKnown = await fetch(`${Url.trimTrailingSlash(issuerUrl)}/.well-known/openid-configuration`);
@@ -154,12 +153,10 @@ class OidcClient {
    * @returns {any} - TODO, anything important in revoke response?
    */
   async revokeToken(): Promise<any> {
-    const token = this.tokenStorage.getToken();
+    const token = this.verifyToken();
 
-    if (token?.access_token) {
-      const msg = 'Token not found, make sure you have called authorize and getToken methods before attempting to get user info.';
-      this.logger.error('OidcClient', msg, token);
-      return Promise.reject(msg);
+    if (!token) {
+      return Promise.reject(new Error('No token available'));
     }
 
     const body = new URLSearchParams();
@@ -170,8 +167,10 @@ class OidcClient {
     body.append('token', token.access_token);
     body.append('token_type_hint', 'access_token');
 
-    const revokeResponse = await this.clientSecretAuthenticatedApiCall(this.issuerConfiguration.revocation_endpoint, body);
+    // TODO - we should do after the network call succeeds, but this was annoying for testing before fixing the above issue
     this.tokenStorage.removeToken();
+
+    const revokeResponse = await this.clientSecretAuthenticatedApiCall(this.issuerConfiguration.revocation_endpoint, body);
 
     return revokeResponse;
   }
@@ -182,12 +181,10 @@ class OidcClient {
    * @returns {any} User Info returned from the issuer
    */
   async fetchUserInfo(): Promise<any> {
-    const token = this.tokenStorage.getToken();
+    const token = this.verifyToken();
 
-    if (token?.access_token) {
-      const msg = 'Token not found, make sure you have called authorize and getToken methods before attempting to get user info.';
-      this.logger.error('OidcClient', msg, token);
-      return Promise.reject(msg);
+    if (!token) {
+      return Promise.reject(new Error('No token available'));
     }
 
     const headers = new Headers();
@@ -202,6 +199,24 @@ class OidcClient {
     const responseBody = await response.json();
 
     return responseBody;
+  }
+
+  /**
+   * Whether there is a token managed by the library available
+   */
+  hasToken(): boolean {
+    return !!this.tokenStorage.getToken()?.access_token;
+  }
+
+  private verifyToken(): TokenResponse {
+    const token = this.tokenStorage.getToken();
+
+    if (!token?.access_token) {
+      this.logger.error('OidcClient', 'Token not found, make sure you have called authorize and getToken methods before attempting to get user info.', token);
+      return null;
+    }
+
+    return token;
   }
 
   private checkUrlForCode(): string {

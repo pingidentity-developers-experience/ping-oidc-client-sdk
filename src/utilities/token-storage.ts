@@ -11,8 +11,13 @@ export class TokenStorage {
 
   getToken(): TokenResponse {
     const encodedStr = localStorage.getItem(this.TOKEN_KEY);
-    const decodedStr = OAuth.atob(encodedStr);
-    return JSON.parse(decodedStr);
+
+    if (encodedStr) {
+      const decodedStr = OAuth.atob(encodedStr);
+      return JSON.parse(decodedStr);
+    }
+
+    return null;
   }
 
   removeToken() {
