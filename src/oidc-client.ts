@@ -34,34 +34,38 @@ class OidcClient {
   async authorize(loginHint?: string): Promise<string> {
     this.logger.debug('OidcClient', 'authorized called');
 
-    let url = this.issuerConfiguration?.authorization_endpoint;
+    const url = this.issuerConfiguration?.authorization_endpoint;
 
     if (!url) {
       throw Error(
-        `No token_endpoint has been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a token_enpoint with the OpenIdConfiguration object`,
+        `No token_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a token_enpoint with the OpenIdConfiguration object`,
       );
     }
 
-    url += `?response_type=${this.clientOptions.grantType === GrantType.Token ? 'token' : 'code'}&client_id=${this.clientOptions.clientId}&redirect_uri=${this.clientOptions.redirectUri}&scope=${
-      this.clientOptions.scope
-    }`;
+    const urlParams = new URLSearchParams();
+    urlParams.append('response_type', this.clientOptions.grantType === GrantType.Token ? 'token' : 'code');
+    urlParams.append('client_id', this.clientOptions.clientId);
+    urlParams.append('redirect_uri', this.clientOptions.redirectUri);
+    urlParams.append('scope', this.clientOptions.scope);
 
     if (this.clientOptions.grantType === GrantType.AuthorizationCode) {
       const pkceArtifacts = await OAuth.generatePkceArtifacts(this.clientOptions, this.logger);
-      url += `&state=${pkceArtifacts.state}&nonce=${pkceArtifacts.state}`;
+      urlParams.append('state', pkceArtifacts.state);
+      urlParams.append('nonce', pkceArtifacts.nonce);
 
       if (this.clientOptions.usePkce) {
+        urlParams.append('code_challenge', pkceArtifacts.codeChallenge);
         // Basic is not recommended, just use S256
-        url += `&code_challenge=${pkceArtifacts.codeChallenge}&code_challenge_method=S256`;
+        urlParams.append('code_challenge_method', 'S256');
         localStorage.setItem(this.CODE_VERIFIER_KEY, pkceArtifacts.codeVerifier);
       }
     }
 
     if (loginHint) {
-      url += `&login_hint=${encodeURIComponent(loginHint)}`;
+      urlParams.append('login_hint', encodeURIComponent(loginHint));
     }
 
-    return Promise.resolve(url);
+    return Promise.resolve(`${url}?${urlParams.toString()}`);
   }
 
   /**
