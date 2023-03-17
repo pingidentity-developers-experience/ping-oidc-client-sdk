@@ -1,4 +1,4 @@
-import { ClientOptions, ClientSecretAuthMethod, GrantType, LogLevel, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
+import { ClientOptions, ClientSecretAuthMethod, GrantType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
 import { Logger, OAuth, TokenStorage, Url } from './utilities';
 import { ClientOptionsValidator } from './validators';
 
@@ -19,7 +19,7 @@ class OidcClient {
    * @param issuerConfig {OpenIdConfiguration} OpenIdConfiguration object that the library will use
    */
   constructor(clientOptions: ClientOptions, issuerConfig: OpenIdConfiguration) {
-    this.logger = new Logger(clientOptions?.logLevel || LogLevel.Warning);
+    this.logger = new Logger(clientOptions?.logLevel);
 
     if (!clientOptions || !issuerConfig) {
       throw Error('clientOptions and issuerConfig are required to initialize an OidcClient');
@@ -43,10 +43,14 @@ class OidcClient {
       return Promise.reject(new Error(`Error creating an OpenIdClient please ensure you have entered a valid url ${issuerUrl}`));
     }
 
-    const wellKnown = await fetch(`${Url.trimTrailingSlash(issuerUrl)}/.well-known/openid-configuration`);
-    const responseBody = await wellKnown.json();
+    try {
+      const wellKnownResponse = await fetch(`${Url.trimTrailingSlash(issuerUrl)}/.well-known/openid-configuration`);
+      const responseBody = await wellKnownResponse.json();
 
-    return new OidcClient(clientOptions, responseBody);
+      return new OidcClient(clientOptions, responseBody);
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   /**

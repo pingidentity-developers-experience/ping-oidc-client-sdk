@@ -1,4 +1,4 @@
-import { ClientOptions, ClientSecretAuthMethod, GrantType, LogLevel } from '../src/types';
+import { ClientSecretAuthMethod, GrantType, LogLevel } from '../src/types';
 import { Logger } from '../src/utilities';
 import { ClientOptionsValidator } from '../src/validators';
 
@@ -7,7 +7,7 @@ describe('ClientOptionsValidator', () => {
     const logger = new Logger();
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: 'abc',
       redirectUri: 'https://example.com',
     };
@@ -19,7 +19,7 @@ describe('ClientOptionsValidator', () => {
     const logger = new Logger();
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: 'abc',
       redirectUri: 'https://example.com',
     };
@@ -32,7 +32,7 @@ describe('ClientOptionsValidator', () => {
     jest.spyOn(logger, 'warn').mockImplementation(() => {});
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: 'abc',
       redirectUri: 'https://example.com',
       clientSecret: 'xyz',
@@ -45,7 +45,7 @@ describe('ClientOptionsValidator', () => {
     const logger = new Logger();
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: 'abc',
       redirectUri: 'https://example.com',
     };
@@ -57,7 +57,7 @@ describe('ClientOptionsValidator', () => {
     const logger = new Logger();
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: 'abc',
       redirectUri: 'https://example.com',
       state: 'test-state',
@@ -70,7 +70,7 @@ describe('ClientOptionsValidator', () => {
     const logger = new Logger();
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: 'abc',
       redirectUri: 'https://example.com',
     };
@@ -84,7 +84,7 @@ describe('ClientOptionsValidator', () => {
 
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: '',
       redirectUri: 'https://example.com',
     };
@@ -99,7 +99,7 @@ describe('ClientOptionsValidator', () => {
 
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: '213',
       redirectUri: '',
     };
@@ -113,7 +113,7 @@ describe('ClientOptionsValidator', () => {
 
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: '213',
       redirectUri: 'https://example.com',
     };
@@ -126,7 +126,7 @@ describe('ClientOptionsValidator', () => {
 
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: '213',
       redirectUri: 'https://example.com',
       grantType: GrantType.Token,
@@ -140,10 +140,10 @@ describe('ClientOptionsValidator', () => {
     const loggerSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: '213',
       redirectUri: 'https://example.com',
-      grantType: 'derp' as any, // users may not be using TypeScript
+      grantType: 'derp',
     };
 
     expect(validator.validate(options).grantType).toBe(GrantType.AuthorizationCode);
@@ -154,7 +154,7 @@ describe('ClientOptionsValidator', () => {
     const logger = new Logger();
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: '213',
       redirectUri: 'https://example.com',
     };
@@ -166,7 +166,7 @@ describe('ClientOptionsValidator', () => {
     const logger = new Logger();
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: '213',
       redirectUri: 'https://example.com',
       scope: 'openid profile email',
@@ -180,7 +180,7 @@ describe('ClientOptionsValidator', () => {
     jest.spyOn(logger, 'warn').mockImplementation(() => {});
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: '213',
       redirectUri: 'https://example.com',
       clientSecret: 'xyz',
@@ -194,7 +194,7 @@ describe('ClientOptionsValidator', () => {
     jest.spyOn(logger, 'warn').mockImplementation(() => {});
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: '213',
       redirectUri: 'https://example.com',
       clientSecret: 'xyz',
@@ -209,11 +209,11 @@ describe('ClientOptionsValidator', () => {
     const loggerSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: '213',
       redirectUri: 'https://example.com',
       clientSecret: 'xyz',
-      clientSecretAuthMethod: 'invalid' as any,
+      clientSecretAuthMethod: 'invalid',
     };
 
     expect(validator.validate(options).clientSecretAuthMethod).toBe(ClientSecretAuthMethod.Basic);
@@ -228,7 +228,7 @@ describe('ClientOptionsValidator', () => {
     const logger = new Logger();
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: 'abc123',
       redirectUri: 'https://example.com',
     };
@@ -242,7 +242,7 @@ describe('ClientOptionsValidator', () => {
 
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: 'abc123',
       redirectUri: 'https://example.com',
       usePkce: false,
@@ -261,10 +261,10 @@ describe('ClientOptionsValidator', () => {
     const loggerSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: 'abc123',
       redirectUri: 'https://example.com',
-      usePkce: 'YES' as any, // users may not be using TypeScript
+      usePkce: 'YES',
     };
 
     expect(validator.validate(options).usePkce).toBe(true);
@@ -275,7 +275,7 @@ describe('ClientOptionsValidator', () => {
     const logger = new Logger(LogLevel.Error);
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: 'abc123',
       redirectUri: 'https://example.com',
       usePkce: false,
@@ -289,7 +289,7 @@ describe('ClientOptionsValidator', () => {
     const loggerSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: 'abc123',
       redirectUri: 'https://example.com',
       clientSecretAuthMethod: ClientSecretAuthMethod.Basic,
@@ -304,7 +304,7 @@ describe('ClientOptionsValidator', () => {
     const loggerSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
     const validator = new ClientOptionsValidator(logger);
 
-    const options: ClientOptions = {
+    const options = {
       clientId: 'abc123',
       redirectUri: 'https://example.com',
       clientSecretAuthMethod: ClientSecretAuthMethod.Basic,

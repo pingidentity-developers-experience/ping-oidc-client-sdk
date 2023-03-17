@@ -1,7 +1,7 @@
 import { TokenStorage } from '../src/utilities';
 
 describe('TokenStorage', () => {
-  let mockStorage: any = {};
+  let mockStorage = {};
 
   beforeAll(() => {
     global.Storage.prototype.setItem = jest.fn((key, value) => {
@@ -18,9 +18,9 @@ describe('TokenStorage', () => {
   });
 
   afterAll(() => {
-    (global.Storage.prototype.setItem as any).mockReset();
-    (global.Storage.prototype.getItem as any).mockReset();
-    (global.Storage.prototype.removeItem as any).mockReset();
+    global.Storage.prototype.setItem.mockReset();
+    global.Storage.prototype.getItem.mockReset();
+    global.Storage.prototype.removeItem.mockReset();
   });
 
   it('should store token base64 encoded', () => {
