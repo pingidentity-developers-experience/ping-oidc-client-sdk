@@ -1,14 +1,12 @@
 import { ClientOptions, ClientSecretAuthMethod, GrantType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
-import { Logger, OAuth, TokenStorage, Url } from './utilities';
+import { Logger, OAuth, ClientStorage, Url } from './utilities';
 import { ClientOptionsValidator } from './validators';
 
 class OidcClient {
-  private readonly CODE_VERIFIER_KEY = 'oidc-client:code_verifier';
-
   private readonly clientOptions: ValidatedClientOptions;
   private readonly issuerConfiguration: OpenIdConfiguration;
   private readonly logger: Logger;
-  private readonly tokenStorage: TokenStorage;
+  private readonly clientStorage: ClientStorage;
 
   /**
    * It is recommended to initialize this class using the fromIssuer method which allows the open id configuration to be built
@@ -29,7 +27,14 @@ class OidcClient {
     this.issuerConfiguration = issuerConfig;
     this.clientOptions = new ClientOptionsValidator(this.logger).validate(clientOptions);
 
-    this.tokenStorage = new TokenStorage();
+    this.clientStorage = new ClientStorage();
+  }
+
+  /**
+   * Whether there is a token managed by the library available
+   */
+  get hasToken(): boolean {
+    return !!this.clientStorage.getToken()?.access_token;
   }
 
   /**
@@ -63,11 +68,9 @@ class OidcClient {
   async authorize(loginHint?: string): Promise<string> {
     this.logger.debug('OidcClient', 'authorized called');
 
-    const url = this.issuerConfiguration?.authorization_endpoint;
-
-    if (!url) {
+    if (!this.issuerConfiguration?.authorization_endpoint) {
       throw Error(
-        `No token_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a token_enpoint with the OpenIdConfiguration object`,
+        `No authorization_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a authorization_enpoint with the OpenIdConfiguration object`,
       );
     }
 
@@ -86,7 +89,7 @@ class OidcClient {
         urlParams.append('code_challenge', pkceArtifacts.codeChallenge);
         // Basic is not recommended, just use S256
         urlParams.append('code_challenge_method', 'S256');
-        localStorage.setItem(this.CODE_VERIFIER_KEY, pkceArtifacts.codeVerifier);
+        this.clientStorage.storeCodeVerifier(pkceArtifacts.codeVerifier);
       }
     }
 
@@ -94,7 +97,7 @@ class OidcClient {
       urlParams.append('login_hint', encodeURIComponent(loginHint));
     }
 
-    return Promise.resolve(`${url}?${urlParams.toString()}`);
+    return Promise.resolve(`${this.issuerConfiguration?.authorization_endpoint}?${urlParams.toString()}`);
   }
 
   /**
@@ -111,20 +114,30 @@ class OidcClient {
    * @param code {string} code from the redirect back to the app, if this is not provided the library will try to grab it from the URL for you.
    * @returns Token response from auth server
    */
-  async getToken(code: string = this.checkUrlForCode()): Promise<TokenResponse> {
-    let token = this.tokenStorage.getToken();
+  async getToken(): Promise<TokenResponse> {
+    this.logger.debug('OidcClient', 'getToken called');
+
+    let token = this.clientStorage.getToken();
 
     if (token) {
       return Promise.resolve(token);
     }
 
-    this.logger.debug('OidcClient', 'getToken called', code);
+    if (!this.issuerConfiguration?.token_endpoint) {
+      throw Error(
+        `No token_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a token_enpoint with the OpenIdConfiguration object`,
+      );
+    }
 
     token = this.checkUrlForToken();
 
-    if (!token && !code) {
-      throw Error('An authorization code was not found and a token was not found in storage or the url hash');
-    } else {
+    if (!token) {
+      const code = this.checkUrlForCode();
+
+      if (!code) {
+        throw Error('An authorization code was not found and a token was not found in storage or the url');
+      }
+
       const body = new URLSearchParams();
       body.append('grant_type', this.clientOptions.grantType);
       body.append('code', code);
@@ -133,20 +146,24 @@ class OidcClient {
       if (this.clientOptions.grantType === GrantType.AuthorizationCode) {
         if (this.clientOptions.usePkce) {
           // PKCE uses a code_verifier from client and does not require client secret authentication
-          const codeVerifier = localStorage.getItem(this.CODE_VERIFIER_KEY);
+          const codeVerifier = this.clientStorage.getCodeVerifier();
 
           if (!codeVerifier) {
             throw Error('usePkce is true but a code verifier was not found in localStorage');
           }
 
-          body.append('code_verifier', localStorage.getItem(this.CODE_VERIFIER_KEY));
+          body.append('code_verifier', codeVerifier);
         }
       }
 
-      token = await this.clientSecretAuthenticatedApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
+      try {
+        token = await this.clientSecretAuthenticatedApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
+      } catch (error) {
+        return Promise.reject(error);
+      }
     }
 
-    this.tokenStorage.storeToken(token);
+    this.clientStorage.storeToken(token);
 
     return token;
   }
@@ -171,12 +188,13 @@ class OidcClient {
     body.append('token', token.access_token);
     body.append('token_type_hint', 'access_token');
 
-    // TODO - we should do after the network call succeeds, but this was annoying for testing before fixing the above issue
-    this.tokenStorage.removeToken();
-
-    const revokeResponse = await this.clientSecretAuthenticatedApiCall(this.issuerConfiguration.revocation_endpoint, body);
-
-    return revokeResponse;
+    try {
+      const revokeResponse = await this.clientSecretAuthenticatedApiCall(this.issuerConfiguration.revocation_endpoint, body);
+      this.clientStorage.removeToken();
+      return revokeResponse;
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   /**
@@ -199,21 +217,18 @@ class OidcClient {
       headers,
     };
 
-    const response = await fetch(this.issuerConfiguration.userinfo_endpoint, request);
-    const responseBody = await response.json();
+    try {
+      const response = await fetch(this.issuerConfiguration.userinfo_endpoint, request);
+      const responseBody = await response.json();
 
-    return responseBody;
-  }
-
-  /**
-   * Whether there is a token managed by the library available
-   */
-  hasToken(): boolean {
-    return !!this.tokenStorage.getToken()?.access_token;
+      return responseBody;
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   private verifyToken(): TokenResponse {
-    const token = this.tokenStorage.getToken();
+    const token = this.clientStorage.getToken();
 
     if (!token?.access_token) {
       this.logger.error('OidcClient', 'Token not found, make sure you have called authorize and getToken methods before attempting to get user info.', token);
@@ -273,7 +288,7 @@ class OidcClient {
     if (this.clientOptions.clientSecretAuthMethod === ClientSecretAuthMethod.Post) {
       body.append('client_secret', this.clientOptions.clientSecret);
     } else if (this.clientOptions.clientSecretAuthMethod === ClientSecretAuthMethod.Basic) {
-      headers.append('Authorization', `Basic ${window.btoa(`${this.clientOptions.clientId}:${this.clientOptions.clientSecret}`)}`);
+      headers.append('Authorization', `Basic ${OAuth.btoa(`${this.clientOptions.clientId}:${this.clientOptions.clientSecret}`)}`);
     }
 
     const request: RequestInit = {

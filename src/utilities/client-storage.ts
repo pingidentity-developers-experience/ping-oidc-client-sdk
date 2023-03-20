@@ -1,8 +1,9 @@
 import { TokenResponse } from '../types';
 import OAuth from './oauth';
 
-export class TokenStorage {
+export class ClientStorage {
   private readonly TOKEN_KEY = 'oidc-client:response';
+  private readonly CODE_VERIFIER_KEY = 'oidc-client:code_verifier';
 
   storeToken(token: TokenResponse) {
     const str = JSON.stringify(token);
@@ -23,6 +24,23 @@ export class TokenStorage {
   removeToken() {
     localStorage.removeItem(this.TOKEN_KEY);
   }
+
+  storeCodeVerifier(codeVerifier: string) {
+    localStorage.setItem(this.CODE_VERIFIER_KEY, OAuth.btoa(codeVerifier));
+  }
+
+  getCodeVerifier() {
+    const encodedStr = localStorage.getItem(this.CODE_VERIFIER_KEY);
+    return encodedStr ? OAuth.atob(encodedStr) : null;
+  }
+
+  removeCodeVerifier() {
+    localStorage.removeItem(this.CODE_VERIFIER_KEY);
+  }
+
+  clearAll() {
+    localStorage.clear();
+  }
 }
 
-export default TokenStorage;
+export default ClientStorage;
