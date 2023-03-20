@@ -1,10 +1,9 @@
 import * as crypto from 'crypto';
-import { ClientOptions } from '../src/types';
 import { Logger, OAuth } from '../src/utilities';
 import { TestHelpers } from './utilities';
 
 describe('OAuth', () => {
-  let windowSpy: any;
+  let windowSpy;
 
   beforeAll(() => {
     TestHelpers.initTextEncoder();
@@ -13,6 +12,7 @@ describe('OAuth', () => {
   beforeEach(() => {
     // Set up all the stuff needed on the window object for
     // the generateCodeChallenge method to run successfully.
+    // eslint-disable-next-line no-undef
     windowSpy = jest.spyOn(window, 'window', 'get');
     windowSpy.mockImplementation(() => ({
       crypto: {
@@ -59,7 +59,7 @@ describe('OAuth', () => {
 
   describe('generatePkceArtifacts', () => {
     it('should generate a 20 character state string', async () => {
-      const options: ClientOptions = {
+      const options = {
         // Not used generatePkceArtifacts
         clientId: '',
         redirectUri: '',
@@ -71,7 +71,7 @@ describe('OAuth', () => {
     });
 
     it('should generate a 10 character nonce string', async () => {
-      const options: ClientOptions = {
+      const options = {
         // Not used generatePkceArtifacts
         clientId: '',
         redirectUri: '',
@@ -83,7 +83,7 @@ describe('OAuth', () => {
     });
 
     it('should generate a 128 code verifier string', async () => {
-      const options: ClientOptions = {
+      const options = {
         clientId: '',
         redirectUri: '',
       };
@@ -94,7 +94,7 @@ describe('OAuth', () => {
     });
 
     it('should generate a code challenge if usePkce is true', async () => {
-      const options: ClientOptions = {
+      const options = {
         clientId: '',
         redirectUri: '',
         usePkce: true,
@@ -106,7 +106,7 @@ describe('OAuth', () => {
     });
 
     it('should pass string state through', async () => {
-      const options: ClientOptions = {
+      const options = {
         clientId: '',
         redirectUri: '',
         state: 'teststate',
@@ -118,7 +118,7 @@ describe('OAuth', () => {
     });
 
     it('should pass object state through as a string', async () => {
-      const options: ClientOptions = {
+      const options = {
         clientId: '',
         redirectUri: '',
         state: { test: 'value' },

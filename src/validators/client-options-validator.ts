@@ -45,6 +45,7 @@ export class ClientOptionsValidator {
       usePkce: this.getUsePkce(options),
       clientSecret: options.clientSecret,
       state: options.state,
+      tokenAvailableCallback: options.tokenAvailableCallback,
     };
 
     if (result.grantType === GrantType.AuthorizationCode) {

@@ -1,17 +1,25 @@
-import { ClientOptions, ClientSecretAuthMethod, GrantType, LogLevel, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
-import { Logger, OAuth, TokenStorage, Url } from './utilities';
+import { ClientOptions, ClientSecretAuthMethod, GrantType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
+import { Logger, OAuth, ClientStorage, Url } from './utilities';
+import BrowserUrlManager from './utilities/browser-url-manager';
 import { ClientOptionsValidator } from './validators';
 
 class OidcClient {
-  private readonly CODE_VERIFIER_KEY = 'oidc-client:code_verifier';
-
   private readonly clientOptions: ValidatedClientOptions;
   private readonly issuerConfiguration: OpenIdConfiguration;
   private readonly logger: Logger;
-  private readonly tokenStorage: TokenStorage;
+  private readonly clientStorage: ClientStorage;
+  private readonly browserUrlManager: BrowserUrlManager;
 
+  /**
+   * It is recommended to initialize this class using the fromIssuer method which allows the open id configuration to be built
+   * from your issuer's well-known endpoint. However if you wish, you can initialize the OidcClient class manually passing
+   * in the OpenIdConfiguation manually.
+   *
+   * @param clientOptions {ClientOptions} Options for the OIDC Client, clientId and redirectUri are required
+   * @param issuerConfig {OpenIdConfiguration} OpenIdConfiguration object that the library will use
+   */
   constructor(clientOptions: ClientOptions, issuerConfig: OpenIdConfiguration) {
-    this.logger = new Logger(clientOptions?.logLevel || LogLevel.Warning);
+    this.logger = new Logger(clientOptions?.logLevel);
 
     if (!clientOptions || !issuerConfig) {
       throw Error('clientOptions and issuerConfig are required to initialize an OidcClient');
@@ -21,89 +29,199 @@ class OidcClient {
     this.issuerConfiguration = issuerConfig;
     this.clientOptions = new ClientOptionsValidator(this.logger).validate(clientOptions);
 
-    this.tokenStorage = new TokenStorage();
+    this.clientStorage = new ClientStorage();
+
+    if (this.hasToken || this.tokenReady) {
+      this.getToken().then((token) => {
+        this.clientOptions.tokenAvailableCallback?.(token);
+      });
+    }
+  }
+
+  /**
+   * Whether there is a token managed by the library available
+   */
+  get hasToken(): boolean {
+    return !!this.clientStorage.getToken()?.access_token;
+  }
+
+  private get tokenReady(): boolean {
+    const hashFragment = window?.location?.hash;
+    const searchFragment = window?.location?.search;
+
+    let hashParams;
+    let searchParams;
+
+    if (hashFragment) {
+      hashParams = new URLSearchParams(hashFragment.charAt(0) === '#' ? hashFragment.substring(1) : hashFragment);
+    }
+
+    if (searchFragment) {
+      searchParams = new URLSearchParams(searchFragment);
+    }
+
+    return hashParams?.has('access_token') || searchParams?.has('code');
+  }
+
+  /**
+   *
+   * @param issuerUrl {string} Base URL for the issuer, /.well-known/openid-configuration will be appended in this method
+   * @param clientOptions {ClientOptions} Options for the OIDC Client, clientId and redirectUri are required
+   * @returns
+   */
+  static async fromIssuer(issuerUrl: string, clientOptions: ClientOptions): Promise<OidcClient> {
+    if (typeof issuerUrl !== 'string' || !Url.isValidUrl(issuerUrl, true)) {
+      return Promise.reject(new Error(`Error creating an OpenIdClient please ensure you have entered a valid url ${issuerUrl}`));
+    }
+
+    try {
+      const wellKnownResponse = await fetch(`${Url.trimTrailingSlash(issuerUrl)}/.well-known/openid-configuration`);
+      const responseBody = await wellKnownResponse.json();
+
+      return new OidcClient(clientOptions, responseBody);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+
+  /**
+   * Takes an optional login_hint and navigates the browser to the generated auth url using window.location.assign
+   *
+   * @param loginHint {string} login_hint url parameter that will be appended to URL in case you have a username/email already
+   * @returns {Promise} Will navigate the current browser tab to the authorization url that is generated through the authorizeUrl method
+   */
+  async authorize(loginHint?: string): Promise<void> {
+    try {
+      const authUrl = await this.authorizeUrl(loginHint);
+      window?.location?.assign(authUrl);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+
+    return Promise.resolve();
   }
 
   /**
    * Takes an optional login_hint and returns a Promise containing the url you will redirect the user to.
-   * Typically you will want to do window.location.assign(xxx) with the result.
+   * Typically you will want to apply the url to an anchor tag or redirect to it using window.location.assign(xxx).
    *
    * @param loginHint {string} login_hint url parameter that will be appended to URL in case you have a username/email already
    * @returns {Promise<string>} Promise that will resolve with a url you should redirect to
    */
-  async authorize(loginHint?: string): Promise<string> {
+  async authorizeUrl(loginHint?: string): Promise<string> {
     this.logger.debug('OidcClient', 'authorized called');
 
-    let url = this.issuerConfiguration?.authorization_endpoint;
-
-    if (!url) {
+    if (!this.issuerConfiguration?.authorization_endpoint) {
       throw Error(
-        `No token_endpoint has been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a token_enpoint with the OpenIdConfiguration object`,
+        `No authorization_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a authorization_enpoint with the OpenIdConfiguration object`,
       );
     }
 
-    url += `?response_type=${this.clientOptions.grantType === GrantType.Token ? 'token' : 'code'}&client_id=${this.clientOptions.clientId}&redirect_uri=${this.clientOptions.redirectUri}&scope=${
-      this.clientOptions.scope
-    }`;
+    const urlParams = new URLSearchParams();
+    urlParams.append('response_type', this.clientOptions.grantType === GrantType.Token ? 'token' : 'code');
+    urlParams.append('client_id', this.clientOptions.clientId);
+    urlParams.append('redirect_uri', this.clientOptions.redirectUri);
+    urlParams.append('scope', this.clientOptions.scope);
 
     if (this.clientOptions.grantType === GrantType.AuthorizationCode) {
       const pkceArtifacts = await OAuth.generatePkceArtifacts(this.clientOptions, this.logger);
-      url += `&state=${pkceArtifacts.state}&nonce=${pkceArtifacts.state}`;
+      urlParams.append('state', pkceArtifacts.state);
+      urlParams.append('nonce', pkceArtifacts.nonce);
 
       if (this.clientOptions.usePkce) {
+        urlParams.append('code_challenge', pkceArtifacts.codeChallenge);
         // Basic is not recommended, just use S256
-        url += `&code_challenge=${pkceArtifacts.codeChallenge}&code_challenge_method=S256`;
-        localStorage.setItem(this.CODE_VERIFIER_KEY, pkceArtifacts.codeVerifier);
+        urlParams.append('code_challenge_method', 'S256');
+        this.clientStorage.storeCodeVerifier(pkceArtifacts.codeVerifier);
       }
     }
 
     if (loginHint) {
-      url += `&login_hint=${encodeURIComponent(loginHint)}`;
+      urlParams.append('login_hint', encodeURIComponent(loginHint));
     }
 
-    return Promise.resolve(url);
+    return Promise.resolve(`${this.issuerConfiguration?.authorization_endpoint}?${urlParams.toString()}`);
   }
 
   /**
-   * Get a Token using the code from the authentication server, you can omit the code parameter and
-   * this function will attempt to grab and clear it from the URL
+   * Get a token. It will check for tokens in the following order:
+   *
+   * 1. Previously stored token
+   * 2. Token from the URL Hash (implicit, grantType: 'token')
+   * 3. Token from the authorization server (authorization_code, grantType: 'authorization_code' or default)
+   *
+   * Getting a token from the authorization server requires a 'code' url parameter or manually passing in the code if you'd like to manage it yourself.
+   * Please note if the token or code is retreived from the url it will automatically be removed from the URL and browser history after the library has
+   * a token.
    *
    * @param code {string} code from the redirect back to the app, if this is not provided the library will try to grab it from the URL for you.
    * @returns Token response from auth server
    */
-  async getToken(code: string = this.checkUrlForCode()): Promise<TokenResponse> {
-    this.logger.debug('OidcClient', 'getToken called', code);
+  async getToken(): Promise<TokenResponse> {
+    this.logger.debug('OidcClient', 'getToken called');
 
-    if (!code) {
-      throw Error('An authorization code was not found');
+    let token = this.clientStorage.getToken();
+
+    if (token) {
+      return Promise.resolve(token);
     }
 
-    const body = new URLSearchParams();
-    body.append('grant_type', this.clientOptions.grantType);
-    body.append('code', code);
-    body.append('redirect_uri', this.clientOptions.redirectUri);
+    if (!this.issuerConfiguration?.token_endpoint) {
+      throw Error(
+        `No token_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a token_enpoint with the OpenIdConfiguration object`,
+      );
+    }
 
-    if (this.clientOptions.grantType === GrantType.AuthorizationCode) {
-      if (this.clientOptions.usePkce) {
-        // PKCE uses a code_verifier from client and does not require client secret authentication
-        const codeVerifier = localStorage.getItem(this.CODE_VERIFIER_KEY);
+    token = this.checkUrlForToken();
 
-        if (!codeVerifier) {
-          throw Error('usePkce is true but a code verifier was not found in localStorage');
+    if (!token) {
+      const code = this.checkUrlForCode();
+
+      if (!code) {
+        throw Error('An authorization code was not found and a token was not found in storage or the url');
+      }
+
+      const body = new URLSearchParams();
+      body.append('grant_type', this.clientOptions.grantType);
+      body.append('code', code);
+      body.append('redirect_uri', this.clientOptions.redirectUri);
+
+      if (this.clientOptions.grantType === GrantType.AuthorizationCode) {
+        if (this.clientOptions.usePkce) {
+          // PKCE uses a code_verifier from client and does not require client secret authentication
+          const codeVerifier = this.clientStorage.getCodeVerifier();
+
+          if (!codeVerifier) {
+            throw Error('usePkce is true but a code verifier was not found in localStorage');
+          }
+
+          body.append('code_verifier', codeVerifier);
         }
+      }
 
-        body.append('code_verifier', localStorage.getItem(this.CODE_VERIFIER_KEY));
+      try {
+        token = await this.clientSecretAuthenticatedApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
+      } catch (error) {
+        return Promise.reject(error);
       }
     }
 
-    const tokenResponse = await this.clientSecretAuthenticatedApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
-    this.tokenStorage.storeToken(tokenResponse);
+    this.clientStorage.storeToken(token);
 
-    return tokenResponse;
+    return token;
   }
 
+  /**
+   * Revoke the token managed by the library
+   *
+   * @returns {any} - TODO, anything important in revoke response?
+   */
   async revokeToken(): Promise<any> {
-    const token = this.tokenStorage.getToken();
+    const token = this.verifyToken();
+
+    if (!token) {
+      return Promise.reject(new Error('No token available'));
+    }
 
     const body = new URLSearchParams();
     // TODO this is not working unsupported_token_type,
@@ -113,14 +231,26 @@ class OidcClient {
     body.append('token', token.access_token);
     body.append('token_type_hint', 'access_token');
 
-    const revokeResponse = await this.clientSecretAuthenticatedApiCall(this.issuerConfiguration.revocation_endpoint, body);
-    this.tokenStorage.removeToken();
-
-    return revokeResponse;
+    try {
+      const revokeResponse = await this.clientSecretAuthenticatedApiCall(this.issuerConfiguration.revocation_endpoint, body);
+      this.clientStorage.removeToken();
+      return revokeResponse;
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
-  async fetchUserInfo(): Promise<any> {
-    const token = this.tokenStorage.getToken();
+  /**
+   * Retreive the User Info from the issuer, uses OpenIdConfiguration from the server and the token managed by the library
+   *
+   * @returns {any} User Info returned from the issuer
+   */
+  async fetchUserInfo<T>(): Promise<T> {
+    const token = this.verifyToken();
+
+    if (!token) {
+      return Promise.reject(new Error('No token available'));
+    }
 
     const headers = new Headers();
     headers.append('Authorization', `Bearer ${token.access_token}`);
@@ -130,10 +260,32 @@ class OidcClient {
       headers,
     };
 
-    const response = await fetch(this.issuerConfiguration.userinfo_endpoint, request);
-    const responseBody = await response.json();
+    let response;
+    let body;
 
-    return responseBody;
+    try {
+      response = await fetch(this.issuerConfiguration.userinfo_endpoint, request);
+      body = await response.json();
+    } catch (error) {
+      return Promise.reject(error);
+    }
+
+    if (response?.ok) {
+      return Promise.resolve(body);
+    }
+
+    return Promise.reject(body);
+  }
+
+  private verifyToken(): TokenResponse {
+    const token = this.clientStorage.getToken();
+
+    if (!token?.access_token) {
+      this.logger.error('OidcClient', 'Token not found, make sure you have called authorize and getToken methods before attempting to get user info.', token);
+      return null;
+    }
+
+    return token;
   }
 
   private checkUrlForCode(): string {
@@ -156,6 +308,27 @@ class OidcClient {
     return '';
   }
 
+  private checkUrlForToken(): TokenResponse {
+    const hashFragment = window?.location?.hash;
+
+    if (hashFragment) {
+      const hashParams = new URLSearchParams(hashFragment.charAt(0) === '#' ? hashFragment.substring(1) : hashFragment);
+
+      if (hashParams.has('access_token')) {
+        window.history.replaceState(null, null, window.location.pathname + window.location.search);
+        return {
+          access_token: hashParams.get('access_token'),
+          expires_in: +hashParams.get('expires_in'),
+          scope: hashParams.get('scope'),
+          token_type: hashParams.get('token_type'),
+          id_token: hashParams.get('id_token'),
+        };
+      }
+    }
+
+    return null;
+  }
+
   private async clientSecretAuthenticatedApiCall<T>(url: string, body: URLSearchParams): Promise<T> {
     const headers = new Headers();
     headers.append('Content-Type', 'application/x-www-form-urlencoded');
@@ -165,7 +338,7 @@ class OidcClient {
     if (this.clientOptions.clientSecretAuthMethod === ClientSecretAuthMethod.Post) {
       body.append('client_secret', this.clientOptions.clientSecret);
     } else if (this.clientOptions.clientSecretAuthMethod === ClientSecretAuthMethod.Basic) {
-      headers.append('Authorization', `Basic ${window.btoa(`${this.clientOptions.clientId}:${this.clientOptions.clientSecret}`)}`);
+      headers.append('Authorization', `Basic ${OAuth.btoa(`${this.clientOptions.clientId}:${this.clientOptions.clientSecret}`)}`);
     }
 
     const request: RequestInit = {
@@ -182,18 +355,6 @@ class OidcClient {
     const responseBody = await response.json();
 
     return responseBody;
-  }
-
-  static async fromIssuer(issuerUrl: string, clientOptions: ClientOptions): Promise<OidcClient> {
-    if (typeof issuerUrl !== 'string' || !Url.isValidUrl(issuerUrl, true)) {
-      const errorMsg = `Error creating an OpenIdClient please ensure you have entered a valid url ${issuerUrl}`;
-      return Promise.reject(errorMsg);
-    }
-
-    const wellKnown = await fetch(`${Url.trimTrailingSlash(issuerUrl)}/.well-known/openid-configuration`);
-    const responseBody = await wellKnown.json();
-
-    return new OidcClient(clientOptions, responseBody);
   }
 }
 
