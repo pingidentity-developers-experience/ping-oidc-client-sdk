@@ -31,11 +31,11 @@ export class ClientStorage {
 
   getCodeVerifier() {
     const encodedStr = localStorage.getItem(this.CODE_VERIFIER_KEY);
-    return encodedStr ? OAuth.atob(encodedStr) : null;
-  }
 
-  removeCodeVerifier() {
+    // Self destruct on retrieval, only needed once to get the token from the authorization server
     localStorage.removeItem(this.CODE_VERIFIER_KEY);
+
+    return encodedStr ? OAuth.atob(encodedStr) : null;
   }
 
   clearAll() {

@@ -15,11 +15,11 @@ export default function OidcExample() {
 
 function App() {
 
-  const [authorizationUrl, setAuthorizationUrl] = useState('');
   const [token, setToken] = useState({});
   const [oidcClient, setOidcClient] = useState();
   const [userInfo, setUserInfo] = useState();
   const [message, setMessage] = useState('Ping OIDC Authrorize URL');
+  const [loginHint, setLoginHint] = useState();
 
   useEffect(() => {
     const initializeOidc = async () => {
@@ -28,31 +28,22 @@ function App() {
         redirectUri: 'https://localhost:3000',
         clientId: '6dea3779-356d-4222-935b-3a0b4e03b655',
         logLevel: 'debug',
-        grantType: 'token',
+        // usePkce: false,
+        // grantType: 'token',
+        tokenAvailableCallback: async token => {
+          setToken(token);
+          setMessage('Try Again');
+          try {
+            const userInfo = await oidcClient.fetchUserInfo();
+            setUserInfo(userInfo);
+          } catch (error) {
+            console.log(error);
+           }
+        }
       };
   
       const oidcClient = await OidcClient.fromIssuer('https://auth.pingone.com/cc8801c7-a048-4a4f-bbc3-7a2604ca449a/as', clientOptions);
-  
       setOidcClient(oidcClient);
-  
-      // Hmmmm
-      if (oidcClient.hasToken()) {
-        const token = await oidcClient.getToken();
-        setToken(token);
-  
-        const userInfo = await oidcClient.fetchUserInfo();
-        setUserInfo(userInfo);
-
-        console.log(userInfo);
-  
-        setAuthorizationUrl('/');
-        setMessage('Try Again');
-      } else {
-        const authorizationUrl = await oidcClient.authorize(/* 'etest' */);
-        setAuthorizationUrl(authorizationUrl);
-  
-        console.log('Authorization URL Generated', authorizationUrl);
-      }
     };
 
     initializeOidc()
@@ -66,9 +57,12 @@ function App() {
         <p>
           Edit <code>src/App.js</code> and save to reload.
         </p>
-        <a className="App-link" href={authorizationUrl} rel="noopener noreferrer">
+        <label>Login Hint</label>
+        <input id="loginHint" onChange={e => e.target.value ? setLoginHint(e.target.value) : setLoginHint(undefined)} />
+        <br />
+        <button style={{background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer'}} className="App-link" onClick={() => oidcClient.authorize(loginHint)}>
           {message}
-        </a>
+        </button>
 
         {message === 'Try Again' && 
           <>

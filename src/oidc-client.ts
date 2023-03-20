@@ -1,5 +1,6 @@
 import { ClientOptions, ClientSecretAuthMethod, GrantType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
 import { Logger, OAuth, ClientStorage, Url } from './utilities';
+import BrowserUrlManager from './utilities/browser-url-manager';
 import { ClientOptionsValidator } from './validators';
 
 class OidcClient {
@@ -7,6 +8,7 @@ class OidcClient {
   private readonly issuerConfiguration: OpenIdConfiguration;
   private readonly logger: Logger;
   private readonly clientStorage: ClientStorage;
+  private readonly browserUrlManager: BrowserUrlManager;
 
   /**
    * It is recommended to initialize this class using the fromIssuer method which allows the open id configuration to be built
@@ -28,6 +30,12 @@ class OidcClient {
     this.clientOptions = new ClientOptionsValidator(this.logger).validate(clientOptions);
 
     this.clientStorage = new ClientStorage();
+
+    if (this.hasToken || this.tokenReady) {
+      this.getToken().then((token) => {
+        this.clientOptions.tokenAvailableCallback?.(token);
+      });
+    }
   }
 
   /**
@@ -35,6 +43,24 @@ class OidcClient {
    */
   get hasToken(): boolean {
     return !!this.clientStorage.getToken()?.access_token;
+  }
+
+  private get tokenReady(): boolean {
+    const hashFragment = window?.location?.hash;
+    const searchFragment = window?.location?.search;
+
+    let hashParams;
+    let searchParams;
+
+    if (hashFragment) {
+      hashParams = new URLSearchParams(hashFragment.charAt(0) === '#' ? hashFragment.substring(1) : hashFragment);
+    }
+
+    if (searchFragment) {
+      searchParams = new URLSearchParams(searchFragment);
+    }
+
+    return hashParams?.has('access_token') || searchParams?.has('code');
   }
 
   /**
@@ -59,13 +85,30 @@ class OidcClient {
   }
 
   /**
+   * Takes an optional login_hint and navigates the browser to the generated auth url using window.location.assign
+   *
+   * @param loginHint {string} login_hint url parameter that will be appended to URL in case you have a username/email already
+   * @returns {Promise} Will navigate the current browser tab to the authorization url that is generated through the authorizeUrl method
+   */
+  async authorize(loginHint?: string): Promise<void> {
+    try {
+      const authUrl = await this.authorizeUrl(loginHint);
+      window?.location?.assign(authUrl);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+
+    return Promise.resolve();
+  }
+
+  /**
    * Takes an optional login_hint and returns a Promise containing the url you will redirect the user to.
    * Typically you will want to apply the url to an anchor tag or redirect to it using window.location.assign(xxx).
    *
    * @param loginHint {string} login_hint url parameter that will be appended to URL in case you have a username/email already
    * @returns {Promise<string>} Promise that will resolve with a url you should redirect to
    */
-  async authorize(loginHint?: string): Promise<string> {
+  async authorizeUrl(loginHint?: string): Promise<string> {
     this.logger.debug('OidcClient', 'authorized called');
 
     if (!this.issuerConfiguration?.authorization_endpoint) {
@@ -202,7 +245,7 @@ class OidcClient {
    *
    * @returns {any} User Info returned from the issuer
    */
-  async fetchUserInfo(): Promise<any> {
+  async fetchUserInfo<T>(): Promise<T> {
     const token = this.verifyToken();
 
     if (!token) {
@@ -217,14 +260,21 @@ class OidcClient {
       headers,
     };
 
-    try {
-      const response = await fetch(this.issuerConfiguration.userinfo_endpoint, request);
-      const responseBody = await response.json();
+    let response;
+    let body;
 
-      return responseBody;
+    try {
+      response = await fetch(this.issuerConfiguration.userinfo_endpoint, request);
+      body = await response.json();
     } catch (error) {
       return Promise.reject(error);
     }
+
+    if (response?.ok) {
+      return Promise.resolve(body);
+    }
+
+    return Promise.reject(body);
   }
 
   private verifyToken(): TokenResponse {

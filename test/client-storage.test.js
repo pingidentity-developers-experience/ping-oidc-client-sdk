@@ -72,20 +72,14 @@ describe('ClientStorage', () => {
     expect(global.Storage.prototype.setItem).toHaveBeenCalledWith('oidc-client:code_verifier', 'YWJjMTIzNDU2');
   });
 
-  it('should retrieve and decode code verifier', () => {
+  it('should retrieve, decode and then remove code verifier', () => {
     const clientStorage = new ClientStorage();
     const codeVerifier = clientStorage.getCodeVerifier();
 
     expect(global.Storage.prototype.getItem).toHaveBeenCalledWith('oidc-client:code_verifier');
+    expect(global.Storage.prototype.removeItem).toHaveBeenCalledWith('oidc-client:code_verifier');
 
     expect(codeVerifier).toBe('abc123456');
-  });
-
-  it('should remove token from localStorage', () => {
-    const clientStorage = new ClientStorage();
-    clientStorage.removeCodeVerifier();
-
-    expect(global.Storage.prototype.removeItem).toHaveBeenCalledWith('oidc-client:code_verifier');
   });
 
   it('should clear storage', () => {
