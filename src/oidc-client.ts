@@ -1,6 +1,5 @@
 import { ClientOptions, ClientSecretAuthMethod, GrantType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
-import { Logger, OAuth, ClientStorage, Url } from './utilities';
-import BrowserUrlManager from './utilities/browser-url-manager';
+import { Logger, OAuth, ClientStorage, Url, BrowserUrlManager } from './utilities';
 import { ClientOptionsValidator } from './validators';
 
 class OidcClient {
@@ -25,13 +24,14 @@ class OidcClient {
       throw Error('clientOptions and issuerConfig are required to initialize an OidcClient');
     }
 
+    this.browserUrlManager = new BrowserUrlManager(this.logger);
+    this.clientStorage = new ClientStorage();
+
     // TODO - validator for issuerConfig?
     this.issuerConfiguration = issuerConfig;
     this.clientOptions = new ClientOptionsValidator(this.logger).validate(clientOptions);
 
-    this.clientStorage = new ClientStorage();
-
-    if (this.hasToken || this.tokenReady) {
+    if (this.hasToken || this.browserUrlManager.tokenReady) {
       this.getToken().then((token) => {
         this.clientOptions.tokenAvailableCallback?.(token);
       });
@@ -43,24 +43,6 @@ class OidcClient {
    */
   get hasToken(): boolean {
     return !!this.clientStorage.getToken()?.access_token;
-  }
-
-  private get tokenReady(): boolean {
-    const hashFragment = window?.location?.hash;
-    const searchFragment = window?.location?.search;
-
-    let hashParams;
-    let searchParams;
-
-    if (hashFragment) {
-      hashParams = new URLSearchParams(hashFragment.charAt(0) === '#' ? hashFragment.substring(1) : hashFragment);
-    }
-
-    if (searchFragment) {
-      searchParams = new URLSearchParams(searchFragment);
-    }
-
-    return hashParams?.has('access_token') || searchParams?.has('code');
   }
 
   /**
@@ -93,7 +75,7 @@ class OidcClient {
   async authorize(loginHint?: string): Promise<void> {
     try {
       const authUrl = await this.authorizeUrl(loginHint);
-      window?.location?.assign(authUrl);
+      this.browserUrlManager.navigate(authUrl);
     } catch (error) {
       return Promise.reject(error);
     }
@@ -112,8 +94,10 @@ class OidcClient {
     this.logger.debug('OidcClient', 'authorized called');
 
     if (!this.issuerConfiguration?.authorization_endpoint) {
-      throw Error(
-        `No authorization_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a authorization_enpoint with the OpenIdConfiguration object`,
+      return Promise.reject(
+        Error(
+          `No authorization_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a authorization_enpoint with the OpenIdConfiguration object`,
+        ),
       );
     }
 
@@ -154,7 +138,6 @@ class OidcClient {
    * Please note if the token or code is retreived from the url it will automatically be removed from the URL and browser history after the library has
    * a token.
    *
-   * @param code {string} code from the redirect back to the app, if this is not provided the library will try to grab it from the URL for you.
    * @returns Token response from auth server
    */
   async getToken(): Promise<TokenResponse> {
@@ -167,18 +150,20 @@ class OidcClient {
     }
 
     if (!this.issuerConfiguration?.token_endpoint) {
-      throw Error(
-        `No token_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a token_enpoint with the OpenIdConfiguration object`,
+      Promise.reject(
+        Error(
+          `No token_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a token_enpoint with the OpenIdConfiguration object`,
+        ),
       );
     }
 
-    token = this.checkUrlForToken();
+    token = this.browserUrlManager.checkUrlForToken();
 
     if (!token) {
-      const code = this.checkUrlForCode();
+      const code = this.browserUrlManager.checkUrlForCode();
 
       if (!code) {
-        throw Error('An authorization code was not found and a token was not found in storage or the url');
+        return Promise.reject(Error('An authorization code was not found and a token was not found in storage or the url'));
       }
 
       const body = new URLSearchParams();
@@ -217,10 +202,20 @@ class OidcClient {
    * @returns {any} - TODO, anything important in revoke response?
    */
   async revokeToken(): Promise<any> {
+    this.logger.debug('OidcClient', 'revokeToken called');
+
     const token = this.verifyToken();
 
     if (!token) {
-      return Promise.reject(new Error('No token available'));
+      return Promise.reject(Error('No token available'));
+    }
+
+    if (!this.issuerConfiguration?.userinfo_endpoint) {
+      return Promise.reject(
+        Error(
+          `No userinfo_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
+        ),
+      );
     }
 
     const body = new URLSearchParams();
@@ -246,10 +241,20 @@ class OidcClient {
    * @returns {any} User Info returned from the issuer
    */
   async fetchUserInfo<T>(): Promise<T> {
+    this.logger.debug('OidcClient', 'fetchUserInfo called');
+
     const token = this.verifyToken();
 
     if (!token) {
-      return Promise.reject(new Error('No token available'));
+      return Promise.reject(Error('No token available'));
+    }
+
+    if (!this.issuerConfiguration?.userinfo_endpoint) {
+      return Promise.reject(
+        Error(
+          `No userinfo_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
+        ),
+      );
     }
 
     const headers = new Headers();
@@ -273,6 +278,7 @@ class OidcClient {
     if (response?.ok) {
       return Promise.resolve(body);
     }
+    this.logger.error('OidcClient', `unsuccessful response ecounterd from url ${this.issuerConfiguration.userinfo_endpoint}`, response);
 
     return Promise.reject(body);
   }
@@ -288,47 +294,6 @@ class OidcClient {
     return token;
   }
 
-  private checkUrlForCode(): string {
-    const location = window?.location;
-
-    if (location) {
-      const urlParams = new URLSearchParams(location.search);
-      const code = urlParams.get('code');
-
-      if (code) {
-        urlParams.delete('code');
-        const query = urlParams.toString();
-        const queryStr = query ? `?${query}` : '';
-        window.history.replaceState(null, null, location.pathname + queryStr + location.hash);
-      }
-
-      return code;
-    }
-
-    return '';
-  }
-
-  private checkUrlForToken(): TokenResponse {
-    const hashFragment = window?.location?.hash;
-
-    if (hashFragment) {
-      const hashParams = new URLSearchParams(hashFragment.charAt(0) === '#' ? hashFragment.substring(1) : hashFragment);
-
-      if (hashParams.has('access_token')) {
-        window.history.replaceState(null, null, window.location.pathname + window.location.search);
-        return {
-          access_token: hashParams.get('access_token'),
-          expires_in: +hashParams.get('expires_in'),
-          scope: hashParams.get('scope'),
-          token_type: hashParams.get('token_type'),
-          id_token: hashParams.get('id_token'),
-        };
-      }
-    }
-
-    return null;
-  }
-
   private async clientSecretAuthenticatedApiCall<T>(url: string, body: URLSearchParams): Promise<T> {
     const headers = new Headers();
     headers.append('Content-Type', 'application/x-www-form-urlencoded');
@@ -336,8 +301,10 @@ class OidcClient {
     body.append('client_id', this.clientOptions.clientId);
 
     if (this.clientOptions.clientSecretAuthMethod === ClientSecretAuthMethod.Post) {
+      this.logger.info('OidcClient', 'client secret auth method is Post, adding to request body');
       body.append('client_secret', this.clientOptions.clientSecret);
     } else if (this.clientOptions.clientSecretAuthMethod === ClientSecretAuthMethod.Basic) {
+      this.logger.info('OidcClient', 'client secret auth method is Basic, adding Authorization request header');
       headers.append('Authorization', `Basic ${OAuth.btoa(`${this.clientOptions.clientId}:${this.clientOptions.clientSecret}`)}`);
     }
 
@@ -352,6 +319,11 @@ class OidcClient {
     this.logger.debug('OidcClient', 'POST request', request);
 
     const response = await fetch(url, request);
+
+    if (!response?.ok) {
+      this.logger.error('OidcClient', `unsuccessful response encountered for url ${url}`, response);
+    }
+
     const responseBody = await response.json();
 
     return responseBody;
