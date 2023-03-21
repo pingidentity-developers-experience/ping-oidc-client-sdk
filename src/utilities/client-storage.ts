@@ -5,17 +5,27 @@ export class ClientStorage {
   private readonly TOKEN_KEY = 'oidc-client:response';
   private readonly CODE_VERIFIER_KEY = 'oidc-client:code_verifier';
 
+  private inMemoryToken: TokenResponse;
+
   storeToken(token: TokenResponse) {
     const str = JSON.stringify(token);
     localStorage.setItem(this.TOKEN_KEY, OAuth.btoa(str));
   }
 
   getToken(): TokenResponse {
+    if (this.inMemoryToken) {
+      return this.inMemoryToken;
+    }
+
     const encodedStr = localStorage.getItem(this.TOKEN_KEY);
 
     if (encodedStr) {
       const decodedStr = OAuth.atob(encodedStr);
-      return JSON.parse(decodedStr);
+      const token = JSON.parse(decodedStr);
+
+      this.inMemoryToken = token;
+
+      return token;
     }
 
     return null;
