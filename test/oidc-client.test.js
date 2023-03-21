@@ -1,14 +1,17 @@
 import OidcClient from '../src/oidc-client';
 import { ClientOptionsValidator } from '../src/validators';
-import { OAuth, ClientStorage } from '../src/utilities';
+import { OAuth, ClientStorage, BrowserUrlManager, Logger } from '../src/utilities';
 import { ClientSecretAuthMethod, GrantType } from '../src/types';
 
+jest.mock('../src/utilities/browser-url-manager');
 jest.mock('../src/utilities/logger');
 jest.mock('../src/utilities/oauth');
 jest.mock('../src/utilities/client-storage');
 jest.mock('../src/validators/client-options-validator');
 
 describe('OidcClient', () => {
+  let hasTokenSpy;
+
   function createTokenSpy() {
     jest.spyOn(ClientStorage.prototype, 'getToken').mockReturnValueOnce({
       access_token: 'some_token',
@@ -22,6 +25,7 @@ describe('OidcClient', () => {
   global.fetch = jest.fn(() =>
     Promise.resolve({
       json: () => Promise.resolve({}),
+      ok: true,
     }),
   );
 
@@ -35,10 +39,14 @@ describe('OidcClient', () => {
 
   beforeEach(() => {
     fetch.mockClear();
+    BrowserUrlManager.mockClear();
+    Logger.mockClear();
     ClientOptionsValidator.mockClear();
     ClientStorage.mockClear();
     OAuth.mockClear();
     mockStorage = {};
+
+    hasTokenSpy = jest.spyOn(OidcClient.prototype, 'hasToken', 'get').mockReturnValueOnce(false);
   });
 
   describe('constructor', () => {
@@ -111,10 +119,10 @@ describe('OidcClient', () => {
     });
   });
 
-  describe('authorize', () => {
+  describe('authorizeUrl', () => {
     it('should throw error if there is no authorization endpoint in issuer config', async () => {
       const client = new OidcClient({}, {});
-      await expect(client.authorize()).rejects.toMatchObject(
+      await expect(client.authorizeUrl()).rejects.toMatchObject(
         Error(
           `No authorization_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a authorization_enpoint with the OpenIdConfiguration object`,
         ),
@@ -125,7 +133,7 @@ describe('OidcClient', () => {
       createClientOptionsValidatorSpy();
 
       const client = new OidcClient({ clientId: 'abc123', redirectUri: 'https://example.com', scope: 'openid profile' }, { authorization_endpoint: 'https://google.com/as/authorize' });
-      const url = await client.authorize();
+      const url = await client.authorizeUrl();
       const params = new URLSearchParams(url.split('?')[1]);
 
       expect(params.get('response_type')).toBe('code');
@@ -141,7 +149,7 @@ describe('OidcClient', () => {
         { clientId: 'abc123', redirectUri: 'https://example.com', scope: 'openid profile', grantType: GrantType.Token },
         { authorization_endpoint: 'https://google.com/as/authorize' },
       );
-      const url = await client.authorize();
+      const url = await client.authorizeUrl();
       const params = new URLSearchParams(url.split('?')[1]);
 
       expect(params.get('response_type')).toBe('token');
@@ -160,7 +168,7 @@ describe('OidcClient', () => {
 
       jest.spyOn(OAuth, 'generatePkceArtifacts').mockResolvedValueOnce({ state: 'aabbccddee', nonce: 'ffgghhiijj', codeChallenge: 'abcdefghijk', codeVerifier: 'lmnopqrst' });
 
-      const url = await client.authorize();
+      const url = await client.authorizeUrl();
       const params = new URLSearchParams(url.split('?')[1]);
 
       expect(params.get('response_type')).toBe('code');
@@ -181,7 +189,7 @@ describe('OidcClient', () => {
 
       jest.spyOn(OAuth, 'generatePkceArtifacts').mockResolvedValueOnce({ state: 'aabbccddee', nonce: 'ffgghhiijj', codeChallenge: 'abcdefghijk', codeVerifier: 'lmnopqrst' });
 
-      const url = await client.authorize();
+      const url = await client.authorizeUrl();
       const params = new URLSearchParams(url.split('?')[1]);
 
       expect(params.get('response_type')).toBe('code');
@@ -198,19 +206,19 @@ describe('OidcClient', () => {
       createClientOptionsValidatorSpy();
 
       const client = new OidcClient({ clientId: 'abc123', redirectUri: 'https://example.com', scope: 'openid profile' }, { authorization_endpoint: 'https://google.com/as/authorize' });
-      const url = await client.authorize('test_user');
+      const url = await client.authorizeUrl('test_user');
       const params = new URLSearchParams(url.split('?')[1]);
 
       expect(params.get('login_hint')).toBe('test_user');
     });
   });
 
-  describe('getToken', () => {
-    it('should return existing token from client storage', () => {});
-    it('should throw error if token_endpoint is missing from issuer config', () => {});
-    it('should get token from url if it exists (implicit grant)', () => {});
-    it('should throw error if no existing token and no code is present in url', () => {});
-  });
+  // describe('getToken', () => {
+  //   it('should return existing token from client storage', () => {});
+  //   it('should throw error if token_endpoint is missing from issuer config', () => {});
+  //   it('should get token from url if it exists (implicit grant)', () => {});
+  //   it('should throw error if no existing token and no code is present in url', () => {});
+  // });
 
   describe('revokeToken', () => {
     it('should reject with no token available', async () => {
@@ -248,7 +256,7 @@ describe('OidcClient', () => {
       createTokenSpy();
       createClientOptionsValidatorSpy();
 
-      const client = new OidcClient({}, {});
+      const client = new OidcClient({}, { revocation_endpoint: 'https://example.com/revoke_token' });
       await client.revokeToken();
 
       expect(ClientStorage.mock.instances[0].removeToken).toHaveBeenCalled();
@@ -259,7 +267,7 @@ describe('OidcClient', () => {
       createClientOptionsValidatorSpy();
 
       fetch.mockRejectedValueOnce(Error('API not working'));
-      const client = new OidcClient({}, {});
+      const client = new OidcClient({}, { revocation_endpoint: 'https://example.com/revoke_token' });
 
       await expect(client.revokeToken()).rejects.toMatchObject(Error('API not working'));
     });
@@ -296,6 +304,7 @@ describe('OidcClient', () => {
         requestHeaders = request.headers; // This is janky but I don't know how else to do it
         return {
           json: () => Promise.resolve({}),
+          ok: true,
         };
       });
 
@@ -311,9 +320,10 @@ describe('OidcClient', () => {
 
       jest.spyOn(global, 'fetch').mockReturnValueOnce({
         json: () => Promise.resolve(result),
+        ok: true,
       });
 
-      const client = new OidcClient({}, {});
+      const client = new OidcClient({}, { userinfo_endpoint: 'https://example.com/userinfo' });
       const userInfo = await client.fetchUserInfo();
 
       expect(userInfo).toBe(result);
@@ -322,7 +332,7 @@ describe('OidcClient', () => {
     it('should pass api errors back to caller', async () => {
       createTokenSpy();
       fetch.mockRejectedValueOnce(Error('API not working'));
-      const client = new OidcClient({}, {});
+      const client = new OidcClient({}, { userinfo_endpoint: 'https://example.com/userinfo' });
 
       await expect(client.fetchUserInfo()).rejects.toMatchObject(Error('API not working'));
     });
@@ -330,7 +340,7 @@ describe('OidcClient', () => {
     it('should pass json parse errors back to caller', async () => {
       createTokenSpy();
       fetch.mockResolvedValueOnce({ json: () => Promise.reject(Error('Invalid json')) });
-      const client = new OidcClient({}, {});
+      const client = new OidcClient({}, { userinfo_endpoint: 'https://example.com/userinfo' });
 
       await expect(client.fetchUserInfo()).rejects.toMatchObject(Error('Invalid json'));
     });
@@ -339,15 +349,19 @@ describe('OidcClient', () => {
   describe('hasToken', () => {
     it('should be true if there is a token in TokenStorage', () => {
       createTokenSpy();
-
       const client = new OidcClient({}, {});
+
+      hasTokenSpy.mockRestore();
+
       expect(client.hasToken).toBe(true);
     });
 
     it('should be false if there is no token in TokenStorage', () => {
       jest.spyOn(ClientStorage.prototype, 'getToken').mockReturnValueOnce(null);
-
       const client = new OidcClient({}, {});
+
+      hasTokenSpy.mockRestore();
+
       expect(client.hasToken).toBe(false);
     });
   });

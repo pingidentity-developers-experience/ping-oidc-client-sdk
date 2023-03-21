@@ -25,6 +25,7 @@ function App() {
         redirectUri: 'https://localhost:3000',
         clientId: '6dea3779-356d-4222-935b-3a0b4e03b655',
         logLevel: 'info',
+        scope: 'openid profile revokescope',
         // usePkce: false,
         // grantType: 'token',
         tokenAvailableCallback: async token => {
@@ -34,7 +35,7 @@ function App() {
             setUserInfo(userInfo);
           } catch (error) {
             console.log(error);
-           }
+          }
         }
       };
   
@@ -45,6 +46,15 @@ function App() {
     initializeOidc()
       .catch(console.error);
    }, []);
+
+  const revokeToken = async () => {
+    if (!oidcClient) {
+      return;
+    }
+
+    await oidcClient.revokeToken(); 
+    setToken();
+  }
 
   return (
     <div className="app">
@@ -60,7 +70,7 @@ function App() {
           </div>
           <div>
             <button className="app-link" onClick={() => oidcClient.authorize(loginHint)}>
-              Ping OIDC Authrorize URL
+              Ping OIDC Authorize URL
             </button>
           </div>
         </>}
@@ -84,7 +94,7 @@ function App() {
                   {Object.keys(userInfo).map(key => <div key={key}><span className="app-userinfo-label">{key}:</span>{userInfo[key]}</div>)}
                 </div>
               </>}
-              {oidcClient && <button className="app-revoke-button" onClick={() => oidcClient.revokeToken()}>Revoke Token</button>}
+              {oidcClient && <button className="app-revoke-button" onClick={revokeToken}>Revoke Token</button>}
           </div>
         </>
       }

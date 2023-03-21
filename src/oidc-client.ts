@@ -150,7 +150,7 @@ class OidcClient {
     }
 
     if (!this.issuerConfiguration?.token_endpoint) {
-      Promise.reject(
+      return Promise.reject(
         Error(
           `No token_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a token_enpoint with the OpenIdConfiguration object`,
         ),
@@ -193,7 +193,7 @@ class OidcClient {
 
     this.clientStorage.storeToken(token);
 
-    return token;
+    return Promise.resolve(token);
   }
 
   /**
@@ -210,19 +210,15 @@ class OidcClient {
       return Promise.reject(Error('No token available'));
     }
 
-    if (!this.issuerConfiguration?.userinfo_endpoint) {
+    if (!this.issuerConfiguration?.revocation_endpoint) {
       return Promise.reject(
         Error(
-          `No userinfo_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
+          `No revocation_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
         ),
       );
     }
 
     const body = new URLSearchParams();
-    // TODO this is not working unsupported_token_type,
-    // see https://apidocs.pingidentity.com/pingone/platform/v1/api/#post-token-revocation, PingOne configuration issue?
-    // body.append('client_id', this.clientOptions.clientId);
-    // TODO need to support refresh tokens?
     body.append('token', token.access_token);
     body.append('token_type_hint', 'access_token');
 
@@ -324,9 +320,12 @@ class OidcClient {
       this.logger.error('OidcClient', `unsuccessful response encountered for url ${url}`, response);
     }
 
-    const responseBody = await response.json();
-
-    return responseBody;
+    // For some reason some auth servers (cough PingOne cough) will return an application/json content-type but have an empty body.
+    try {
+      return await response.json();
+    } catch {
+      return undefined;
+    }
   }
 }
 
