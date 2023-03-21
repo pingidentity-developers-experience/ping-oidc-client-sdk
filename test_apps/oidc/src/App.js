@@ -17,7 +17,7 @@ function App() {
   const [token, setToken] = useState();
   const [oidcClient, setOidcClient] = useState();
   const [userInfo, setUserInfo] = useState();
-  const [loginHint, setLoginHint] = useState();
+  const [loginHint, setLoginHint] = useState('');
 
   useEffect(() => {
     async function initializeOidc() {
@@ -56,7 +56,7 @@ function App() {
         <>
           <div className="app-hint">
             <label>Login Hint</label>
-            <input id="loginHint" onChange={e => e.target.value ? setLoginHint(e.target.value) : setLoginHint(undefined)} />
+            <input id="loginHint" value={loginHint} onChange={e => setLoginHint(e.target.value)} />
           </div>
           <div>
             <button className="app-link" onClick={() => oidcClient.authorize(loginHint)}>
