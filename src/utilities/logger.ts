@@ -19,9 +19,9 @@ export class Logger {
    */
   error(className: string, error: string, additionalData?: any): void {
     if (additionalData) {
-      console.error(className, error, additionalData);
+      console.error(`OidcClient.${className}`, error, additionalData);
     } else {
-      console.error(className, error);
+      console.error(`OidcClient.${className}`, error);
     }
   }
 
@@ -40,9 +40,9 @@ export class Logger {
     }
 
     if (additionalData) {
-      console.warn(className, warning, additionalData);
+      console.warn(`OidcClient.${className}`, warning, additionalData);
     } else {
-      console.warn(className, warning);
+      console.warn(`OidcClient.${className}`, warning);
     }
   }
 
@@ -61,9 +61,9 @@ export class Logger {
     }
 
     if (additionalData) {
-      console.info(className, message, additionalData);
+      console.info(`OidcClient.${className}`, message, additionalData);
     } else {
-      console.info(className, message);
+      console.info(`OidcClient.${className}`, message);
     }
   }
 
@@ -82,9 +82,9 @@ export class Logger {
     }
 
     if (additionalData) {
-      console.debug(className, message, additionalData);
+      console.debug(`OidcClient.${className}`, message, additionalData);
     } else {
-      console.debug(className, message);
+      console.debug(`OidcClient.${className}`, message);
     }
   }
 }

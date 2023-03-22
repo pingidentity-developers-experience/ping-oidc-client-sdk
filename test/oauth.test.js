@@ -1,30 +1,40 @@
 import * as crypto from 'crypto';
-import { AuthZOptions } from '../src/types';
 import { Logger, OAuth } from '../src/utilities';
-import { Helpers } from './utilities';
+import { TestHelpers } from './utilities';
 
 describe('OAuth', () => {
-  let windowSpy: any;
+  let windowSpy;
 
   beforeAll(() => {
-    Helpers.initTextEncoder();
+    TestHelpers.initTextEncoder();
   });
 
   beforeEach(() => {
     // Set up all the stuff needed on the window object for
     // the generateCodeChallenge method to run successfully.
+    // eslint-disable-next-line no-undef
     windowSpy = jest.spyOn(window, 'window', 'get');
     windowSpy.mockImplementation(() => ({
       crypto: {
         subtle: crypto.webcrypto.subtle,
       },
-      btoa: Helpers.btoa,
-      atob: Helpers.atob,
     }));
   });
 
   afterEach(() => {
     windowSpy.mockRestore();
+  });
+
+  describe('btoa', () => {
+    it('should base64 encode string', () => {
+      expect(OAuth.btoa('Hello World!')).toBe('SGVsbG8gV29ybGQh');
+    });
+  });
+
+  describe('atob', () => {
+    it('should decode base64 string', () => {
+      expect(OAuth.atob('SGVsbG8gV29ybGQh')).toBe('Hello World!');
+    });
   });
 
   describe('generateCodeChallenge', () => {
@@ -49,68 +59,74 @@ describe('OAuth', () => {
 
   describe('generatePkceArtifacts', () => {
     it('should generate a 20 character state string', async () => {
-      const options: AuthZOptions = {
+      const options = {
         // Not used generatePkceArtifacts
-        ClientId: '',
-        RedirectUri: '',
+        clientId: '',
+        redirectUri: '',
       };
 
       const artifacts = await OAuth.generatePkceArtifacts(options, new Logger());
 
-      expect(artifacts.State.length).toBe(20);
+      expect(artifacts.state.length).toBe(20);
+    });
+
+    it('should generate a 10 character nonce string', async () => {
+      const options = {
+        // Not used generatePkceArtifacts
+        clientId: '',
+        redirectUri: '',
+      };
+
+      const artifacts = await OAuth.generatePkceArtifacts(options, new Logger());
+
+      expect(artifacts.nonce.length).toBe(10);
     });
 
     it('should generate a 128 code verifier string', async () => {
-      const options: AuthZOptions = {
-        ClientId: '',
-        RedirectUri: '',
+      const options = {
+        clientId: '',
+        redirectUri: '',
       };
 
       const artifacts = await OAuth.generatePkceArtifacts(options, new Logger());
 
-      expect(artifacts.CodeVerifier.length).toBe(128);
+      expect(artifacts.codeVerifier.length).toBe(128);
     });
 
-    it('should generate a code challenge', async () => {
-      const options: AuthZOptions = {
-        ClientId: '',
-        RedirectUri: '',
+    it('should generate a code challenge if usePkce is true', async () => {
+      const options = {
+        clientId: '',
+        redirectUri: '',
+        usePkce: true,
       };
 
       const artifacts = await OAuth.generatePkceArtifacts(options, new Logger());
 
-      expect(artifacts.CodeChallenge.length).toBeGreaterThan(0);
+      expect(artifacts.codeChallenge?.length).toBeGreaterThan(0);
     });
 
-    it(`should accept 'S256' code challenge method`, async () => {
-      const options: AuthZOptions = {
-        ClientId: '',
-        RedirectUri: '',
-        CodeChallengeMethod: 'S256',
+    it('should pass string state through', async () => {
+      const options = {
+        clientId: '',
+        redirectUri: '',
+        state: 'teststate',
       };
 
       const artifacts = await OAuth.generatePkceArtifacts(options, new Logger());
 
-      expect(artifacts.CodeChallengeMethod).toBe('S256');
+      expect(artifacts.state).toBe('teststate');
     });
 
-    it(`should default to empty code challenge method and warn user if invalid`, async () => {
-      const logger = new Logger();
-      const loggerSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
-
-      // Not all users will be using TypeScript necessarily, so setting to any so
-      // we can set an invalid CodeChallengeMethod for testing
-      const options: any = {
-        // Not used generatePkceArtifacts
-        ClientId: '',
-        RedirectUri: '',
-        CodeChallengeMethod: 'S259',
+    it('should pass object state through as a string', async () => {
+      const options = {
+        clientId: '',
+        redirectUri: '',
+        state: { test: 'value' },
       };
 
-      const artifacts = await OAuth.generatePkceArtifacts(options, logger);
+      const artifacts = await OAuth.generatePkceArtifacts(options, new Logger());
 
-      expect(artifacts.CodeChallengeMethod).toBeUndefined();
-      expect(loggerSpy).toHaveBeenCalled();
+      expect(artifacts.state).toBe('{"test":"value"}');
     });
   });
 });

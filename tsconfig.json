@@ -7,7 +7,7 @@
     "outDir": "./dist/",
     "moduleResolution": "node",
     "noImplicitAny": true,
-    "sourceMap": true,
+    "sourceMap": false,
   },
   "include": [
     "src/**/*"

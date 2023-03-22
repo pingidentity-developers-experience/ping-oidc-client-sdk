@@ -40,7 +40,7 @@
         ]
     },
     "overrides": [{
-        "files": ["test/**.*.ts"],
+        "files": ["test/**.*.js"],
         "rules": {
             "dot-notation": "off", // Allows access to private variables in tests
             "@typescript-eslint/no-empty-function": "off" // Useful for mocking, don't usually need to do anything

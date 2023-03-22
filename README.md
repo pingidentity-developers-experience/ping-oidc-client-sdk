@@ -1,98 +1,42 @@
-# Developer Enablement OIDC package
-## Technical Enablement, Ping Identity
-### Authors: Michael Sanchez, Jon Oblander
+# OAuth/OIDC SDK
+## Ping Identity
+### Authors: Technical Enablement Demo Team
 
-#### Contributors: Zhanna Avenesova, Eric Anderson, Kristina Salgado
 
-This project is a collection of re-usable modules (hosted at npmjs.com), for bootstrapping the OpenID Connect (OIDC) protocol, with the intent to automate or simplify steps in the protocol flow. This allows you, the developer, to do what you do best, focusing on your companies business apps, while Ping Identity handles what we does best, identity security.
+This project is an OAuth/OIDC SDK (hosted at npmjs.com), for bootstrapping the [OAuth](https://www.rfc-editor.org/rfc/rfc6749) and [OpenID Connect (OIDC)](https://openid.net/developers/specs/) protocol in your own custom applications, with the intent to automate or simplify steps in the protocol flow and integration of it. This allows you, the developer, to do what you do best, focusing on your companies business apps, while Ping Identity handles what we does best, identity security.
 
-The code included has a prediliction for security best practices, obviously. But considering the use cases and needs of the wider audience of Ping's customers, there are optional parameters included to utilize other options that will log warnings to let you know you have chosen lesser secure options.
+With a developer-first focus and simplicity in design, native Javascript APIs were chosen as much as possible over 3rd-party packages and libraries which may conflict with your companies security standards. Additionally, native Javascript APIs simplify maintenance for Ping Identity and its customers, and reduces the potential atack vectors of this package in your applications. 
 
-With a developer-first focus and simplicity in design, native Javascript APIs were chosen over 3rd-party packages and libraries which may conflict with your companies security standards. Additionally, native Javascript APIs simplify maintenance for Ping and its customers, and lessens the threat landscape in your applications. NPM transient dependencies can run deep. The one exception we made was choosing Axios over fetch() for HTTP requests. This may change at our discretion should Axios dependencies begin to outweigh the benefits.
+### Security
 
-*DO NOT* clone this source code and add it to your projects source code. All packages are hosted in NPM and can simply be added to your package.json file.
-Of course, if you are working on traditional, plain old JavaScript apps, then cloning is your only option. We do not offer hosting our libraries on a CDN.
+#### Software Bill of Materials
 
-#### Authorization Code Example:
+NPM transient dependencies can run deep. For this reason, we include a software bill of materials (SBOM) with each release that you or your security teams can audit. These SBOMs are generated using [CycloneDX by OWASP](https://owasp.org/www-project-cyclonedx/). Packages we import are primarily for development of the SDK and can be excluded in builds. These packages may change at our discretion.
 
-*Prerequisites*
-PingFederate Authorization server and oAuth client that supports authorization code grant type.
+#### Responsible Disclosure
 
-##### Option 1: Install oidc library into your project using npm:
+Before each release, we run the following commands against our project to ensure a clean project. We make every reasonable effort to resolve category critical and high vulnerabilities.
 
-```javascript
-npm install @ping-identity-developer-enablement/dev-enablement-oidc
-```
+`npm doctor`
+`npx unimported`
+`npm outdated`
+`npx depcheck`
+`npm audit`
 
-Import the PingFederate OIDC module:
+Because of the as-is offering and license of this project, it is highly recommended that users of this SDK run `npm audit` and evaluate the results and  make changes to meet their internal application security requirements. Alternatively or additionally you can submit issues in our [Github repo](https://github.com/Technical-Enablement-PingIdentity/dev-enablement-oidc/issues).
 
-```javascript
-import { pingAsOidc } from '@ping-identity-developer-enablement/dev-enablement-oidc';
-```
+#### Disclaimer
+THIS ENTIRE PROJECT AND ALL ITS ASSETS IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PING IDENTITY OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) SUSTAINED BY YOU OR A THIRD PARTY, HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT ARISING IN ANY WAY OUT OF THE USE OF THIS SAMPLE CODE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-##### Option 2: Manaully include oidc library into your project using script tag:
+### Included:
 
-```javascript
-<script src="https://cdn.jsdelivr.net/npm/@ping-identity-developer-enablement/dev-enablement-oidc@0.1.0-alpha/dist/index.min.js"></script>
-```
+*Eric puts his super clear, concise, intuitive usage docs here*.
 
-Initiate config options:
+stuff about using the sdk
 
-```javascript
-  const configs = {
-    /** PingFederate base path */
-    BasePath: 'https://yourpfbasepath.com',
-  }
-```
+stuff about getting it from NPM
 
-Instantiate a new OIDC client:
+mkaybe stuff about the file system
 
-```javascript
-// Via imported npm package
-const oidcClient = new pingAsOidc(configs);
-```
-
-*OR*
-
-```javascript
-// Via manually included javascript file
-const oidcClient = new pingDevLib.pingAsOidc(configs);
-```
-
-Initiate authorization url config options:
-
-```javascript
-      const options = {
-        ClientId: 'client_id',
-        Scope: 'openid profile',
-        RedirectUri: 'https://localhost:3000/app',
-        ResponseType: 'code',
-        PkceRequest: true,
-        CodeChallengeMethod: 'S256'
-      }
-```
-
-Call authorize method of OIDC library to generate redirect url:
-
-```javascript
-      oidcClient.authorize(options).then(authUrl => {
-        // Redirect to authorization url
-        window.location.assign(authUrl);
-      }).catch(err => console.log(err));
-```
-
-Call getToken method to exchange authorization code for access token (id_token):
-
-```javascript
-      oidcClient.getToken(
-          'code', 
-          'redirect_uri',  
-          'client_id', 
-          'client_secret'
-      )
-      .then(response => {
-        console.log(response.access_token);
-        console.log(response.id_token);
-      })
-      .catch(err => console.log(err))
-```
+Test Apps
+: Create-React-App (CRA) bootstrapped application Technical Enablement uses to test our code.
