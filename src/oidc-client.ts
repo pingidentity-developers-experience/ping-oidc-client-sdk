@@ -1,7 +1,17 @@
+/**
+ * OAuth/OIDC SDK 
+ * Ping Identity
+ * @author Technical Enablement Demo Team
+ * @description A bare-bones sample app built with create-react-app (CRA) to show an implementation example.
+ */
+
 import { ClientOptions, ClientSecretAuthMethod, GrantType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
 import { Logger, OAuth, ClientStorage, Url, BrowserUrlManager } from './utilities';
 import { ClientOptionsValidator } from './validators';
 
+/**
+ * Class representing the OIDC client. The main interface to the SDK.
+ */
 class OidcClient {
   private readonly clientOptions: ValidatedClientOptions;
   private readonly issuerConfiguration: OpenIdConfiguration;
@@ -46,10 +56,13 @@ class OidcClient {
   }
 
   /**
-   *
+   * Creates the client-options object for you using the metadata from your authorization servers well-known endpoint.
+   * 
    * @param issuerUrl {string} Base URL for the issuer, /.well-known/openid-configuration will be appended in this method
    * @param clientOptions {ClientOptions} Options for the OIDC Client, clientId and redirectUri are required
-   * @returns
+   * @returns {object}
+   * @see https://www.rfc-editor.org/rfc/rfc8414.html#section-3
+   * @see https://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
    */
   static async fromIssuer(issuerUrl: string, clientOptions: ClientOptions): Promise<OidcClient> {
     if (typeof issuerUrl !== 'string' || !Url.isValidUrl(issuerUrl, true)) {
@@ -67,10 +80,11 @@ class OidcClient {
   }
 
   /**
-   * Takes an optional login_hint and navigates the browser to the generated auth url using window.location.assign
+   * Takes an optional login_hint and navigates the browser to the generated authorize endpoint using window.location.assign
    *
    * @param loginHint {string} login_hint url parameter that will be appended to URL in case you have a username/email already
    * @returns {Promise} Will navigate the current browser tab to the authorization url that is generated through the authorizeUrl method
+   * @see https://www.rfc-editor.org/rfc/rfc6749#section-3.1
    */
   async authorize(loginHint?: string): Promise<void> {
     try {
@@ -139,6 +153,8 @@ class OidcClient {
    * a token.
    *
    * @returns Token response from auth server
+   * @see https://www.rfc-editor.org/rfc/rfc6749#section-4.2
+   * @see https://www.rfc-editor.org/rfc/rfc6749#section-4.1
    */
   async getToken(): Promise<TokenResponse> {
     this.logger.debug('OidcClient', 'getToken called');
@@ -199,7 +215,8 @@ class OidcClient {
   /**
    * Revoke the token managed by the library
    *
-   * @returns {any} - TODO, anything important in revoke response?
+   * @returns {any} - HTTP response 200 only.
+   * @see https://www.rfc-editor.org/rfc/rfc7009#section-2
    */
   async revokeToken(): Promise<any> {
     this.logger.debug('OidcClient', 'revokeToken called');
@@ -235,6 +252,7 @@ class OidcClient {
    * Retreive the User Info from the issuer, uses OpenIdConfiguration from the server and the token managed by the library
    *
    * @returns {any} User Info returned from the issuer
+   * @see https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
    */
   async fetchUserInfo<T>(): Promise<T> {
     this.logger.debug('OidcClient', 'fetchUserInfo called');

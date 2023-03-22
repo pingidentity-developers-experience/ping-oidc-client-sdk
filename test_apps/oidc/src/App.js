@@ -1,3 +1,11 @@
+/**
+ * OAuth/OIDC SDK Sample App 
+ * Ping Identity
+ * @author Technical Enablement Demo Team
+ * @description A bare-bones sample app built with create-react-app (CRA) to show an implementation example.
+ * @see https://react.dev/learn/start-a-new-react-project
+ */
+
 import OidcClient from '@ping-identity-developer-enablement/dev-enablement-oidc';
 import logo from './logo.svg';
 import './App.css';
