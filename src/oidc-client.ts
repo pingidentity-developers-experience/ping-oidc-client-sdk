@@ -1,5 +1,5 @@
 /**
- * OAuth/OIDC SDK 
+ * OAuth/OIDC SDK
  * Ping Identity
  * @author Technical Enablement Demo Team
  * @description A bare-bones sample app built with create-react-app (CRA) to show an implementation example.
@@ -57,7 +57,7 @@ class OidcClient {
 
   /**
    * Creates the client-options object for you using the metadata from your authorization servers well-known endpoint.
-   * 
+   *
    * @param issuerUrl {string} Base URL for the issuer, /.well-known/openid-configuration will be appended in this method
    * @param clientOptions {ClientOptions} Options for the OIDC Client, clientId and redirectUri are required
    * @returns {object}
