@@ -24,24 +24,6 @@
   color: white;
 }
 
-.app-hint {
-  color: white;
-  display: inline-block;
-  margin-bottom: 1rem;
-}
-
-.app-hint label {
-  display: block;
-  margin-left: 2px;
-  margin-bottom: 4px;
-  text-align: left;
-}
-
-.app-hint input {
-  padding: 8px 12px;
-  border-radius: 4px;
-}
-
 .app-content {
   background-color: white;
   width: 90%; 
