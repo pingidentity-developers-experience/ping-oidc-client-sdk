@@ -25,26 +25,30 @@ function App() {
   const [token, setToken] = useState();
   const [oidcClient, setOidcClient] = useState();
   const [userInfo, setUserInfo] = useState();
-  const [loginHint, setLoginHint] = useState('');
+
+  const tokenAvailable = async token => {
+    setToken(token);
+    try {
+      const userInfo = await oidcClient?.fetchUserInfo();
+      setUserInfo(userInfo);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
     async function initializeOidc() {
       const clientOptions = {
-        redirectUri: 'https://localhost:3000',
         clientId: '6dea3779-356d-4222-935b-3a0b4e03b655',
-        logLevel: 'info',
-        scope: 'openid profile revokescope',
-        // usePkce: false,
-        // grantType: 'token',
-        tokenAvailableCallback: async token => {
-          setToken(token);
-          try {
-            const userInfo = await oidcClient.fetchUserInfo();
-            setUserInfo(userInfo);
-          } catch (error) {
-            console.log(error);
-          }
-        }
+        redirectUri: 'https://localhost:3000',
+        // grantType: 'token', // defaults to 'authorization_code'
+        // usePkce: false, // defaults to true
+        // clientSecret: 'xxx', // required if using clientSecretAuthMethod (not recommended in client side apps, pkce prefered)
+        // clientSecretAuthMethod: 'basic', // omitted by default
+        // scope: 'openid profile revokescope', // defaults to 'openid profile'
+        // state: 'xyz', // will apply a random state as a string, you can pass in a string or object
+        // logLevel: 'info', // defaults to 'warn'
+        tokenAvailableCallback: tokenAvailable,
       };
   
       const oidcClient = await OidcClient.fromIssuer('https://auth.pingone.com/cc8801c7-a048-4a4f-bbc3-7a2604ca449a/as', clientOptions);
@@ -71,17 +75,11 @@ function App() {
         <h1>OIDC Client Sample App</h1>
       </header>
       {!token &&
-        <>
-          <div className="app-hint">
-            <label>Login Hint</label>
-            <input id="loginHint" value={loginHint} onChange={e => setLoginHint(e.target.value)} />
-          </div>
-          <div>
-            <button className="app-link" onClick={() => oidcClient.authorize(loginHint)}>
-              Ping OIDC Authorize URL
-            </button>
-          </div>
-        </>}
+        <div>
+          <button className="app-link" onClick={() => oidcClient.authorize(/* optional login_hint (e.g. username) */)}>
+            Ping OIDC Authorize URL
+          </button>
+        </div>}
       {token &&
         <>
           <div className="app-content">
