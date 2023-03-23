@@ -1,12 +1,14 @@
 import { ClientOptions, ClientSecretAuthMethod, ValidatedClientOptions } from '../types';
 import GrantType from '../types/grant-type';
-import { Logger } from '../utilities';
+import { BrowserUrlManager, Logger } from '../utilities';
 
 export class ClientOptionsValidator {
   private readonly logger: Logger;
+  private readonly browserUrlManager: BrowserUrlManager;
 
-  constructor(logger: Logger) {
+  constructor(logger: Logger, browserUrlManager: BrowserUrlManager) {
     this.logger = logger;
+    this.browserUrlManager = browserUrlManager;
   }
 
   /**
@@ -26,9 +28,15 @@ export class ClientOptionsValidator {
       this.logger.debug('ClientOptionsValidator', 'options.clientId verified', options.clientId);
     }
 
+    const { currentUrl } = this.browserUrlManager;
+
     if (!options.redirectUri) {
-      this.logger.error('ClientOptionsValidator', 'options.redirectUri is required to send an authorization request');
-      error = true;
+      if (!currentUrl) {
+        this.logger.error('ClientOptionsValidator', 'options.redirectUri is required to send an authorization request');
+        error = true;
+      } else {
+        this.logger.info('ClientOptionsValidator', 'options.redirectUri not passed in, defaulting to current browser URL', currentUrl);
+      }
     } else {
       this.logger.debug('ClientOptionsValidator', 'options.redirectUri verified', options.redirectUri);
     }
@@ -39,7 +47,7 @@ export class ClientOptionsValidator {
 
     const result: ValidatedClientOptions = {
       clientId: options.clientId,
-      redirectUri: options.redirectUri,
+      redirectUri: options.redirectUri || currentUrl,
       grantType: this.getGrantType(options),
       scope: this.getScope(options),
       usePkce: this.getUsePkce(options),
