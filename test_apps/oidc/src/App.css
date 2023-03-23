@@ -24,6 +24,11 @@
   color: white;
 }
 
+.app-example-user {
+  color: white;
+  margin-top: 1rem;
+}
+
 .app-content {
   background-color: white;
   width: 90%; 

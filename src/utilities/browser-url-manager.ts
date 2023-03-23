@@ -1,5 +1,6 @@
 import { TokenResponse } from '../types';
 import Logger from './logger';
+import Url from './url';
 
 export class BrowserUrlManager {
   private readonly logger: Logger;
@@ -29,24 +30,27 @@ export class BrowserUrlManager {
     return this.hashParams?.has('access_token') || this.searchParams?.has('code');
   }
 
-  checkUrlForCode(): string {
-    if (this.searchParams.has('code')) {
-      const code = this.searchParams.get('code');
+  get currentUrl(): string {
+    return Url.trimTrailingSlash(window?.location?.href?.split('?')?.[0] || '');
+  }
 
-      this.logger.info('BrowserUrlManager', 'found an auth code in the url', code);
+  checkUrlForState(): string | any {
+    const state = this.getAndRemoveSearchParameter('state');
 
-      this.searchParams.delete('code');
-
-      const query = this.searchParams.toString();
-      const queryStr = query ? `?${query}` : '';
-
-      // Remove code from URL
-      window.history.replaceState(null, null, window.location.pathname + queryStr + window.location.hash);
-
-      return code;
+    if (state) {
+      try {
+        return JSON.parse(state);
+      } catch {
+        this.logger.debug('BrowserUrlManager', 'Failed to parse state into a JSON object, must be a plain old string', state);
+        return state;
+      }
     }
 
-    return '';
+    return state;
+  }
+
+  checkUrlForCode(): string {
+    return this.getAndRemoveSearchParameter('code');
   }
 
   checkUrlForToken(): TokenResponse {
@@ -74,6 +78,26 @@ export class BrowserUrlManager {
 
   navigate(url: string) {
     window.location.assign(url);
+  }
+
+  private getAndRemoveSearchParameter(param: string): string {
+    if (this.searchParams.has(param)) {
+      const foundParam = this.searchParams.get(param);
+
+      this.logger.info('BrowserUrlManager', `found ${param} in the url`, foundParam);
+
+      this.searchParams.delete(param);
+
+      const query = this.searchParams.toString();
+      const queryStr = query ? `?${query}` : '';
+
+      // Remove code from URL
+      window.history.replaceState(null, null, window.location.pathname + queryStr + window.location.hash);
+
+      return foundParam;
+    }
+
+    return '';
   }
 }
 

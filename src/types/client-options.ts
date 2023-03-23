@@ -32,5 +32,5 @@ export interface ClientOptions {
   logLevel?: LogLevel;
 
   /** Optional - callback that will be triggered when a token is available in the library */
-  tokenAvailableCallback?: (token: TokenResponse) => void;
+  tokenAvailableCallback?: (token: TokenResponse, state?: string | any) => void;
 }

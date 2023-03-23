@@ -39,11 +39,16 @@ class OidcClient {
 
     // TODO - validator for issuerConfig?
     this.issuerConfiguration = issuerConfig;
-    this.clientOptions = new ClientOptionsValidator(this.logger).validate(clientOptions);
+    this.clientOptions = new ClientOptionsValidator(this.logger, this.browserUrlManager).validate(clientOptions);
 
     if (this.hasToken || this.browserUrlManager.tokenReady) {
+      const preExistingToken = this.hasToken;
       this.getToken().then((token) => {
-        this.clientOptions.tokenAvailableCallback?.(token);
+        let state;
+        if (!preExistingToken) {
+          state = this.browserUrlManager.checkUrlForState();
+        }
+        this.clientOptions.tokenAvailableCallback?.(token, state);
       });
     }
   }
@@ -158,6 +163,11 @@ class OidcClient {
    */
   async getToken(): Promise<TokenResponse> {
     this.logger.debug('OidcClient', 'getToken called');
+
+    // Clear lingering token from storage if a new one is ready.
+    if (this.browserUrlManager.tokenReady) {
+      this.clientStorage.removeToken();
+    }
 
     let token = this.clientStorage.getToken();
 
@@ -289,12 +299,12 @@ class OidcClient {
       return Promise.reject(error);
     }
 
-    if (response?.ok) {
-      return Promise.resolve(body);
+    if (!response?.ok) {
+      this.logger.error('OidcClient', `unsuccessful response ecounterd from url ${this.issuerConfiguration.userinfo_endpoint}`, response);
+      return Promise.reject(body);
     }
-    this.logger.error('OidcClient', `unsuccessful response ecounterd from url ${this.issuerConfiguration.userinfo_endpoint}`, response);
 
-    return Promise.reject(body);
+    return Promise.resolve(body);
   }
 
   private verifyToken(): TokenResponse {
@@ -335,7 +345,8 @@ class OidcClient {
     const response = await fetch(url, request);
 
     if (!response?.ok) {
-      this.logger.error('OidcClient', `unsuccessful response encountered for url ${url}`, response);
+      this.logger.error('OidcClient', `Unsuccessful response encountered for url ${url}`, response);
+      return Promise.reject(Error('Unsuccessful fetch call'));
     }
 
     // For some reason some auth servers (cough PingOne cough) will return an application/json content-type but have an empty body.
