@@ -1,9 +1,15 @@
+/**
+ * Main entry point for this example app.
+ */
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+/**
+ * Instantiates (invokes) the app component (App.js) that renders the example app UI.
+ */
 ReactDOM.render(
   <React.StrictMode>
     <App />

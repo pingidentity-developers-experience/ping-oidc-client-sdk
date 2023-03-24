@@ -1,5 +1,5 @@
 # OAuth/OIDC SDK
-## Ping Identity
+## From Ping Identity
 ### Authors: Technical Enablement Demo Team
 
 
@@ -25,7 +25,7 @@ Before each release, we run the following commands against our project to ensure
 
 Because of the as-is offering and license of this project, it is highly recommended that users of this SDK run `npm audit` and evaluate the results and  make changes to meet their internal application security requirements. Alternatively or additionally you can submit issues in our [Github repo](https://github.com/Technical-Enablement-PingIdentity/dev-enablement-oidc/issues).
 
-#### Disclaimer
+### Disclaimer
 THIS ENTIRE PROJECT AND ALL ITS ASSETS IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PING IDENTITY OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) SUSTAINED BY YOU OR A THIRD PARTY, HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT ARISING IN ANY WAY OUT OF THE USE OF THIS SAMPLE CODE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ### Included:
@@ -34,7 +34,7 @@ This OAuth/OIDC Library allows you to quickly implement an OIDC flow in your Web
 
 ### Getting Started:
 
-There is a sample app included in the project in test_apps/oidc, the test app is a React app created with the create-react-app package but usage applies with other web frameworks as well!
+There is an implementation example app, (not a demo), included in the project in test_apps/oidc. The test app is a React app created with the create-react-app package but usage applies with other web frameworks as well!
 
 Install from NPM:
 
@@ -134,3 +134,11 @@ When using `authorize()` you can optionally pass in a login_hint parameter as a 
 
 After a user has authorized on the server they will be redirected back to your app with a token in the url hash (implicit grants or `grantType: 'token'`) or with a `code` in the query string (`grantType: 'authorization_code'`). The library will check for both cases when it is initialized and handle getting the token for you. It will also remove the token or code from the url and browser history. If you don't use the tokenAvailableCallback and need to get the token at a later time, use the `getToken()` function. State will be passed as the second parameter to the tokenAvailableCallback function, if you need to get the state that was returned from the auth server this is currently the only place you can do so, the library will atempt to `JSON.parse` it, but if that fails you will get it back as a string.
 
+### Miscellany
+
+- The included unit tests located at `/test/` are being deprecated. Do not rely on them.
+- Estimated Release Schedule Overview
+  - Planning and development: Q1 2023.
+  - Internal beta testing period: April, 2023. (*May be extended if necessary.*)
+  - Feedback/updates sprint cycles: Q2, 2023.
+  - Productized: H2, 2023

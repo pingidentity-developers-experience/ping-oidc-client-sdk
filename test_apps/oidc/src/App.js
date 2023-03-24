@@ -1,8 +1,9 @@
 /**
- * OAuth/OIDC SDK Sample App 
+ * OAuth/OIDC SDK implementation example app 
  * Ping Identity
  * @author Technical Enablement Demo Team
- * @description A bare-bones sample app built with create-react-app (CRA) to show an implementation example.
+ * @description A bare-bones sample app built with create-react-app (CRA) to show an implementation example. 
+ * The SDK is not based on React. CRA just makes it easy to bootstrap a quick Javascript app to prototype or test.
  * @see https://react.dev/learn/start-a-new-react-project
  */
 
@@ -21,6 +22,11 @@ export default function OidcExample() {
   );
 }
 
+/**
+ * Functional component that makes up this example app and renders the UI.
+ * This component, called "App", is instantiated (invoked) from the main entry point of the app, index.js.
+ * 
+ */
 function App() {
   const oidcClient = useRef();
   
@@ -57,6 +63,9 @@ function App() {
     }
   }
 
+  /**
+   * Initializes the SDK when the app loads.
+   */
   useEffect(() => {
     async function initializeOidc() {
       const clientOptions = {
@@ -72,6 +81,9 @@ function App() {
         tokenAvailableCallback,
       };
   
+      /**
+       * Dynamically fetches your OAuth authorization servers endpoints from the spec-defied .well-known endpoint.
+       */
       const client = await OidcClient.fromIssuer('https://auth.pingone.com/cc8801c7-a048-4a4f-bbc3-7a2604ca449a/as', clientOptions);
       oidcClient.current = client;
       setOidcReady(true);
