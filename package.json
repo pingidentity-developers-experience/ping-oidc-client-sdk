@@ -1,6 +1,6 @@
 {
   "name": "@ping-identity-developer-enablement/dev-enablement-oidc",
-  "version": "0.1.0-beta",
+  "version": "0.2.0-beta",
   "description": "Library of Javascript modules to automate IAM protocol flows when integrating with Ping Identity solutions.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
