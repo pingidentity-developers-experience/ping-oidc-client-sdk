@@ -1,7 +1,7 @@
 {
   "name": "@ping-identity-developer-enablement/dev-enablement-oidc",
-  "version": "0.2.0-beta",
-  "description": "Library of Javascript modules to automate IAM protocol flows when integrating with Ping Identity solutions.",
+  "version": "0.2.1-beta",
+  "description": "An OAuth/OIDC SDK to simplify and fastrack integration with OAuth/OIDC protocol endpoints. AuthCode and implicit grant types. PKCE, state, userInfo, revoke, configurable logging.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -23,11 +23,11 @@
     "IAM",
     "oauth",
     "oidc",
-    "saml",
     "PingOne",
-    "PingFederate"
+    "PingFederate",
+    "SDK"
   ],
-  "author": "Ping Technical Enablement (https://www.pingidentity.com/)",
+  "author": "Ping Identity Technical Enablement (https://www.pingidentity.com/)",
   "license": "GPL-3.0",
   "bugs": {
     "url": "https://github.com/Technical-Enablement-PingIdentity/dev-enablement-oidc/issues"
