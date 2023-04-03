@@ -2,7 +2,7 @@
  * OAuth/OIDC SDK
  * Ping Identity
  * @author Technical Enablement Demo Team
- * @description A bare-bones sample app built with create-react-app (CRA) to show an implementation example.
+ * @description The main entry point for your application's integration.
  */
 
 import { ClientOptions, ClientSecretAuthMethod, GrantType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
@@ -108,6 +108,8 @@ class OidcClient {
    *
    * @param loginHint {string} login_hint url parameter that will be appended to URL in case you have a username/email already
    * @returns {Promise<string>} Promise that will resolve with a url you should redirect to
+   * @see https://openid.net/specs/openid-connect-core-1_0.html#ThirdPartyInitiatedLogin
+   * @see https://www.rfc-editor.org/rfc/rfc6749#section-4
    */
   async authorizeUrl(loginHint?: string): Promise<string> {
     this.logger.debug('OidcClient', 'authorized called');
@@ -158,6 +160,7 @@ class OidcClient {
    * a token.
    *
    * @returns Token response from auth server
+   * @see https://www.rfc-editor.org/rfc/rfc6749#section-4.1.3
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-4.2
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-4.1
    */
