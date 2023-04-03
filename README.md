@@ -107,7 +107,7 @@ const client = new OidcClient(clientOptions, openIdConfig);
 | clientId (required)| string | Client id issued by the auth server for your application | - | - |
 | redirectUri | string | Redirect URI for server to send user back to | - | Current URL from browser when library was initialized |
 | grantType | string (GrantType) | Token grant type |`'authorization_code'`, `'token'`|`'authorization_code'`|
-| usePcke | boolean | Whether the library will add a code challenge to the url | `true`, `false` | `true` |
+| usePkce | boolean | Whether the library will add a code challenge to the url | `true`, `false` | `true` |
 | clientSecret | string | Client secret, required if using clientSecretAuthMethod (not recommended in browser apps) | - | - |
 | clientSecretAuthMethod | string (ClientSecretAuthMethod) | Client secret authn method required by server | `'basic'`, `'post'` | - |
 | scope | string | Requested scopes for token | - | `'openid profile'` |
