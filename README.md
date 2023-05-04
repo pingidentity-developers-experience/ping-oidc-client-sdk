@@ -64,19 +64,19 @@ const clientOptions = {
   },
 };
 
-// Initialize the library using an authentication server's well-known endpoint, note this takes in the base url of the auth server, not the well-known endpoint itself, '/.well-known/openid-configuration' will be appended to the url by the SDK
+// Initialize the library using an authentication server's well-known endpoint. Note this takes in the base url of the auth server, not the well-known endpoint itself. '/.well-known/openid-configuration' will be appended to the url by the SDK.
 const oidcClient = await OidcClient.initializeFromOpenIdConfig('https://auth.pingone.com/<env-id>/as', clientOptions);
 
-// To authorize a user (note: this will use window.location.assign, thus redirecting the user):
+// Used to authorize a user. Note this will use window.location.assign, thus redirecting the user after the url is generated.
 oidcClient.authorize(/* optional login_hint */);
 
-// To get the authorization url (if you wish to override the authorize() behavior and apply it to an anchor tag, for example)
+// Used to get the authorization url if you wish to override the authorize() behavior and apply it to an anchor tag, for example
 const authnUrl = await oidcClient.authorizeUrl(/* optional login_hint */);
 
-// After a user has been authorized and a token is available there is a built in user info call
+// Used to get the user info from the userinfo endpoint on the auth server, must be used after user has gone through authorize flow and a token is available in storage.
 const userInfo = await oidcClient.fetchUserInfo();
 
-// Get the token from storage
+// Get the token from storage, can be used if you need the token outside of the tokenAvailableCallback passed in the clientOptions
 const token = await oidcClient.getToken();
 
 // Revoke the token on the server and remove it from storage
@@ -135,9 +135,9 @@ export interface TokenResponse {
 
 #### Implementation Details:
 
-When using `authorize()` you can optionally pass in a login_hint parameter as a string if you have already collected a username or email from the user. Alternatively if you would like to get the authorization url ahead of time and trigger the navigation to the server yourself via an anchor href or click event, you can do so using the `authorizeUrl()` function instead.
+When using `authorize()` you can optionally pass in a login_hint parameter as a string if you have already collected a username or email from the user. The authorize function will build the url and navigate the current browser tab to it for you. Alternatively if you would like to get the authorization url ahead of time and trigger the navigation to the server yourself via an anchor href or click event, you can do so using the `authorizeUrl()` function instead. When using PKCE (which is enabled by default) the library will generate a code verifier and challenge for you and use the verifier when getting a token from the token_endpoint on the authentication server.
 
-After a user has authorized on the server they will be redirected back to your app with a token in the url hash (implicit grants or `grantType: 'token'`) or with a `code` in the query string (`grantType: 'authorization_code'`). The library will check for both cases when it is initialized and handle getting the token for you. It will also remove the token or code from the url and browser history. If you don't use the tokenAvailableCallback and need to get the token at a later time, use the `getToken()` function. State will be passed as the second parameter to the tokenAvailableCallback function, if you need to get the state that was returned from the auth server this is currently the only place you can do so, the library will atempt to `JSON.parse` it, but if that fails you will get it back as a string.
+After a user has authorized on the server they will be redirected back to your app with a token in the url hash (implicit grants or `grantType: 'token'`) or with a `code` in the query string (`grantType: 'authorization_code'`). The library will check for both cases when it is initialized and handle getting the token for you. It will also remove the token or code from the url and browser history. If you don't use the tokenAvailableCallback and need to get the token at a later time, use the `getToken()` function. State will be passed as the second parameter to the tokenAvailableCallback function, if you need to get the state that was returned from the auth server this is the only place you can do so, the library will atempt to `JSON.parse` it, but if that fails you will get it back as a string.
 
 ### Miscellany
 
