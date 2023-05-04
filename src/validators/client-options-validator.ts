@@ -156,7 +156,7 @@ export class ClientOptionsValidator {
    * @returns {string} Scope that will be passed to PingOne endpoint
    */
   private getScope(options: ClientOptions): string {
-    const defaultScope = 'openid profile';
+    const defaultScope = 'openid profile email';
 
     if (!options.scope) {
       this.logger.info('ClientOptionsValidator', `options.Scope not provided, defaulting to '${defaultScope}'`);
