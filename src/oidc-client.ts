@@ -20,11 +20,11 @@ class OidcClient {
   private readonly browserUrlManager: BrowserUrlManager;
 
   /**
-   * It is recommended to initialize this class using the fromIssuer method which allows the open id configuration to be built
+   * It is recommended to initialize this class using the initializeFromOpenIdConfig method which allows the open id configuration to be built
    * from your issuer's well-known endpoint. However if you wish, you can initialize the OidcClient class manually passing
    * in the OpenIdConfiguation manually.
    *
-   * @param clientOptions {ClientOptions} Options for the OIDC Client, clientId and redirectUri are required
+   * @param clientOptions {ClientOptions} Options for the OIDC Client, clientId is required
    * @param issuerConfig {OpenIdConfiguration} OpenIdConfiguration object that the library will use
    */
   constructor(clientOptions: ClientOptions, issuerConfig: OpenIdConfiguration) {
@@ -64,12 +64,12 @@ class OidcClient {
    * Creates the client-options object for you using the metadata from your authorization servers well-known endpoint.
    *
    * @param issuerUrl {string} Base URL for the issuer, /.well-known/openid-configuration will be appended in this method
-   * @param clientOptions {ClientOptions} Options for the OIDC Client, clientId and redirectUri are required
+   * @param clientOptions {ClientOptions} Options for the OIDC Client, clientId is required
    * @returns {object}
    * @see https://www.rfc-editor.org/rfc/rfc8414.html#section-3
    * @see https://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
    */
-  static async fromIssuer(issuerUrl: string, clientOptions: ClientOptions): Promise<OidcClient> {
+  static async initializeFromOpenIdConfig(issuerUrl: string, clientOptions: ClientOptions): Promise<OidcClient> {
     if (typeof issuerUrl !== 'string' || !Url.isValidUrl(issuerUrl, true)) {
       return Promise.reject(new Error(`Error creating an OpenIdClient please ensure you have entered a valid url ${issuerUrl}`));
     }
@@ -117,7 +117,7 @@ class OidcClient {
     if (!this.issuerConfiguration?.authorization_endpoint) {
       return Promise.reject(
         Error(
-          `No authorization_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a authorization_enpoint with the OpenIdConfiguration object`,
+          `No authorization_endpoint has not been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a authorization_enpoint with the OpenIdConfiguration object`,
         ),
       );
     }
@@ -181,7 +181,7 @@ class OidcClient {
     if (!this.issuerConfiguration?.token_endpoint) {
       return Promise.reject(
         Error(
-          `No token_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a token_enpoint with the OpenIdConfiguration object`,
+          `No token_endpoint has not been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a token_enpoint with the OpenIdConfiguration object`,
         ),
       );
     }
@@ -243,7 +243,7 @@ class OidcClient {
     if (!this.issuerConfiguration?.revocation_endpoint) {
       return Promise.reject(
         Error(
-          `No revocation_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
+          `No revocation_endpoint has not been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
         ),
       );
     }
@@ -279,7 +279,7 @@ class OidcClient {
     if (!this.issuerConfiguration?.userinfo_endpoint) {
       return Promise.reject(
         Error(
-          `No userinfo_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
+          `No userinfo_endpoint has not been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
         ),
       );
     }
@@ -303,7 +303,7 @@ class OidcClient {
     }
 
     if (!response?.ok) {
-      this.logger.error('OidcClient', `unsuccessful response ecounterd from url ${this.issuerConfiguration.userinfo_endpoint}`, response);
+      this.logger.error('OidcClient', `unsuccessful response encounterd from url ${this.issuerConfiguration.userinfo_endpoint}`, response);
       return Promise.reject(body);
     }
 

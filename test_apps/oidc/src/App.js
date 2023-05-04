@@ -84,7 +84,7 @@ function App() {
       /**
        * Dynamically fetches your OAuth authorization servers endpoints from the spec-defied .well-known endpoint.
        */
-      const client = await OidcClient.fromIssuer('https://auth.pingone.com/cc8801c7-a048-4a4f-bbc3-7a2604ca449a/as', clientOptions);
+      const client = await OidcClient.initializeFromOpenIdConfig('https://auth.pingone.com/cc8801c7-a048-4a4f-bbc3-7a2604ca449a/as', clientOptions);
       oidcClient.current = client;
       setOidcReady(true);
     };

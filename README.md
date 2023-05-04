@@ -3,9 +3,9 @@
 ### Authors: Technical Enablement Demo Team
 
 
-This project is an OAuth/OIDC SDK (hosted at npmjs.com), for bootstrapping the [OAuth](https://www.rfc-editor.org/rfc/rfc6749) and [OpenID Connect (OIDC)](https://openid.net/developers/specs/) protocol in your own custom applications, with the intent to automate or simplify steps in the protocol flow and integration of it. This allows you, the developer, to do what you do best, focusing on your companies business apps, while Ping Identity handles what we do best, identity security.
+This project is an OAuth/OIDC SDK (hosted at npmjs.com), for bootstrapping the [OAuth](https://www.rfc-editor.org/rfc/rfc6749) and [OpenID Connect (OIDC)](https://openid.net/developers/specs/) protocol in your own custom applications, with the intent to automate or simplify steps in the protocol flow and integration of it. This allows you, the developer, to do what you do best, focusing on your company's business apps, while Ping Identity handles what we do best, identity security.
 
-With a developer-first focus and simplicity in design, native Javascript APIs were chosen as much as possible over 3rd-party packages and libraries which may conflict with your companies security standards. Additionally, native Javascript APIs simplify maintenance for Ping Identity and its customers, and reduces the potential atack vectors of this package in your applications. 
+With a developer-first focus and simplicity in design, native Javascript APIs were chosen as much as possible over 3rd-party packages and libraries which may conflict with your company's security standards. Additionally, native Javascript APIs simplify maintenance for Ping Identity and its customers, and reduces the potential attack vectors of this package in your applications. 
 
 ### Security
 
@@ -30,7 +30,7 @@ THIS ENTIRE PROJECT AND ALL ITS ASSETS IS PROVIDED "AS IS" AND ANY EXPRESS OR IM
 
 ### Included:
 
-This OAuth/OIDC Library allows you to quickly implement an OIDC flow in your Web Application. Its goal is to make it as easy as possible to authenticate a user and get an access token with as little developer intervention as possible.
+This OAuth/OIDC Library allows you to quickly implement an OIDC flow in your Web Application. Its goal is to make it as easy as possible to authenticate a user and get an access token with as little developer intervention as possible. Currently this library only supports browser implementations.
 
 ### Getting Started:
 
@@ -63,23 +63,27 @@ const clientOptions = {
     console.log(token);
   },
 };
-  
-const oidcClient = await OidcClient.fromIssuer('https://auth.pingone.com/<env-id>/as', clientOptions);
 
-// To authorize a user (note: this will use window.location.assign, thus redirecting the user):
+// Initialize the library using an authentication server's well-known endpoint. Note this takes in the base url of the auth server, not the well-known endpoint itself. '/.well-known/openid-configuration' will be appended to the url by the SDK.
+const oidcClient = await OidcClient.initializeFromOpenIdConfig('https://auth.pingone.com/<env-id>/as', clientOptions);
+
+// Used to authorize a user. Note this will use window.location.assign, thus redirecting the user after the url is generated.
 oidcClient.authorize(/* optional login_hint */);
 
-// To get the authorization url (if you wish to override the authorize() behavior and apply it to an anchor tag, for example)
+// Used to get the authorization url if you wish to override the authorize() behavior and apply it to an anchor tag, for example
 const authnUrl = await oidcClient.authorizeUrl(/* optional login_hint */);
 
-// After a user has been authorized and a token is available there is a built in user info call
+// Used to get the user info from the userinfo endpoint on the auth server, must be used after user has gone through authorize flow and a token is available in storage.
 const userInfo = await oidcClient.fetchUserInfo();
+
+// Get the token from storage, can be used if you need the token outside of the tokenAvailableCallback passed in the clientOptions
+const token = await oidcClient.getToken();
 
 // Revoke the token on the server and remove it from storage
 await oidcClient.revokeToken();
 ```
 
-We recommend you initialize the library using the static fromIssuer method shown above, as this will hit the authorization server's well-known endpoint and use the endpoints defined in the response. Alternatively you can initialize an OidcClient manaully.
+We recommend you initialize the library using the static initializeFromOpenIdConfig method shown above, as this will hit the authorization server's well-known endpoint and use the endpoints defined in the response. Alternatively you can initialize an OidcClient manaully.
 
 ``` JavaScript
 const clientOptions = {
@@ -113,9 +117,11 @@ const client = new OidcClient(clientOptions, openIdConfig);
 | scope | string | Requested scopes for token | - | `'openid profile'` |
 | state | string \| object | State passed to server | - | Random string to act as a nonce token |
 | logLevel | string (LogLevel) | Logging level for statements printed to console | `'debug'`, `'info'`, `'warn'`, `'error'` | `'warn'`
-| tokenAvailableCallback | (token: TokenResponse, state: object \| string) => void | Description | Callback that will be called if a token is found in storage or retrieved from auth server | - | - |
+| tokenAvailableCallback | (token: TokenResponse, state: object \| string) => void | Callback that will be called if a token is found in storage or retrieved from auth server | - | - |
 
-** Note: TokenResponse is as follows:
+Errors from the library are passed up to your application so that you can handle them gracefully if needed. You can catch them in try/catch block if you are using async/await or you can use the catch() method on the promise returned from the function call.
+
+** Note: TokenResponse is as follows (this is a TypeScript interface, `?` indicates an optional property):
 
 ``` TypeScript
 export interface TokenResponse {
@@ -125,14 +131,13 @@ export interface TokenResponse {
   scope: string;
   token_type: string;
 }
-
 ```
 
 #### Implementation Details:
 
-When using `authorize()` you can optionally pass in a login_hint parameter as a string if you have already collected a username or email from the user. Alternatively if you would like to get the authorization url ahead of time and trigger the navigation to the server yourself via an anchor href or click event, you can do so using the `authorizeUrl()` function instead.
+When using `authorize()` you can optionally pass in a login_hint parameter as a string if you have already collected a username or email from the user. The authorize function will build the url and navigate the current browser tab to it for you. Alternatively if you would like to get the authorization url ahead of time and trigger the navigation to the server yourself via an anchor href or click event, you can do so using the `authorizeUrl()` function instead. When using PKCE (which is enabled by default) the library will generate a code verifier and challenge for you and use the verifier when getting a token from the token_endpoint on the authentication server.
 
-After a user has authorized on the server they will be redirected back to your app with a token in the url hash (implicit grants or `grantType: 'token'`) or with a `code` in the query string (`grantType: 'authorization_code'`). The library will check for both cases when it is initialized and handle getting the token for you. It will also remove the token or code from the url and browser history. If you don't use the tokenAvailableCallback and need to get the token at a later time, use the `getToken()` function. State will be passed as the second parameter to the tokenAvailableCallback function, if you need to get the state that was returned from the auth server this is currently the only place you can do so, the library will atempt to `JSON.parse` it, but if that fails you will get it back as a string.
+After a user has authorized on the server they will be redirected back to your app with a token in the url hash (implicit grants or `grantType: 'token'`) or with a `code` in the query string (`grantType: 'authorization_code'`). The library will check for both cases when it is initialized and handle getting the token for you. It will also remove the token or code from the url and browser history. If you don't use the tokenAvailableCallback and need to get the token at a later time, use the `getToken()` function. State will be passed as the second parameter to the tokenAvailableCallback function, if you need to get the state that was returned from the auth server this is the only place you can do so, the library will atempt to `JSON.parse` it, but if that fails you will get it back as a string.
 
 ### Miscellany
 

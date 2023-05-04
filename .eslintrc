@@ -1,7 +1,6 @@
 {
     "root": true,
     "plugins": [
-        "jest",
         "@typescript-eslint"
     ],
     "extends": [
