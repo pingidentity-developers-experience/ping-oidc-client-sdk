@@ -5,7 +5,7 @@
  * @description The main entry point for your application's integration.
  */
 
-import { ClientOptions, ClientSecretAuthMethod, GrantType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
+import { ClientOptions, GrantType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
 import { Logger, OAuth, ClientStorage, Url, BrowserUrlManager } from './utilities';
 import { ClientOptionsValidator } from './validators';
 
@@ -202,7 +202,7 @@ class OidcClient {
 
       if (this.clientOptions.grantType === GrantType.AuthorizationCode) {
         if (this.clientOptions.usePkce) {
-          // PKCE uses a code_verifier from client and does not require client secret authentication
+          // PKCE uses a code_verifier from client
           const codeVerifier = this.clientStorage.getCodeVerifier();
 
           if (!codeVerifier) {
@@ -214,7 +214,7 @@ class OidcClient {
       }
 
       try {
-        token = await this.clientSecretAuthenticatedApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
+        token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
       } catch (error) {
         return Promise.reject(error);
       }
@@ -253,7 +253,7 @@ class OidcClient {
     body.append('token_type_hint', 'access_token');
 
     try {
-      const revokeResponse = await this.clientSecretAuthenticatedApiCall(this.issuerConfiguration.revocation_endpoint, body);
+      const revokeResponse = await this.authenticationServerApiCall(this.issuerConfiguration.revocation_endpoint, body);
       this.clientStorage.removeToken();
       return revokeResponse;
     } catch (error) {
@@ -321,19 +321,11 @@ class OidcClient {
     return token;
   }
 
-  private async clientSecretAuthenticatedApiCall<T>(url: string, body: URLSearchParams): Promise<T> {
+  private async authenticationServerApiCall<T>(url: string, body: URLSearchParams): Promise<T> {
     const headers = new Headers();
     headers.append('Content-Type', 'application/x-www-form-urlencoded');
 
     body.append('client_id', this.clientOptions.clientId);
-
-    if (this.clientOptions.clientSecretAuthMethod === ClientSecretAuthMethod.Post) {
-      this.logger.info('OidcClient', 'client secret auth method is Post, adding to request body');
-      body.append('client_secret', this.clientOptions.clientSecret);
-    } else if (this.clientOptions.clientSecretAuthMethod === ClientSecretAuthMethod.Basic) {
-      this.logger.info('OidcClient', 'client secret auth method is Basic, adding Authorization request header');
-      headers.append('Authorization', `Basic ${OAuth.btoa(`${this.clientOptions.clientId}:${this.clientOptions.clientSecret}`)}`);
-    }
 
     const request: RequestInit = {
       method: 'POST',

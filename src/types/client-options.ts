@@ -1,4 +1,3 @@
-import ClientAuthMethod from './client-secret-auth-method';
 import GrantType from './grant-type';
 import LogLevel from './log-level';
 import { TokenResponse } from './token-response';
@@ -15,12 +14,6 @@ export interface ClientOptions {
 
   /** Optional - will default to true */
   usePkce?: boolean;
-
-  /** Optional - NOT RECOMMENDED FOR FRONT END APPS, required when not using PCKE */
-  clientSecret?: string;
-
-  /** Optional - Token Endpoint Authentication method, default is basic if GrantType is Code and PCKE is false */
-  clientSecretAuthMethod?: ClientAuthMethod;
 
   /** Optional - will default to 'openid profile' */
   scope?: string;
