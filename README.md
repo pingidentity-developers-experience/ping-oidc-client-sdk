@@ -54,8 +54,6 @@ const clientOptions = {
   // redirectUri: 'https://example.com/page', 
   // grantType: 'token', 
   // usePkce: false,
-  // clientSecret: 'xxx',
-  // clientSecretAuthMethod: 'basic',
   // scope: 'openid profile revokescope',
   // state: 'xyz', 
   // logLevel: 'debug',
@@ -112,8 +110,6 @@ const client = new OidcClient(clientOptions, openIdConfig);
 | redirectUri | string | Redirect URI for server to send user back to | - | Current URL from browser when library was initialized |
 | grantType | string (GrantType) | Token grant type |`'authorization_code'`, `'token'`|`'authorization_code'`|
 | usePkce | boolean | Whether the library will add a code challenge to the url | `true`, `false` | `true` |
-| clientSecret | string | Client secret, required if using clientSecretAuthMethod (not recommended in browser apps) | - | - |
-| clientSecretAuthMethod | string (ClientSecretAuthMethod) | Client secret authn method required by server | `'basic'`, `'post'` | - |
 | scope | string | Requested scopes for token | - | `'openid profile'` |
 | state | string \| object | State passed to server | - | Random string to act as a nonce token |
 | logLevel | string (LogLevel) | Logging level for statements printed to console | `'debug'`, `'info'`, `'warn'`, `'error'` | `'warn'`

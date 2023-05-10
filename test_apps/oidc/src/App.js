@@ -74,8 +74,6 @@ function App() {
         scope: 'openid profile revokescope', // defaults to 'openid profile'
         // grantType: 'token', // defaults to 'authorization_code'
         // usePkce: false, // defaults to true
-        // clientSecret: 'xxx', // required if using clientSecretAuthMethod (not recommended in client side apps, pkce prefered)
-        // clientSecretAuthMethod: 'basic', // omitted by default
         // state: 'xyz', // will apply a random state as a string, you can pass in a string or object
         // logLevel: 'debug', // defaults to 'warn'
         tokenAvailableCallback,
