@@ -1,6 +1,6 @@
 import { TokenResponse } from '../types';
-import Logger from './logger';
-import Url from './url';
+import { Logger } from './logger';
+import { Url } from './url';
 
 export class BrowserUrlManager {
   private readonly logger: Logger;
@@ -100,5 +100,3 @@ export class BrowserUrlManager {
     return '';
   }
 }
-
-export default BrowserUrlManager;

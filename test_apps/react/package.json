@@ -1,9 +1,9 @@
 {
-  "name": "oidc",
+  "name": "react-oidc",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@ping-identity-developer-enablement/dev-enablement-oidc": "^0.2.2-beta",
+    "@pingidentity-developers-experience/ping-oidc-client-sdk": "^0.3.2-beta",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.3.0",

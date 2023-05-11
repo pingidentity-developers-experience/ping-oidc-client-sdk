@@ -1,0 +1,82 @@
+.app {
+  text-align: center;
+  background-color: #282c34;
+  min-height: 100vh;
+}
+
+.app-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .app-logo {
+    animation: app-logo-spin infinite 20s linear;
+  }
+}
+
+.app-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.app-example-user {
+  color: white;
+  margin-top: 1rem;
+}
+
+.app-content {
+  background-color: white;
+  width: 90%; 
+  color: black;
+  text-align: left;
+  font-size: 10px;
+  padding: 1rem;
+  word-wrap: break-word;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.app-token-label {
+  text-align: left;
+  font-size: 1.25rem;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.app-revoke-button {
+  margin-top: 1rem;
+}
+
+.app-token-container {
+  margin-bottom: 1rem;
+}
+
+.app-userinfo-label {
+  display: inline-block; 
+  min-width: 120px;
+}
+
+button.app-link {
+  background: none; 
+  border: none; 
+  font-size: 1.5rem; 
+  cursor: pointer;
+}
+
+.app-link {
+  color: #61dafb;
+}
+
+@keyframes app-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

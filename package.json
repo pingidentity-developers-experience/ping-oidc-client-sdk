@@ -1,14 +1,16 @@
 {
-  "name": "@ping-identity-developer-enablement/dev-enablement-oidc",
-  "version": "0.2.1-beta",
+  "name": "@pingidentity-developers-experience/ping-oidc-client-sdk",
+  "version": "0.3.2-beta",
   "description": "An OAuth/OIDC SDK to simplify and fastrack integration with OAuth/OIDC protocol endpoints. AuthCode and implicit grant types. PKCE, state, userInfo, revoke, configurable logging.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "lib/ping-oidc.js",
+  "types": "lib/index.d.ts",
   "files": [
-    "dist"
+    "lib",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
-    "build": "webpack && tsc --declaration --emitDeclarationOnly",
+    "build": "rm -rf ./lib && webpack && tsc --declaration --emitDeclarationOnly",
     "eslint": "eslint -c .eslintrc ./src/**"
   },
   "repository": {

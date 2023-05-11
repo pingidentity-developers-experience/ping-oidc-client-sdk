@@ -23,7 +23,7 @@ Before each release, we run the following commands against our project to ensure
 `npx depcheck`
 `npm audit`
 
-Because of the as-is offering and license of this project, it is highly recommended that users of this SDK run `npm audit` and evaluate the results and  make changes to meet their internal application security requirements. Alternatively or additionally you can submit issues in our [Github repo](https://github.com/Technical-Enablement-PingIdentity/dev-enablement-oidc/issues).
+Because of the as-is offering and license of this project, it is highly recommended that users of this SDK run `npm audit` and evaluate the results and  make changes to meet their internal application security requirements. Alternatively or additionally you can submit issues in our [Github repo](https://github.com/pingidentity-developers-experience/ping-oidc-client-sdk/issues).
 
 ### Disclaimer
 THIS ENTIRE PROJECT AND ALL ITS ASSETS IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PING IDENTITY OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) SUSTAINED BY YOU OR A THIRD PARTY, HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT ARISING IN ANY WAY OUT OF THE USE OF THIS SAMPLE CODE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
@@ -38,12 +38,12 @@ There is an implementation example app, (not a demo), included in the project in
 
 Install from NPM:
 
-`npm install @ping-identity-developer-enablement/dev-enablement-oidc`
+`npm install @pingidentity-developers-experience/ping-oidc-client-sdk`
 
 
 In your js file:
 
-`import OidcClient from '@ping-identity-developer-enablement/dev-enablement-oidc';`
+`import { OidcClient } from '@pingidentity-developers-experience/ping-oidc-client-sdk';`
 
 #### Usage:
 Note these examples show usage against PingOne, but the OidcClient will work against any OAuth/OIDC compliant authentication server. Also, this library is written using TypeScript so you will get typings in your app if needed.
@@ -100,6 +100,19 @@ const openIdConfig = {
 };
 
 const client = new OidcClient(clientOptions, openIdConfig);
+```
+
+#### Usage without node/npm
+
+If you wish to use the library in a web application that does not use node or npm you can import it from unpkg or a similar CDN and use it as follows.
+
+``` HTML
+<script type="module" src="https://unpkg.com/@pingidentity-developers-experience/ping-oidc-client-sdk/lib/ping-oidc.js"></script>
+<!-- NOTE: In most cases you should specify a version in case we release major/breaking changes, see https://www.unpkg.com/ for more information -->
+
+<script type="text/javascript">
+  const client = await pingOidc.OidcClient.initializeFromOpenIdConfig({...});
+</script>
 ```
 
 #### ClientOptions:

@@ -18,5 +18,3 @@ export class Url {
     }
   }
 }
-
-export default Url;

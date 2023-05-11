@@ -6,8 +6,8 @@ export interface ClientOptions {
   /** Required - client id to authorize */
   clientId: string;
 
-  /** Required - redirect URI once request completes */
-  redirectUri: string;
+  /** Optional - redirect URI once request completes */
+  redirectUri?: string;
 
   /** Optional - will default to 'authorization_code', either authorization_code or token */
   grantType?: GrantType;
