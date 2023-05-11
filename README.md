@@ -102,7 +102,7 @@ const openIdConfig = {
 const client = new OidcClient(clientOptions, openIdConfig);
 ```
 
-#### Usage without node/npm
+#### Usage without node/npm:
 
 If you wish to use the library in a web application that does not use node or npm you can import it from unpkg or a similar CDN and use it as follows.
 
