@@ -1,6 +1,6 @@
 {
   "name": "@pingidentity-developers-experience/ping-oidc-client-sdk",
-  "version": "0.3.2-beta",
+  "version": "0.3.3-beta",
   "description": "An OAuth/OIDC SDK to simplify and fastrack integration with OAuth/OIDC protocol endpoints. AuthCode and implicit grant types. PKCE, state, userInfo, revoke, configurable logging.",
   "main": "lib/ping-oidc.js",
   "types": "lib/index.d.ts",
