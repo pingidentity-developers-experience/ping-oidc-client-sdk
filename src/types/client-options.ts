@@ -1,5 +1,5 @@
 import ClientAuthMethod from './client-secret-auth-method';
-import GrantType from './grant-type';
+import ResponseType from './response-type';
 import LogLevel from './log-level';
 import { TokenResponse } from './token-response';
 
@@ -8,10 +8,13 @@ export interface ClientOptions {
   clientId: string;
 
   /** Required - redirect URI once request completes */
-  redirectUri: string;
+  redirect_uri: string;
 
   /** Optional - will default to 'authorization_code', either authorization_code or token */
-  grantType?: GrantType;
+  // grant_type?: GrantType;
+
+  /** Optional - will default to 'code', either code or token */
+  response_type: ResponseType;
 
   /** Optional - will default to true */
   usePkce?: boolean;
@@ -19,7 +22,7 @@ export interface ClientOptions {
   /** Optional - NOT RECOMMENDED FOR FRONT END APPS, required when not using PCKE */
   clientSecret?: string;
 
-  /** Optional - Token Endpoint Authentication method, default is basic if GrantType is Code and PCKE is false */
+  /** Optional - Token Endpoint Authentication method, default is basic if grant_type is Code and PCKE is false */
   clientSecretAuthMethod?: ClientAuthMethod;
 
   /** Optional - will default to 'openid profile' */
