@@ -50,9 +50,9 @@ Note these examples show usage against PingOne, but the OidcClient will work aga
 
 ``` JavaScript
 const clientOptions = {
-  clientId: '<authn-server-client-id>',
-  // redirectUri: 'https://example.com/page', 
-  // grantType: 'token', 
+  client_id: '<authn-server-client-id>',
+  // redirect_uri: 'https://example.com/page', 
+  // response_type: 'token', 
   // usePkce: false,
   // scope: 'openid profile revokescope',
   // state: 'xyz', 
@@ -81,11 +81,11 @@ const token = await oidcClient.getToken();
 await oidcClient.revokeToken();
 ```
 
-We recommend you initialize the library using the static initializeFromOpenIdConfig method shown above, as this will hit the authorization server's well-known endpoint and use the endpoints defined in the response. Alternatively you can initialize an OidcClient manaully.
+We recommend you initialize the library using the static initializeFromOpenIdConfig method shown above, as this will hit the authorization server's well-known endpoint and use the endpoints defined in the response. Alternatively you can initialize an OidcClient manually.
 
 ``` JavaScript
 const clientOptions = {
-  clientId: '<authn-server-client-id>',
+  client_id: '<authn-server-client-id>',
   tokenAvailableCallback: (token, state) => {
     console.log(token);
     console.log(state);
@@ -95,7 +95,7 @@ const clientOptions = {
 const openIdConfig = {
   authorization_endpoint: "https://auth.pingone.com/<env-id>/as/authorize", // Required
   token_endpoint: "https://auth.pingone.com/<env-id>/as/token", // Required
-  revocation_endpoint: "https://auth.pingone.com/<env-id>/as/revoke", // Required if using revokenToken() function
+  revocation_endpoint: "https://auth.pingone.com/<env-id>/as/revoke", // Required if using revokeToken() function
   userinfo_endpoint: "https://auth.pingone.com/<env-id>/as/userinfo" // Required if using fetchUserInfo() function
 };
 
@@ -119,9 +119,9 @@ If you wish to use the library in a web application that does not use node or np
 
 | Parameter   | Type (TS enum where applicable) | Description  | Options | Default value if not specified |
 | ----------- | ---- |------------- | ------- | ------------- |
-| clientId (required)| string | Client id issued by the auth server for your application | - | - |
-| redirectUri | string | Redirect URI for server to send user back to | - | Current URL from browser when library was initialized |
-| grantType | string (GrantType) | Token grant type |`'authorization_code'`, `'token'`|`'authorization_code'`|
+| client_id (required)| string | Client id issued by the auth server for your application | - | - |
+| redirect_uri | string | Redirect URI for server to send user back to | - | Current URL from browser when library was initialized |
+| response_type | string | Token response type |`'code'`, `'token'`|`'code'`|
 | usePkce | boolean | Whether the library will add a code challenge to the url | `true`, `false` | `true` |
 | scope | string | Requested scopes for token | - | `'openid profile'` |
 | state | string \| object | State passed to server | - | Random string to act as a nonce token |
@@ -146,7 +146,7 @@ export interface TokenResponse {
 
 When using `authorize()` you can optionally pass in a login_hint parameter as a string if you have already collected a username or email from the user. The authorize function will build the url and navigate the current browser tab to it for you. Alternatively if you would like to get the authorization url ahead of time and trigger the navigation to the server yourself via an anchor href or click event, you can do so using the `authorizeUrl()` function instead. When using PKCE (which is enabled by default) the library will generate a code verifier and challenge for you and use the verifier when getting a token from the token_endpoint on the authentication server.
 
-After a user has authorized on the server they will be redirected back to your app with a token in the url hash (implicit grants or `grantType: 'token'`) or with a `code` in the query string (`grantType: 'authorization_code'`). The library will check for both cases when it is initialized and handle getting the token for you. It will also remove the token or code from the url and browser history. If you don't use the tokenAvailableCallback and need to get the token at a later time, use the `getToken()` function. State will be passed as the second parameter to the tokenAvailableCallback function, if you need to get the state that was returned from the auth server this is the only place you can do so, the library will atempt to `JSON.parse` it, but if that fails you will get it back as a string.
+After a user has authorized on the server they will be redirected back to your app with a token in the url hash (implicit grants or `grant_type: 'token'`) or with a `code` in the query string (`grant_type: 'authorization_code'`). The library will check for both cases when it is initialized and handle getting the token for you. It will also remove the token or code from the url and browser history. If you don't use the tokenAvailableCallback and need to get the token at a later time, use the `getToken()` function. State will be passed as the second parameter to the tokenAvailableCallback function, if you need to get the state that was returned from the auth server this is the only place you can do so, the library will attempt to `JSON.parse` it, but if that fails you will get it back as a string.
 
 ### Miscellany
 

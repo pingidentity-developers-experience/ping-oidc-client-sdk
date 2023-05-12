@@ -1,11 +1,13 @@
 import { ClientOptions } from './client-options';
-import GrantType from './grant-type';
+import ResponseType from './response-type';
 
 /**
  * Interface for ClientOptions after defaults have been applied
  */
 export interface ValidatedClientOptions extends ClientOptions {
-  grantType: GrantType;
+  response_type: ResponseType;
   usePkce: boolean;
   scope: string;
+  redirect_uri: string;
+  client_id: string;
 }

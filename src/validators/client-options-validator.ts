@@ -1,5 +1,6 @@
+/* eslint-disable camelcase */
 import { ClientOptions, ValidatedClientOptions } from '../types';
-import GrantType from '../types/grant-type';
+import ResponseType from '../types/response-type';
 import { BrowserUrlManager, Logger } from '../utilities';
 
 export class ClientOptionsValidator {
@@ -12,7 +13,7 @@ export class ClientOptionsValidator {
   }
 
   /**
-   * Validates user passed options and gives nessessary feedback to console/through errors, will also set default values where applicable
+   * Validates user passed options and gives necessary feedback to console/through errors, will also set default values where applicable
    *
    * @param {ClientOptions} options Options to be validated
    * @returns {ClientOptions} options with applicable default values
@@ -20,35 +21,35 @@ export class ClientOptionsValidator {
   validate(options: ClientOptions): ValidatedClientOptions {
     let error = false;
 
-    // Need to validate required properies, users may not be using typescript so doublecheck them
-    if (!options.clientId) {
-      this.logger.error('ClientOptionsValidator', 'options.clientId is required to send an authorization request');
+    // Need to validate required properties, users may not be using typescript so double-check them
+    if (!options.client_id) {
+      this.logger.error('ClientOptionsValidator', 'options.client_id is required to send an authorization request');
       error = true;
     } else {
-      this.logger.debug('ClientOptionsValidator', 'options.clientId verified', options.clientId);
+      this.logger.debug('ClientOptionsValidator', 'options.client_id verified', options.client_id);
     }
 
     const { currentUrl } = this.browserUrlManager;
 
-    if (!options.redirectUri) {
+    if (!options.redirect_uri) {
       if (!currentUrl) {
-        this.logger.error('ClientOptionsValidator', 'options.redirectUri is required to send an authorization request');
+        this.logger.error('ClientOptionsValidator', 'options.redirect_uri is required to send an authorization request');
         error = true;
       } else {
-        this.logger.info('ClientOptionsValidator', 'options.redirectUri not passed in, defaulting to current browser URL', currentUrl);
+        this.logger.info('ClientOptionsValidator', 'options.redirect_uri not passed in, defaulting to current browser URL', currentUrl);
       }
     } else {
-      this.logger.debug('ClientOptionsValidator', 'options.redirectUri verified', options.redirectUri);
+      this.logger.debug('ClientOptionsValidator', 'options.redirect_uri verified', options.redirect_uri);
     }
 
     if (error) {
-      throw Error('An error occured while validating ClientOptions, see console.error messages for more information');
+      throw Error('An error occurred while validating ClientOptions, see console.error messages for more information');
     }
 
     const result: ValidatedClientOptions = {
-      clientId: options.clientId,
-      redirectUri: options.redirectUri || currentUrl,
-      grantType: this.getGrantType(options),
+      client_id: options.client_id,
+      redirect_uri: options.redirect_uri || currentUrl,
+      response_type: this.getResponseType(options),
       scope: this.getScope(options),
       usePkce: this.getUsePkce(options),
       state: options.state,
@@ -74,28 +75,28 @@ export class ClientOptionsValidator {
   }
 
   /**
-   * Does verification of GrantType sent in through options and sets default of 'code' if not present or invalid
+   * Does verification of response_type sent in through options and sets default of 'code' if not present or invalid
    *
    * @param {ClientOptions} options Options sent into authorize method
-   * @returns {string} GrantType that will be used
+   * @returns {string} response_type that will be used
    */
-  private getGrantType(options: ClientOptions): GrantType {
-    let { grantType } = options;
-    const validResponseTypes = Object.values(GrantType);
+  private getResponseType(options: ClientOptions): ResponseType {
+    let { response_type } = options;
+    const validResponseTypes = Object.values(ResponseType);
 
-    if (!validResponseTypes.includes(grantType)) {
-      grantType = GrantType.AuthorizationCode;
+    if (!validResponseTypes.includes(response_type)) {
+      response_type = ResponseType.AuthorizationCode;
 
-      if (options.grantType) {
-        this.logger.warn('ClientOptionsValidator', `options.ResponseType contained an invalid option, valid options are '${validResponseTypes.join(', ')}'`, options.grantType);
+      if (options.response_type) {
+        this.logger.warn('ClientOptionsValidator', `options.ResponseType contained an invalid option, valid options are '${validResponseTypes.join(', ')}'`, options.response_type);
       } else {
         this.logger.info('ClientOptionsValidator', `options.ResponseType not provided, defaulting to 'code'`);
       }
     } else {
-      this.logger.debug('ClientOptionsValidator', 'options.ResponseType passed and valid', options.grantType);
+      this.logger.debug('ClientOptionsValidator', 'options.ResponseType passed and valid', options.response_type);
     }
 
-    return grantType;
+    return response_type;
   }
 
   /**

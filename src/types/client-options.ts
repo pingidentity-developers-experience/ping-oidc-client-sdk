@@ -1,16 +1,16 @@
-import GrantType from './grant-type';
+import ResponseType from './response-type';
 import LogLevel from './log-level';
 import { TokenResponse } from './token-response';
 
 export interface ClientOptions {
   /** Required - client id to authorize */
-  clientId: string;
+  client_id: string;
 
   /** Optional - redirect URI once request completes */
-  redirectUri?: string;
+  redirect_uri?: string;
 
-  /** Optional - will default to 'authorization_code', either authorization_code or token */
-  grantType?: GrantType;
+  /** Optional - will default to 'code', either code or token */
+  response_type?: ResponseType;
 
   /** Optional - will default to true */
   usePkce?: boolean;
