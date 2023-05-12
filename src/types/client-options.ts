@@ -9,11 +9,8 @@ export interface ClientOptions {
   /** Optional - redirect URI once request completes */
   redirect_uri?: string;
 
-  /** Optional - will default to 'authorization_code', either authorization_code or token */
-  // grant_type?: GrantType;
-
   /** Optional - will default to 'code', either code or token */
-  response_type: ResponseType;
+  response_type?: ResponseType;
 
   /** Optional - will default to true */
   usePkce?: boolean;

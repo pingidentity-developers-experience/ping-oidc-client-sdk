@@ -20,7 +20,6 @@ export class HomeComponent {
     try {
       this.oidcClient = await OidcClient.initializeFromOpenIdConfig('https://auth.pingone.com/cc8801c7-a048-4a4f-bbc3-7a2604ca449a/as', {
         client_id: '6dea3779-356d-4222-935b-3a0b4e03b655',
-        response_type: ResponseType.AuthorizationCode,
         redirect_uri: 'http://localhost:4200',
         scope: 'openid profile revokescope', // defaults to 'openid profile email'
         tokenAvailableCallback: (token: TokenResponse, state: any) => this.zone.run(() => this.tokenAvailable(token, state))
