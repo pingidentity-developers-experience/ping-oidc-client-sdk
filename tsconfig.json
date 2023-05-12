@@ -4,7 +4,7 @@
     "target": "es2016",
     "module": "commonjs",
     "declaration": true,
-    "outDir": "./dist/",
+    "outDir": "./lib/",
     "moduleResolution": "node",
     "noImplicitAny": true,
     "sourceMap": false,

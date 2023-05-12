@@ -7,7 +7,7 @@
  * @see https://react.dev/learn/start-a-new-react-project
  */
 
-import OidcClient from '@ping-identity-developer-enablement/dev-enablement-oidc';
+import { OidcClient } from '@pingidentity-developers-experience/ping-oidc-client-sdk';
 import logo from './logo.svg';
 import './App.css';
 
@@ -71,7 +71,7 @@ function App() {
       const clientOptions = {
         clientId: '6dea3779-356d-4222-935b-3a0b4e03b655',
         // redirectUri: 'https://localhost:3000',
-        scope: 'openid profile revokescope', // defaults to 'openid profile'
+        scope: 'openid profile revokescope', // defaults to 'openid profile email'
         // grantType: 'token', // defaults to 'authorization_code'
         // usePkce: false, // defaults to true
         // state: 'xyz', // will apply a random state as a string, you can pass in a string or object

@@ -116,5 +116,3 @@ export class ClientOptionsValidator {
     return options.scope || defaultScope;
   }
 }
-
-export default ClientOptionsValidator;

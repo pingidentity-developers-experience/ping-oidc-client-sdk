@@ -1,0 +1,34 @@
+<div class="app">
+  <header class="app-header">
+    <h1>OIDC Client Sample App</h1>
+  </header>
+  <div *ngIf="!token && oidcClient">
+    <button class="app-link" (click)="authorizeUser()">
+      Ping OIDC Authorize URL
+    </button>
+    <div class="app-example-user"><strong>Test user:</strong>&nbsp;etest / 2FederateM0re!</div>
+  </div>
+  <ng-container *ngIf="token">
+    <div class="app-content">
+      <h3 class="app-token-label">Token:</h3>
+      <div class="app-token-container">
+        <strong>Access Token:</strong>
+        <div>{{token.access_token}}</div>
+      </div>
+      <div class="app-token-container">
+        <strong>ID Token:</strong> 
+        <div>{{token.id_token}}</div> 
+      </div>
+      <ng-container *ngIf="userInfo">
+        <hr />
+        <div>
+          <h3 class="app-token-label">User Info:</h3>
+          <div *ngFor="let item of userInfo | keyvalue"><span class="app-userinfo-label">{{item.key}}:</span>{{item.value}}</div>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="oidcClient">
+        <button class="app-revoke-button" (click)="revokeToken()">Revoke Token</button>
+      </ng-container>
+    </div>
+  </ng-container>
+</div>

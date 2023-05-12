@@ -12,7 +12,7 @@ import { ClientOptionsValidator } from './validators';
 /**
  * Class representing the OIDC client. The main interface to the SDK.
  */
-class OidcClient {
+export class OidcClient {
   private readonly clientOptions: ValidatedClientOptions;
   private readonly issuerConfiguration: OpenIdConfiguration;
   private readonly logger: Logger;
@@ -352,5 +352,3 @@ class OidcClient {
     }
   }
 }
-
-export default OidcClient;

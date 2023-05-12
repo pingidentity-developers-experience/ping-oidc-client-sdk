@@ -1,3 +1,2 @@
-import OidcClient from './oidc-client';
-
-export default OidcClient;
+export * from './oidc-client';
+export * from './types';
