@@ -8,4 +8,6 @@ export interface ValidatedClientOptions extends ClientOptions {
   response_type: ResponseType;
   usePkce: boolean;
   scope: string;
+  redirect_uri: string;
+  client_id: string;
 }

@@ -5,14 +5,14 @@
  * @description The main entry point for your application's integration.
  */
 
-import { ClientOptions, ClientSecretAuthMethod, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
+import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
 import { Logger, OAuth, ClientStorage, Url, BrowserUrlManager } from './utilities';
 import { ClientOptionsValidator } from './validators';
 
 /**
  * Class representing the OIDC client. The main interface to the SDK.
  */
-class OidcClient {
+export class OidcClient {
   private readonly clientOptions: ValidatedClientOptions;
   private readonly issuerConfiguration: OpenIdConfiguration;
   private readonly logger: Logger;
@@ -24,7 +24,7 @@ class OidcClient {
    * from your issuer's well-known endpoint. However if you wish, you can initialize the OidcClient class manually passing
    * in the OpenIdConfiguration manually.
    *
-   * @param clientOptions {ClientOptions} Options for the OIDC Client, clientId is required
+   * @param clientOptions {ClientOptions} Options for the OIDC Client, client_id is required
    * @param issuerConfig {OpenIdConfiguration} OpenIdConfiguration object that the library will use
    */
   constructor(clientOptions: ClientOptions, issuerConfig: OpenIdConfiguration) {
@@ -64,7 +64,7 @@ class OidcClient {
    * Creates the client-options object for you using the metadata from your authorization servers well-known endpoint.
    *
    * @param issuerUrl {string} Base URL for the issuer, /.well-known/openid-configuration will be appended in this method
-   * @param clientOptions {ClientOptions} Options for the OIDC Client, clientId is required
+   * @param clientOptions {ClientOptions} Options for the OIDC Client, client_id is required
    * @returns {object}
    * @see https://www.rfc-editor.org/rfc/rfc8414.html#section-3
    * @see https://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
@@ -124,7 +124,7 @@ class OidcClient {
 
     const urlParams = new URLSearchParams();
     urlParams.append('response_type', this.clientOptions.response_type);
-    urlParams.append('client_id', this.clientOptions.clientId);
+    urlParams.append('client_id', this.clientOptions.client_id);
     urlParams.append('redirect_uri', this.clientOptions.redirect_uri);
     urlParams.append('scope', this.clientOptions.scope);
 
@@ -202,7 +202,7 @@ class OidcClient {
 
       if (this.clientOptions.response_type === ResponseType.AuthorizationCode) {
         if (this.clientOptions.usePkce) {
-          // PKCE uses a code_verifier from client and does not require client secret authentication
+          // PKCE uses a code_verifier from client
           const codeVerifier = this.clientStorage.getCodeVerifier();
 
           if (!codeVerifier) {
@@ -214,7 +214,7 @@ class OidcClient {
       }
 
       try {
-        token = await this.clientSecretAuthenticatedApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
+        token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
       } catch (error) {
         return Promise.reject(error);
       }
@@ -253,7 +253,7 @@ class OidcClient {
     body.append('token_type_hint', 'access_token');
 
     try {
-      const revokeResponse = await this.clientSecretAuthenticatedApiCall(this.issuerConfiguration.revocation_endpoint, body);
+      const revokeResponse = await this.authenticationServerApiCall(this.issuerConfiguration.revocation_endpoint, body);
       this.clientStorage.removeToken();
       return revokeResponse;
     } catch (error) {
@@ -321,19 +321,11 @@ class OidcClient {
     return token;
   }
 
-  private async clientSecretAuthenticatedApiCall<T>(url: string, body: URLSearchParams): Promise<T> {
+  private async authenticationServerApiCall<T>(url: string, body: URLSearchParams): Promise<T> {
     const headers = new Headers();
     headers.append('Content-Type', 'application/x-www-form-urlencoded');
 
-    body.append('client_id', this.clientOptions.clientId);
-
-    if (this.clientOptions.clientSecretAuthMethod === ClientSecretAuthMethod.Post) {
-      this.logger.info('OidcClient', 'client secret auth method is Post, adding to request body');
-      body.append('client_secret', this.clientOptions.clientSecret);
-    } else if (this.clientOptions.clientSecretAuthMethod === ClientSecretAuthMethod.Basic) {
-      this.logger.info('OidcClient', 'client secret auth method is Basic, adding Authorization request header');
-      headers.append('Authorization', `Basic ${OAuth.btoa(`${this.clientOptions.clientId}:${this.clientOptions.clientSecret}`)}`);
-    }
+    body.append('client_id', this.clientOptions.client_id);
 
     const request: RequestInit = {
       method: 'POST',
@@ -360,5 +352,3 @@ class OidcClient {
     }
   }
 }
-
-export default OidcClient;

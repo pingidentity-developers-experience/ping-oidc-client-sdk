@@ -52,5 +52,3 @@ export class ClientStorage {
     localStorage.clear();
   }
 }
-
-export default ClientStorage;

@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { ClientOptions, ClientSecretAuthMethod, ValidatedClientOptions } from '../types';
+import { ClientOptions, ValidatedClientOptions } from '../types';
 import ResponseType from '../types/response-type';
 import { BrowserUrlManager, Logger } from '../utilities';
 
@@ -22,11 +22,11 @@ export class ClientOptionsValidator {
     let error = false;
 
     // Need to validate required properties, users may not be using typescript so double-check them
-    if (!options.clientId) {
-      this.logger.error('ClientOptionsValidator', 'options.clientId is required to send an authorization request');
+    if (!options.client_id) {
+      this.logger.error('ClientOptionsValidator', 'options.client_id is required to send an authorization request');
       error = true;
     } else {
-      this.logger.debug('ClientOptionsValidator', 'options.clientId verified', options.clientId);
+      this.logger.debug('ClientOptionsValidator', 'options.client_id verified', options.client_id);
     }
 
     const { currentUrl } = this.browserUrlManager;
@@ -47,40 +47,14 @@ export class ClientOptionsValidator {
     }
 
     const result: ValidatedClientOptions = {
-      clientId: options.clientId,
+      client_id: options.client_id,
       redirect_uri: options.redirect_uri || currentUrl,
       response_type: this.getResponseType(options),
       scope: this.getScope(options),
       usePkce: this.getUsePkce(options),
-      clientSecret: options.clientSecret,
       state: options.state,
       tokenAvailableCallback: options.tokenAvailableCallback,
     };
-
-    if (result.response_type === ResponseType.AuthorizationCode) {
-      if (!result.usePkce && !result.clientSecret) {
-        throw Error('You are trying to authenticate using a code without PKCE but did not provide a clientSecret, you will not be able to get a token');
-      } else if (options.clientSecretAuthMethod || result.clientSecret) {
-        if (result.usePkce) {
-          this.logger.warn(
-            'ClientOptionsValidator',
-            'You have passed a clientSecret and/or clientSecretAuthMethod but are also using PKCE, it is not recommended to use client secret authentication and PKCE',
-          );
-        }
-
-        if (!result.clientSecret) {
-          this.logger.warn('ClientOptionsValidator', 'You passed a clientSecretAuthMethod but no client secret, it will be ignored');
-        } else {
-          result.clientSecretAuthMethod = this.getClientSecretAuthMethod(options);
-        }
-      }
-    }
-
-    // If window is undefined we are in a node app and it's fine
-    if (result.clientSecret && window !== undefined) {
-      // Don't want to block people from doing this, but do want to warn them
-      this.logger.warn('ClientOptionsValidator', 'It is not recommended to use code grants without PKCE in browser applications, consider using PKCE and removing the client secret from your code');
-    }
 
     return result;
   }
@@ -126,38 +100,13 @@ export class ClientOptionsValidator {
   }
 
   /**
-   * Does verification of ClientSecretAuthMethod sent in through options and sets default of 'client_secret_basic' if not present or invalid
-   *
-   * @param {ClientOptions} options Options sent into authorize method
-   * @returns {string} ClientSecretAuthMethod that will be used
-   */
-  private getClientSecretAuthMethod(options: ClientOptions): ClientSecretAuthMethod {
-    let { clientSecretAuthMethod } = options;
-    const validResponseTypes = Object.values(ClientSecretAuthMethod);
-
-    if (!validResponseTypes.includes(clientSecretAuthMethod)) {
-      clientSecretAuthMethod = ClientSecretAuthMethod.Basic;
-
-      if (options.clientSecretAuthMethod) {
-        this.logger.warn('ClientOptionsValidator', `options.clientSecretAuthMethod contained an invalid option, valid options are '${validResponseTypes.join(', ')}'`, options.clientSecretAuthMethod);
-      } else {
-        this.logger.info('ClientOptionsValidator', `options.clientSecretAuthMethod not provided, defaulting to 'client_secret_basic'`);
-      }
-    } else {
-      this.logger.debug('ClientOptionsValidator', 'options.clientSecretAuthMethod passed and valid', options.clientSecretAuthMethod);
-    }
-
-    return clientSecretAuthMethod;
-  }
-
-  /**
    * Does verification of Scope sent in through options and sets default of 'openid profile' if not present or invalid
    *
    * @param {ClientOptions} options Options sent into authorize method
    * @returns {string} Scope that will be passed to PingOne endpoint
    */
   private getScope(options: ClientOptions): string {
-    const defaultScope = 'openid profile';
+    const defaultScope = 'openid profile email';
 
     if (!options.scope) {
       this.logger.info('ClientOptionsValidator', `options.Scope not provided, defaulting to '${defaultScope}'`);
@@ -168,5 +117,3 @@ export class ClientOptionsValidator {
     return options.scope || defaultScope;
   }
 }
-
-export default ClientOptionsValidator;
