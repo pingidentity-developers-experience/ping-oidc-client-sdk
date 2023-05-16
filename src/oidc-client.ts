@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 /**
  * OAuth/OIDC SDK
  * Ping Identity
@@ -5,7 +6,7 @@
  * @description The main entry point for your application's integration.
  */
 
-import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
+import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions, IntrospectionResponse } from './types';
 import { Logger, OAuth, ClientStorage, Url, BrowserUrlManager } from './utilities';
 import { ClientOptionsValidator } from './validators';
 
@@ -91,9 +92,9 @@ export class OidcClient {
    * @returns {Promise} Will navigate the current browser tab to the authorization url that is generated through the authorizeUrl method
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-3.1
    */
-  async authorize(loginHint?: string): Promise<void> {
+  async authorize(loginHint?: string, tokenInvalid?: boolean): Promise<void> {
     try {
-      const authUrl = await this.authorizeUrl(loginHint);
+      const authUrl = await this.authorizeUrl(loginHint, tokenInvalid);
       this.browserUrlManager.navigate(authUrl);
     } catch (error) {
       return Promise.reject(error);
@@ -111,7 +112,8 @@ export class OidcClient {
    * @see https://openid.net/specs/openid-connect-core-1_0.html#ThirdPartyInitiatedLogin
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-4
    */
-  async authorizeUrl(loginHint?: string): Promise<string> {
+  async authorizeUrl(loginHint?: string, tokenInvalid?: boolean): Promise<string> {
+    console.log('token invalid', tokenInvalid);
     this.logger.debug('OidcClient', 'authorized called');
 
     if (!this.issuerConfiguration?.authorization_endpoint) {
@@ -145,6 +147,10 @@ export class OidcClient {
       urlParams.append('login_hint', encodeURIComponent(loginHint));
     }
 
+    if (tokenInvalid) {
+      urlParams.append('prompt', 'none');
+    }
+
     return Promise.resolve(`${this.issuerConfiguration?.authorization_endpoint}?${urlParams.toString()}`);
   }
 
@@ -164,8 +170,25 @@ export class OidcClient {
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-4.2
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-4.1
    */
-  async getToken(): Promise<TokenResponse> {
+  async getToken(refresh_token?: string): Promise<TokenResponse> {
     this.logger.debug('OidcClient', 'getToken called');
+
+    if (refresh_token) {
+      console.log("you're refreshing");
+      let token = this.verifyToken();
+      console.log('logging token', token);
+      const body = new URLSearchParams();
+      body.append('grant_type', 'refresh_token');
+      body.append('refresh_token', refresh_token);
+
+      try {
+        token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
+      } catch (error) {
+        // Refresh token failed, expired or invalid. Default to silent authN request.
+        this.authorize(undefined, true);
+        return Promise.reject(error);
+      }
+    }
 
     // Clear lingering token from storage if a new one is ready.
     if (this.browserUrlManager.tokenReady) {
@@ -175,6 +198,7 @@ export class OidcClient {
     let token = this.clientStorage.getToken();
 
     if (token) {
+      this.introspectToken();
       return Promise.resolve(token);
     }
 
@@ -226,6 +250,49 @@ export class OidcClient {
   }
 
   /**
+   * Introspect existing access token
+   *
+   * @returns {any} - HTTP response 200 only.
+   * @see https://www.rfc-editor.org/rfc/rfc7662#section-2
+   */
+  async introspectToken(): Promise<any> {
+    this.logger.debug('OidcClient', 'introspectToken called');
+
+    const token = this.verifyToken();
+
+    if (!token) {
+      return Promise.reject(Error('No token available'));
+    }
+
+    if (!this.issuerConfiguration?.introspection_endpoint) {
+      return Promise.reject(
+        Error(
+          `No introspection_endpoint has been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
+        ),
+      );
+    }
+
+    const body = new URLSearchParams();
+    body.append('token', token.access_token);
+    body.append('token_type_hint', 'access_token');
+
+    try {
+      const introspectResponse = await this.authenticationServerApiCall<IntrospectionResponse>(this.issuerConfiguration.introspection_endpoint, body);
+      // this.clientStorage.removeToken();
+      if (!introspectResponse.active) {
+        if (token.refresh_token) {
+          this.getToken(token.refresh_token);
+        } else {
+          this.authorize(undefined, true);
+        }
+      }
+      console.log('introspect', introspectResponse);
+      return introspectResponse;
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+  /**
    * Revoke the token managed by the library
    *
    * @returns {any} - HTTP response 200 only.
@@ -243,7 +310,7 @@ export class OidcClient {
     if (!this.issuerConfiguration?.revocation_endpoint) {
       return Promise.reject(
         Error(
-          `No revocation_endpoint has not been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
+          `No revocation_endpoint has been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
         ),
       );
     }
@@ -254,7 +321,7 @@ export class OidcClient {
 
     try {
       const revokeResponse = await this.authenticationServerApiCall(this.issuerConfiguration.revocation_endpoint, body);
-      this.clientStorage.removeToken();
+      // this.clientStorage.removeToken();
       return revokeResponse;
     } catch (error) {
       return Promise.reject(error);
@@ -343,6 +410,7 @@ export class OidcClient {
       this.logger.error('OidcClient', `Unsuccessful response encountered for url ${url}`, response);
       return Promise.reject(Error('Unsuccessful fetch call'));
     }
+    console.log('RESSSSSSSSSSS', response);
 
     // For some reason some auth servers (cough PingOne cough) will return an application/json content-type but have an empty body.
     try {
