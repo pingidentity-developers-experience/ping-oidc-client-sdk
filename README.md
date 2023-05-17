@@ -95,6 +95,7 @@ const clientOptions = {
 const openIdConfig = {
   authorization_endpoint: "https://auth.pingone.com/<env-id>/as/authorize", // Required
   token_endpoint: "https://auth.pingone.com/<env-id>/as/token", // Required
+  introspection_endpoint: "https://auth.pingone.com/<env-id>/as/introspect", // Required
   revocation_endpoint: "https://auth.pingone.com/<env-id>/as/revoke", // Required if using revokeToken() function
   userinfo_endpoint: "https://auth.pingone.com/<env-id>/as/userinfo" // Required if using fetchUserInfo() function
 };

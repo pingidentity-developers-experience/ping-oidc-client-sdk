@@ -92,9 +92,9 @@ export class OidcClient {
    * @returns {Promise} Will navigate the current browser tab to the authorization url that is generated through the authorizeUrl method
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-3.1
    */
-  async authorize(loginHint?: string, tokenInvalid?: boolean): Promise<void> {
+  async authorize(loginHint?: string, silentAuthN?: boolean): Promise<void> {
     try {
-      const authUrl = await this.authorizeUrl(loginHint, tokenInvalid);
+      const authUrl = await this.authorizeUrl(loginHint, silentAuthN);
       this.browserUrlManager.navigate(authUrl);
     } catch (error) {
       return Promise.reject(error);
@@ -112,8 +112,8 @@ export class OidcClient {
    * @see https://openid.net/specs/openid-connect-core-1_0.html#ThirdPartyInitiatedLogin
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-4
    */
-  async authorizeUrl(loginHint?: string, tokenInvalid?: boolean): Promise<string> {
-    console.log('token invalid', tokenInvalid);
+  async authorizeUrl(loginHint?: string, silentAuthN?: boolean): Promise<string> {
+    console.log('token invalid', silentAuthN);
     this.logger.debug('OidcClient', 'authorized called');
 
     if (!this.issuerConfiguration?.authorization_endpoint) {
@@ -147,7 +147,7 @@ export class OidcClient {
       urlParams.append('login_hint', encodeURIComponent(loginHint));
     }
 
-    if (tokenInvalid) {
+    if (silentAuthN) {
       urlParams.append('prompt', 'none');
     }
 
@@ -174,15 +174,18 @@ export class OidcClient {
     this.logger.debug('OidcClient', 'getToken called');
 
     if (refresh_token) {
-      console.log("you're refreshing");
-      let token = this.verifyToken();
-      console.log('logging token', token);
+      console.log("you're refreshing", refresh_token);
+      // let token = this.verifyToken();
+      let token;
+      // console.log('logging token', token);
       const body = new URLSearchParams();
       body.append('grant_type', 'refresh_token');
       body.append('refresh_token', refresh_token);
 
       try {
         token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
+        this.clientStorage.storeToken(token);
+        return Promise.resolve(token);
       } catch (error) {
         // Refresh token failed, expired or invalid. Default to silent authN request.
         this.authorize(undefined, true);
@@ -321,7 +324,7 @@ export class OidcClient {
 
     try {
       const revokeResponse = await this.authenticationServerApiCall(this.issuerConfiguration.revocation_endpoint, body);
-      // this.clientStorage.removeToken();
+      this.clientStorage.removeToken();
       return revokeResponse;
     } catch (error) {
       return Promise.reject(error);
@@ -358,6 +361,8 @@ export class OidcClient {
       method: 'GET',
       headers,
     };
+
+    console.log('headers', headers);
 
     let response;
     let body;
@@ -410,7 +415,6 @@ export class OidcClient {
       this.logger.error('OidcClient', `Unsuccessful response encountered for url ${url}`, response);
       return Promise.reject(Error('Unsuccessful fetch call'));
     }
-    console.log('RESSSSSSSSSSS', response);
 
     // For some reason some auth servers (cough PingOne cough) will return an application/json content-type but have an empty body.
     try {
