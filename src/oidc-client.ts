@@ -41,6 +41,8 @@ export class OidcClient {
     this.issuerConfiguration = issuerConfig;
     this.clientOptions = new ClientOptionsValidator(this.logger, this.browserUrlManager).validate(clientOptions);
 
+    this.logger.debug('OidcClient', 'initialized with issuerConfig', issuerConfig);
+
     if (this.hasToken || this.browserUrlManager.tokenReady) {
       const preExistingToken = this.hasToken;
       this.getToken().then((token) => {
@@ -259,6 +261,45 @@ export class OidcClient {
     } catch (error) {
       return Promise.reject(error);
     }
+  }
+
+  /**
+   * End the users session using the end_session_endpoint from the issuer, the id token will be automatically appended
+   * to the url via the id_token_hint url parameter if it is available.
+   *
+   * @param postLogoutRedirectUri {string} optional url to redirect user to after their session has been ended
+   */
+  endSession(postLogoutRedirectUri?: string): void {
+    this.logger.debug('OidcClient', 'endSession called');
+
+    if (!this.issuerConfiguration?.end_session_endpoint) {
+      this.logger.error(
+        'OidcClient',
+        'No end_session_endpoint has not been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a end_session_endpoint with the OpenIdConfiguration object',
+      );
+      return;
+    }
+
+    let logoutUrl = this.issuerConfiguration.end_session_endpoint;
+    const search = new URLSearchParams();
+
+    const token = this.clientStorage.getToken();
+
+    if (token?.id_token) {
+      this.logger.info('OidcClient', 'id_token found, appending id_token_hint the end session url');
+      search.append('id_token_hint', token.id_token);
+    }
+
+    if (postLogoutRedirectUri) {
+      this.logger.debug('OidcClient', 'postLogoutRedirectUri passed in, appending post_logout_redirect_uri to end session url', postLogoutRedirectUri);
+      search.append('post_logout_redirect_uri', postLogoutRedirectUri);
+    }
+
+    const params = search.toString();
+    logoutUrl += params ? `?${params}` : '';
+
+    this.clientStorage.removeToken();
+    this.browserUrlManager.navigate(logoutUrl);
   }
 
   /**
