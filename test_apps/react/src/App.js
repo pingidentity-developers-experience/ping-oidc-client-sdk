@@ -63,6 +63,10 @@ function App() {
     }
   }
 
+  const signOff = () => {
+    oidcClient.current.endSession('https://localhost:3000');
+  }
+
   /**
    * Initializes the SDK when the app loads.
    */
@@ -125,6 +129,7 @@ function App() {
                 </div>
               </>}
               {oidcClient.current && <button className="app-revoke-button" onClick={revokeToken}>Revoke Token</button>}
+              {oidcClient.current && <button className="app-signoff-button" onClick={signOff}>Sign Off</button>}
           </div>
         </>
       }

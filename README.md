@@ -79,6 +79,9 @@ const token = await oidcClient.getToken();
 
 // Revoke the token on the server and remove it from storage
 await oidcClient.revokeToken();
+
+// End the user's session using the end_session_endpoint on the auth server
+await oidcClient.endSession(/* optional post logout redirect uri */);
 ```
 
 We recommend you initialize the library using the static initializeFromOpenIdConfig method shown above, as this will hit the authorization server's well-known endpoint and use the endpoints defined in the response. Alternatively you can initialize an OidcClient manually.
@@ -97,6 +100,7 @@ const openIdConfig = {
   token_endpoint: "https://auth.pingone.com/<env-id>/as/token", // Required
   revocation_endpoint: "https://auth.pingone.com/<env-id>/as/revoke", // Required if using revokeToken() function
   userinfo_endpoint: "https://auth.pingone.com/<env-id>/as/userinfo" // Required if using fetchUserInfo() function
+  end_session_endpoint: "https://auth.pingone.com/<env-id>/as/signoff" // Required if using endSession() function
 };
 
 const client = new OidcClient(clientOptions, openIdConfig);
