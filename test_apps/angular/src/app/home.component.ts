@@ -1,5 +1,5 @@
 import { Component, NgZone } from '@angular/core';
-import { LogLevel, OidcClient, TokenResponse } from '@pingidentity-developers-experience/ping-oidc-client-sdk';
+import { OidcClient, TokenResponse } from '@pingidentity-developers-experience/ping-oidc-client-sdk';
 
 @Component({
   selector: 'home',
@@ -23,7 +23,6 @@ export class HomeComponent {
         redirect_uri: 'http://localhost:4200',
         scope: 'openid profile email revokescope', // defaults to 'openid profile email'
         tokenAvailableCallback: (token: TokenResponse, state: any) => this.zone.run(() => this.tokenAvailable(token, state)),
-        logLevel: LogLevel.Debug
       });
 
     } catch (err) {

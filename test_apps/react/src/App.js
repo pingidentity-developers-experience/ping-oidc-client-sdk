@@ -79,7 +79,7 @@ function App() {
         // response_type: 'token', // defaults to 'code'
         // usePkce: false, // defaults to true
         // state: 'xyz', // will apply a random state as a string, you can pass in a string or object
-        logLevel: 'debug', // defaults to 'warn'
+        // logLevel: 'debug', // defaults to 'warn'
         tokenAvailableCallback,
       };
   
