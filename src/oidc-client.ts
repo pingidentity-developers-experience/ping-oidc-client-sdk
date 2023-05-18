@@ -178,26 +178,8 @@ export class OidcClient {
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-4.2
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-4.1
    */
-  async getToken(refresh_token?: string): Promise<TokenResponse> {
+  async getToken(): Promise<TokenResponse> {
     this.logger.debug('OidcClient', 'getToken called');
-
-    if (refresh_token) {
-      console.log("you're refreshing", refresh_token);
-      let token;
-      const body = new URLSearchParams();
-      body.append('grant_type', 'refresh_token');
-      body.append('refresh_token', refresh_token);
-
-      try {
-        token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
-        this.clientStorage.storeToken(token);
-        return Promise.resolve(token);
-      } catch (error) {
-        // Refresh token failed, expired or invalid. Default to silent authN request.
-        await this.authorize(undefined, true);
-        return Promise.reject(error);
-      }
-    }
 
     // Clear lingering token from storage if a new one is ready.
     if (this.browserUrlManager.tokenReady) {
@@ -261,6 +243,30 @@ export class OidcClient {
   }
 
   /**
+   * Get a new access token using refresh token.
+   *
+   */
+
+  async refreshToken(refresh_token: string): Promise<TokenResponse> {
+    let token;
+    const body = new URLSearchParams();
+    body.append('grant_type', 'refresh_token');
+    body.append('refresh_token', refresh_token);
+
+    try {
+      token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
+      console.log('new token from refresh', token.access_token);
+      this.clientStorage.storeToken(token);
+      console.log('AT in storage', this.clientStorage.getToken());
+      return Promise.resolve(token);
+    } catch (error) {
+      // Refresh token failed, expired or invalid. Default to silent authN request.
+      await this.authorize(undefined, true);
+      return Promise.reject(error);
+    }
+  }
+
+  /**
    * Introspect existing access token
    *
    * @returns {any} - HTTP response 200 only.
@@ -283,6 +289,8 @@ export class OidcClient {
       );
     }
 
+    console.log('introspecting w/ this token:', token.access_token);
+    console.log('token in storage', this.clientStorage.getToken());
     const body = new URLSearchParams();
     body.append('token', token.access_token);
     body.append('token_type_hint', 'access_token');
@@ -294,7 +302,7 @@ export class OidcClient {
       if (!introspectResponse.active) {
         if (token.refresh_token) {
           console.log('refresh token', token.refresh_token);
-          await this.getToken(token.refresh_token);
+          await this.refreshToken(token.refresh_token);
         } else {
           await this.authorize(undefined, true);
         }
@@ -411,8 +419,6 @@ export class OidcClient {
       headers,
     };
 
-    console.log('headers', headers);
-
     let response;
     let body;
 
@@ -459,6 +465,7 @@ export class OidcClient {
     this.logger.debug('OidcClient', 'POST request', request);
 
     const response = await fetch(url, request);
+    console.log('RESSSSSS', response);
 
     if (!response?.ok) {
       this.logger.error('OidcClient', `Unsuccessful response encountered for url ${url}`, response);
