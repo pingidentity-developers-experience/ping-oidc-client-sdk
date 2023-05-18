@@ -53,7 +53,7 @@ export class OidcClient {
   }
 
   /**
-   * Asyncronous wrapper around the constructor that allows apps to wait for a potential token
+   * Asynchronous wrapper around the constructor that allows apps to wait for a potential token
    * to be extracted/retrieved when initializing an OidcClient object.
    *
    * @param clientOptions {ClientOptions} Options for the OIDC Client, client_id is required
@@ -183,9 +183,7 @@ export class OidcClient {
 
     if (refresh_token) {
       console.log("you're refreshing", refresh_token);
-      // let token = this.verifyToken();
       let token;
-      // console.log('logging token', token);
       const body = new URLSearchParams();
       body.append('grant_type', 'refresh_token');
       body.append('refresh_token', refresh_token);
@@ -193,7 +191,6 @@ export class OidcClient {
       try {
         token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
         this.clientStorage.storeToken(token);
-        await this.introspectToken();
         return Promise.resolve(token);
       } catch (error) {
         // Refresh token failed, expired or invalid. Default to silent authN request.
@@ -293,6 +290,7 @@ export class OidcClient {
     try {
       const introspectResponse = await this.authenticationServerApiCall<IntrospectionResponse>(this.issuerConfiguration.introspection_endpoint, body);
       // this.clientStorage.removeToken();
+      console.log('introspect', introspectResponse);
       if (!introspectResponse.active) {
         if (token.refresh_token) {
           console.log('refresh token', token.refresh_token);
@@ -336,7 +334,7 @@ export class OidcClient {
 
     try {
       const revokeResponse = await this.authenticationServerApiCall(this.issuerConfiguration.revocation_endpoint, body);
-      this.clientStorage.removeToken();
+      // this.clientStorage.removeToken();
       return revokeResponse;
     } catch (error) {
       return Promise.reject(error);
