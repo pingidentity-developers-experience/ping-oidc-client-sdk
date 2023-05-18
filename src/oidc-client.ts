@@ -113,7 +113,6 @@ export class OidcClient {
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-4
    */
   async authorizeUrl(loginHint?: string, silentAuthN?: boolean): Promise<string> {
-    console.log('token invalid', silentAuthN);
     this.logger.debug('OidcClient', 'authorized called');
 
     if (!this.issuerConfiguration?.authorization_endpoint) {
@@ -185,10 +184,11 @@ export class OidcClient {
       try {
         token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
         this.clientStorage.storeToken(token);
+        await this.introspectToken();
         return Promise.resolve(token);
       } catch (error) {
         // Refresh token failed, expired or invalid. Default to silent authN request.
-        this.authorize(undefined, true);
+        await this.authorize(undefined, true);
         return Promise.reject(error);
       }
     }
@@ -201,7 +201,7 @@ export class OidcClient {
     let token = this.clientStorage.getToken();
 
     if (token) {
-      this.introspectToken();
+      await this.introspectToken();
       return Promise.resolve(token);
     }
 
@@ -284,9 +284,10 @@ export class OidcClient {
       // this.clientStorage.removeToken();
       if (!introspectResponse.active) {
         if (token.refresh_token) {
-          this.getToken(token.refresh_token);
+          console.log('refresh token', token.refresh_token);
+          await this.getToken(token.refresh_token);
         } else {
-          this.authorize(undefined, true);
+          await this.authorize(undefined, true);
         }
       }
       console.log('introspect', introspectResponse);
