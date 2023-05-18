@@ -42,17 +42,6 @@ export class OidcClient {
     this.clientOptions = new ClientOptionsValidator(this.logger, this.browserUrlManager).validate(clientOptions);
 
     this.logger.debug('OidcClient', 'initialized with issuerConfig', issuerConfig);
-
-    if (this.hasToken || this.browserUrlManager.tokenReady) {
-      const preExistingToken = this.hasToken;
-      this.getToken().then((token) => {
-        let state;
-        if (!preExistingToken) {
-          state = this.browserUrlManager.checkUrlForState();
-        }
-        this.clientOptions.tokenAvailableCallback?.(token, state);
-      });
-    }
   }
 
   /**
@@ -60,6 +49,24 @@ export class OidcClient {
    */
   get hasToken(): boolean {
     return !!this.clientStorage.getToken()?.access_token;
+  }
+
+  /**
+   * Asyncronous wrapper around the constructor that allows apps to wait for a potential token
+   * to be extracted/retrieved when initializing an OidcClient object.
+   *
+   * @param clientOptions {ClientOptions} Options for the OIDC Client, client_id is required
+   * @param issuerConfig {OpenIdConfiguration} OpenIdConfiguration object that the library will use
+   * @returns {Promise<OidcClient>} Promise that will resolve with an OidcClient
+   */
+  static async initializeClient(clientOptions: ClientOptions, issuerConfig: OpenIdConfiguration): Promise<OidcClient> {
+    const client = new OidcClient(clientOptions, issuerConfig);
+
+    if (client.hasToken || client.browserUrlManager.tokenReady) {
+      await client.getToken();
+    }
+
+    return client;
   }
 
   /**
@@ -80,7 +87,7 @@ export class OidcClient {
       const wellKnownResponse = await fetch(`${Url.trimTrailingSlash(issuerUrl)}/.well-known/openid-configuration`);
       const responseBody = await wellKnownResponse.json();
 
-      return new OidcClient(clientOptions, responseBody);
+      return await OidcClient.initializeClient(clientOptions, responseBody);
     } catch (error) {
       return Promise.reject(error);
     }
@@ -221,6 +228,8 @@ export class OidcClient {
         return Promise.reject(error);
       }
     }
+
+    token.state = this.browserUrlManager.checkUrlForState();
 
     this.clientStorage.storeToken(token);
 
