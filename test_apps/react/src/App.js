@@ -34,18 +34,6 @@ function App() {
   const [userInfo, setUserInfo] = useState();
   const [, setOidcReady] = useState(false);
 
-  const tokenAvailableCallback = async (token, state) => {
-    setToken(token);
-    console.log('state', state)
-    
-    try {
-      const userInfo = await oidcClient.current.fetchUserInfo();
-      setUserInfo(userInfo);
-    } catch (error) {
-      console.log('An error occurred attempting to fetch user info', error);
-    }
-  };
-
   const authorize = async () => {
     try {
       oidcClient.current.authorize(/* optional login_hint (e.g. username) */)
@@ -63,6 +51,10 @@ function App() {
     }
   }
 
+  const signOff = () => {
+    oidcClient.current.endSession('https://localhost:3000');
+  }
+
   /**
    * Initializes the SDK when the app loads.
    */
@@ -76,7 +68,6 @@ function App() {
         // usePkce: false, // defaults to true
         // state: 'xyz', // will apply a random state as a string, you can pass in a string or object
         // logLevel: 'debug', // defaults to 'warn'
-        tokenAvailableCallback,
       };
   
       /**
@@ -85,6 +76,20 @@ function App() {
       const client = await OidcClient.initializeFromOpenIdConfig('https://auth.pingone.com/cc8801c7-a048-4a4f-bbc3-7a2604ca449a/as', clientOptions);
       oidcClient.current = client;
       setOidcReady(true);
+
+      if (client.hasToken) {
+        const token = await client.getToken();
+        setToken(token);
+        
+        console.log('state', token.state)
+        
+        try {
+          const userInfo = await oidcClient.current.fetchUserInfo();
+          setUserInfo(userInfo);
+        } catch (error) {
+          console.log('An error occurred attempting to fetch user info', error);
+        }
+      }
     };
 
     initializeOidc()
@@ -125,6 +130,7 @@ function App() {
                 </div>
               </>}
               {oidcClient.current && <button className="app-revoke-button" onClick={revokeToken}>Revoke Token</button>}
+              {oidcClient.current && <button className="app-signoff-button" onClick={signOff}>Sign Off</button>}
           </div>
         </>
       }

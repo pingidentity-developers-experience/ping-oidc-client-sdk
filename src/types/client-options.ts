@@ -1,6 +1,5 @@
 import ResponseType from './response-type';
 import LogLevel from './log-level';
-import { TokenResponse } from './token-response';
 
 export interface ClientOptions {
   /** Required - client id to authorize */
@@ -23,7 +22,4 @@ export interface ClientOptions {
 
   /** Optional - default is 'warn' */
   logLevel?: LogLevel;
-
-  /** Optional - callback that will be triggered when a token is available in the library */
-  tokenAvailableCallback?: (token: TokenResponse, state?: string | any) => void;
 }

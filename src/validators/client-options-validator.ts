@@ -53,7 +53,6 @@ export class ClientOptionsValidator {
       scope: this.getScope(options),
       usePkce: this.getUsePkce(options),
       state: options.state,
-      tokenAvailableCallback: options.tokenAvailableCallback,
     };
 
     return result;

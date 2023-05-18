@@ -42,16 +42,7 @@ export class OidcClient {
     this.issuerConfiguration = issuerConfig;
     this.clientOptions = new ClientOptionsValidator(this.logger, this.browserUrlManager).validate(clientOptions);
 
-    if (this.hasToken || this.browserUrlManager.tokenReady) {
-      const preExistingToken = this.hasToken;
-      this.getToken().then((token) => {
-        let state;
-        if (!preExistingToken) {
-          state = this.browserUrlManager.checkUrlForState();
-        }
-        this.clientOptions.tokenAvailableCallback?.(token, state);
-      });
-    }
+    this.logger.debug('OidcClient', 'initialized with issuerConfig', issuerConfig);
   }
 
   /**
@@ -59,6 +50,24 @@ export class OidcClient {
    */
   get hasToken(): boolean {
     return !!this.clientStorage.getToken()?.access_token;
+  }
+
+  /**
+   * Asyncronous wrapper around the constructor that allows apps to wait for a potential token
+   * to be extracted/retrieved when initializing an OidcClient object.
+   *
+   * @param clientOptions {ClientOptions} Options for the OIDC Client, client_id is required
+   * @param issuerConfig {OpenIdConfiguration} OpenIdConfiguration object that the library will use
+   * @returns {Promise<OidcClient>} Promise that will resolve with an OidcClient
+   */
+  static async initializeClient(clientOptions: ClientOptions, issuerConfig: OpenIdConfiguration): Promise<OidcClient> {
+    const client = new OidcClient(clientOptions, issuerConfig);
+
+    if (client.hasToken || client.browserUrlManager.tokenReady) {
+      await client.getToken();
+    }
+
+    return client;
   }
 
   /**
@@ -79,7 +88,7 @@ export class OidcClient {
       const wellKnownResponse = await fetch(`${Url.trimTrailingSlash(issuerUrl)}/.well-known/openid-configuration`);
       const responseBody = await wellKnownResponse.json();
 
-      return new OidcClient(clientOptions, responseBody);
+      return await OidcClient.initializeClient(clientOptions, responseBody);
     } catch (error) {
       return Promise.reject(error);
     }
@@ -247,6 +256,8 @@ export class OidcClient {
       }
     }
 
+    token.state = this.browserUrlManager.checkUrlForState();
+
     this.clientStorage.storeToken(token);
 
     return Promise.resolve(token);
@@ -330,6 +341,45 @@ export class OidcClient {
     } catch (error) {
       return Promise.reject(error);
     }
+  }
+
+  /**
+   * End the users session using the end_session_endpoint from the issuer, the id token will be automatically appended
+   * to the url via the id_token_hint url parameter if it is available.
+   *
+   * @param postLogoutRedirectUri {string} optional url to redirect user to after their session has been ended
+   */
+  endSession(postLogoutRedirectUri?: string): void {
+    this.logger.debug('OidcClient', 'endSession called');
+
+    if (!this.issuerConfiguration?.end_session_endpoint) {
+      this.logger.error(
+        'OidcClient',
+        'No end_session_endpoint has not been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a end_session_endpoint with the OpenIdConfiguration object',
+      );
+      return;
+    }
+
+    let logoutUrl = this.issuerConfiguration.end_session_endpoint;
+    const search = new URLSearchParams();
+
+    const token = this.clientStorage.getToken();
+
+    if (token?.id_token) {
+      this.logger.info('OidcClient', 'id_token found, appending id_token_hint the end session url');
+      search.append('id_token_hint', token.id_token);
+    }
+
+    if (postLogoutRedirectUri) {
+      this.logger.debug('OidcClient', 'postLogoutRedirectUri passed in, appending post_logout_redirect_uri to end session url', postLogoutRedirectUri);
+      search.append('post_logout_redirect_uri', postLogoutRedirectUri);
+    }
+
+    const params = search.toString();
+    logoutUrl += params ? `?${params}` : '';
+
+    this.clientStorage.removeToken();
+    this.browserUrlManager.navigate(logoutUrl);
   }
 
   /**

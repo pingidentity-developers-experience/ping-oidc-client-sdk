@@ -1,5 +1,5 @@
-import { Component, NgZone } from '@angular/core';
-import { OidcClient, TokenResponse, ResponseType } from '@pingidentity-developers-experience/ping-oidc-client-sdk';
+import { Component } from '@angular/core';
+import { OidcClient, TokenResponse } from '@pingidentity-developers-experience/ping-oidc-client-sdk';
 
 @Component({
   selector: 'home',
@@ -12,7 +12,7 @@ export class HomeComponent {
   token?: TokenResponse;
   userInfo?: any;
 
-  constructor(private zone: NgZone) {
+  constructor() {
     this.init();
   }
 
@@ -21,9 +21,14 @@ export class HomeComponent {
       this.oidcClient = await OidcClient.initializeFromOpenIdConfig('https://auth.pingone.com/cc8801c7-a048-4a4f-bbc3-7a2604ca449a/as', {
         client_id: '6dea3779-356d-4222-935b-3a0b4e03b655',
         redirect_uri: 'http://localhost:4200',
-        scope: 'openid profile revokescope', // defaults to 'openid profile email'
-        tokenAvailableCallback: (token: TokenResponse, state: any) => this.zone.run(() => this.tokenAvailable(token, state))
+        scope: 'openid profile email revokescope', // defaults to 'openid profile email'
       });
+
+      if (this.oidcClient.hasToken) {
+        const token = await this.oidcClient.getToken();
+        this.tokenAvailable(token);
+      }
+
     } catch (err) {
       console.error('Error initializing OidcClient', err);
     }
@@ -38,10 +43,13 @@ export class HomeComponent {
     window.location.reload();
   }
 
-  async tokenAvailable(token: TokenResponse, state: any) {
+  async tokenAvailable(token: TokenResponse) {
     this.token = token;
-    setTimeout(async () => {
-      this.userInfo = await this.oidcClient?.fetchUserInfo();
-    })
+    console.log('state', token.state)
+    this.userInfo = await this.oidcClient?.fetchUserInfo();
+  }
+
+  signOff() {
+    this.oidcClient?.endSession('http://localhost:4200');
   }
 }
