@@ -189,8 +189,28 @@ export class OidcClient {
     let token = this.clientStorage.getToken();
 
     if (token) {
-      await this.introspectToken();
-      return Promise.resolve(token);
+      const introspectResponse = await this.introspectToken();
+      if (!introspectResponse.active) {
+        this.clientStorage.removeToken();
+
+        if (token.refresh_token) {
+          console.log('refresh token', token.refresh_token);
+          const newToken = await this.refreshToken(token.refresh_token);
+
+          if (newToken) {
+            this.clientStorage.storeToken(newToken);
+            return newToken;
+          }
+        } else {
+          await this.authorize(undefined, true);
+        }
+
+        // If this is encountered this.authorize was called and the browser will be navigated to auth server
+        return Promise.reject();
+      }
+
+      // Token is still active!
+      return token;
     }
 
     if (!this.issuerConfiguration?.token_endpoint) {
@@ -243,30 +263,6 @@ export class OidcClient {
   }
 
   /**
-   * Get a new access token using refresh token.
-   *
-   */
-
-  async refreshToken(refresh_token: string): Promise<TokenResponse> {
-    let token;
-    const body = new URLSearchParams();
-    body.append('grant_type', 'refresh_token');
-    body.append('refresh_token', refresh_token);
-
-    try {
-      token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
-      console.log('new token from refresh', token.access_token);
-      this.clientStorage.storeToken(token);
-      console.log('AT in storage', this.clientStorage.getToken());
-      return Promise.resolve(token);
-    } catch (error) {
-      // Refresh token failed, expired or invalid. Default to silent authN request.
-      await this.authorize(undefined, true);
-      return Promise.reject(error);
-    }
-  }
-
-  /**
    * Introspect existing access token
    *
    * @returns {any} - HTTP response 200 only.
@@ -299,14 +295,7 @@ export class OidcClient {
       const introspectResponse = await this.authenticationServerApiCall<IntrospectionResponse>(this.issuerConfiguration.introspection_endpoint, body);
       // this.clientStorage.removeToken();
       console.log('introspect', introspectResponse);
-      if (!introspectResponse.active) {
-        if (token.refresh_token) {
-          console.log('refresh token', token.refresh_token);
-          await this.refreshToken(token.refresh_token);
-        } else {
-          await this.authorize(undefined, true);
-        }
-      }
+
       console.log('introspect', introspectResponse);
       return introspectResponse;
     } catch (error) {
@@ -477,6 +466,28 @@ export class OidcClient {
       return await response.json();
     } catch {
       return undefined;
+    }
+  }
+
+  /**
+   * Get a new access token using refresh token.
+   *
+   */
+
+  private async refreshToken(refresh_token: string): Promise<TokenResponse | void> {
+    const body = new URLSearchParams();
+    body.append('grant_type', 'refresh_token');
+    body.append('refresh_token', refresh_token);
+
+    try {
+      const token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
+      // console.log('new token from refresh', token.access_token);
+      // this.clientStorage.storeToken(token);
+      // console.log('AT in storage', this.clientStorage.getToken());
+      return Promise.resolve(token);
+    } catch {
+      // Refresh token failed, expired or invalid. Default to silent authN request. Promise result doesn't matter since authorize will navigate to auth server.
+      return this.authorize(undefined, true);
     }
   }
 }
