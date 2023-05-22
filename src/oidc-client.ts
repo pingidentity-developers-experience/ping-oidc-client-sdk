@@ -194,7 +194,6 @@ export class OidcClient {
         this.clientStorage.removeToken();
 
         if (token.refresh_token) {
-          console.log('refresh token', token.refresh_token);
           const newToken = await this.refreshToken(token.refresh_token);
 
           if (newToken) {
@@ -285,18 +284,12 @@ export class OidcClient {
       );
     }
 
-    console.log('introspecting w/ this token:', token.access_token);
-    console.log('token in storage', this.clientStorage.getToken());
     const body = new URLSearchParams();
     body.append('token', token.access_token);
     body.append('token_type_hint', 'access_token');
 
     try {
       const introspectResponse = await this.authenticationServerApiCall<IntrospectionResponse>(this.issuerConfiguration.introspection_endpoint, body);
-      // this.clientStorage.removeToken();
-      console.log('introspect', introspectResponse);
-
-      console.log('introspect', introspectResponse);
       return introspectResponse;
     } catch (error) {
       return Promise.reject(error);
@@ -454,7 +447,6 @@ export class OidcClient {
     this.logger.debug('OidcClient', 'POST request', request);
 
     const response = await fetch(url, request);
-    console.log('RESSSSSS', response);
 
     if (!response?.ok) {
       this.logger.error('OidcClient', `Unsuccessful response encountered for url ${url}`, response);
@@ -472,6 +464,8 @@ export class OidcClient {
   /**
    * Get a new access token using refresh token.
    *
+   * @returns Token response from auth server
+   * @see https://www.rfc-editor.org/rfc/rfc6749#section-6
    */
 
   private async refreshToken(refresh_token: string): Promise<TokenResponse | void> {
@@ -481,9 +475,6 @@ export class OidcClient {
 
     try {
       const token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
-      // console.log('new token from refresh', token.access_token);
-      // this.clientStorage.storeToken(token);
-      // console.log('AT in storage', this.clientStorage.getToken());
       return Promise.resolve(token);
     } catch {
       // Refresh token failed, expired or invalid. Default to silent authN request. Promise result doesn't matter since authorize will navigate to auth server.
