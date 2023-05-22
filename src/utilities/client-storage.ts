@@ -8,6 +8,7 @@ export class ClientStorage {
   private inMemoryToken: TokenResponse;
 
   storeToken(token: TokenResponse) {
+    this.inMemoryToken = token;
     const str = JSON.stringify(token);
     localStorage.setItem(this.TOKEN_KEY, OAuth.btoa(str));
   }
@@ -32,6 +33,7 @@ export class ClientStorage {
   }
 
   removeToken() {
+    this.inMemoryToken = null;
     localStorage.removeItem(this.TOKEN_KEY);
   }
 

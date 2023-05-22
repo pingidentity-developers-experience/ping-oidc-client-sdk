@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 /**
  * OAuth/OIDC SDK
  * Ping Identity
@@ -5,7 +6,7 @@
  * @description The main entry point for your application's integration.
  */
 
-import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
+import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions, IntrospectionResponse } from './types';
 import { Logger, OAuth, ClientStorage, Url, BrowserUrlManager } from './utilities';
 import { ClientOptionsValidator } from './validators';
 
@@ -52,7 +53,7 @@ export class OidcClient {
   }
 
   /**
-   * Asyncronous wrapper around the constructor that allows apps to wait for a potential token
+   * Asynchronous wrapper around the constructor that allows apps to wait for a potential token
    * to be extracted/retrieved when initializing an OidcClient object.
    *
    * @param clientOptions {ClientOptions} Options for the OIDC Client, client_id is required
@@ -100,9 +101,9 @@ export class OidcClient {
    * @returns {Promise} Will navigate the current browser tab to the authorization url that is generated through the authorizeUrl method
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-3.1
    */
-  async authorize(loginHint?: string): Promise<void> {
+  async authorize(loginHint?: string, silentAuthN?: boolean): Promise<void> {
     try {
-      const authUrl = await this.authorizeUrl(loginHint);
+      const authUrl = await this.authorizeUrl(loginHint, silentAuthN);
       this.browserUrlManager.navigate(authUrl);
     } catch (error) {
       return Promise.reject(error);
@@ -116,11 +117,12 @@ export class OidcClient {
    * Typically you will want to apply the url to an anchor tag or redirect to it using window.location.assign(xxx).
    *
    * @param loginHint {string} login_hint url parameter that will be appended to URL in case you have a username/email already
+   * @param silentAuthN {boolean} If true, silent authentication is initiated
    * @returns {Promise<string>} Promise that will resolve with a url you should redirect to
    * @see https://openid.net/specs/openid-connect-core-1_0.html#ThirdPartyInitiatedLogin
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-4
    */
-  async authorizeUrl(loginHint?: string): Promise<string> {
+  async authorizeUrl(loginHint?: string, silentAuthN?: boolean): Promise<string> {
     this.logger.debug('OidcClient', 'authorized called');
 
     if (!this.issuerConfiguration?.authorization_endpoint) {
@@ -154,6 +156,10 @@ export class OidcClient {
       urlParams.append('login_hint', encodeURIComponent(loginHint));
     }
 
+    if (silentAuthN) {
+      urlParams.append('prompt', 'none');
+    }
+
     return Promise.resolve(`${this.issuerConfiguration?.authorization_endpoint}?${urlParams.toString()}`);
   }
 
@@ -184,7 +190,27 @@ export class OidcClient {
     let token = this.clientStorage.getToken();
 
     if (token) {
-      return Promise.resolve(token);
+      const introspectResponse = await this.introspectToken();
+      if (!introspectResponse.active) {
+        this.clientStorage.removeToken();
+
+        if (token.refresh_token) {
+          const newToken = await this.refreshToken(token.refresh_token);
+
+          if (newToken) {
+            this.clientStorage.storeToken(newToken);
+            return newToken;
+          }
+        } else {
+          await this.authorize(undefined, true);
+        }
+
+        // If this is encountered this.authorize was called and the browser will be navigated to auth server
+        return Promise.reject();
+      }
+
+      // Token is still active!
+      return token;
     }
 
     if (!this.issuerConfiguration?.token_endpoint) {
@@ -237,6 +263,40 @@ export class OidcClient {
   }
 
   /**
+   * Introspect existing access token
+   *
+   * @returns {any} - HTTP response 200 only.
+   * @see https://www.rfc-editor.org/rfc/rfc7662#section-2
+   */
+  async introspectToken(): Promise<any> {
+    this.logger.debug('OidcClient', 'introspectToken called');
+
+    const token = this.verifyToken();
+
+    if (!token) {
+      return Promise.reject(Error('No token available'));
+    }
+
+    if (!this.issuerConfiguration?.introspection_endpoint) {
+      return Promise.reject(
+        Error(
+          `No introspection_endpoint has been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
+        ),
+      );
+    }
+
+    const body = new URLSearchParams();
+    body.append('token', token.access_token);
+    body.append('token_type_hint', 'access_token');
+
+    try {
+      const introspectResponse = await this.authenticationServerApiCall<IntrospectionResponse>(this.issuerConfiguration.introspection_endpoint, body);
+      return introspectResponse;
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+  /**
    * Revoke the token managed by the library
    *
    * @returns {any} - HTTP response 200 only.
@@ -254,7 +314,7 @@ export class OidcClient {
     if (!this.issuerConfiguration?.revocation_endpoint) {
       return Promise.reject(
         Error(
-          `No revocation_endpoint has not been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
+          `No revocation_endpoint has been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
         ),
       );
     }
@@ -399,6 +459,28 @@ export class OidcClient {
       return await response.json();
     } catch {
       return undefined;
+    }
+  }
+
+  /**
+   * Get a new access token using refresh token.
+   *
+   * @returns Token response from auth server
+   * @param refresh_token {string} Refresh token to be used to get new access token
+   * @see https://www.rfc-editor.org/rfc/rfc6749#section-6
+   */
+
+  private async refreshToken(refresh_token: string): Promise<TokenResponse | void> {
+    const body = new URLSearchParams();
+    body.append('grant_type', 'refresh_token');
+    body.append('refresh_token', refresh_token);
+
+    try {
+      const token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
+      return Promise.resolve(token);
+    } catch {
+      // Refresh token failed, expired or invalid. Default to silent authN request. Promise result doesn't matter since authorize will navigate to auth server.
+      return this.authorize(undefined, true);
     }
   }
 }
