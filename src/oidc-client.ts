@@ -324,7 +324,7 @@ export class OidcClient {
 
     try {
       const revokeResponse = await this.authenticationServerApiCall(this.issuerConfiguration.revocation_endpoint, body);
-      this.clientStorage.removeToken();
+      // this.clientStorage.removeToken();
       return revokeResponse;
     } catch (error) {
       return Promise.reject(error);
