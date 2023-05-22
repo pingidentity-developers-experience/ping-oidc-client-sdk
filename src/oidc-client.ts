@@ -117,6 +117,7 @@ export class OidcClient {
    * Typically you will want to apply the url to an anchor tag or redirect to it using window.location.assign(xxx).
    *
    * @param loginHint {string} login_hint url parameter that will be appended to URL in case you have a username/email already
+   * @param silentAuthN {boolean} If true, silent authentication is initiated
    * @returns {Promise<string>} Promise that will resolve with a url you should redirect to
    * @see https://openid.net/specs/openid-connect-core-1_0.html#ThirdPartyInitiatedLogin
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-4
@@ -465,6 +466,7 @@ export class OidcClient {
    * Get a new access token using refresh token.
    *
    * @returns Token response from auth server
+   * @param refresh_token {string} Refresh token to be used to get new access token
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-6
    */
 

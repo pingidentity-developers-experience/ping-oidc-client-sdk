@@ -71,11 +71,14 @@ const authnUrl = await oidcClient.authorizeUrl(/* optional login_hint */);
 // Used to get the user info from the userinfo endpoint on the auth server, must be used after user has gone through authorize flow and a token is available in storage.
 const userInfo = await oidcClient.fetchUserInfo();
 
-// Get the token from storage
+// Get the token from storage, if the existing token is invalid and a refresh token exists then a token refresh call will be made
 const token = await oidcClient.getToken();
 
 // If you need the state that was passed to the server, you can get it from the TokenResponse managed by the library
 const state = token.state;
+
+// Introspect the existing token in storage and return response
+await oidcClient.introspectToken();
 
 // Revoke the token on the server and remove it from storage
 await oidcClient.revokeToken();
