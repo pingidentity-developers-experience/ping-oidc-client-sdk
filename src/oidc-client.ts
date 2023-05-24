@@ -298,6 +298,7 @@ export class OidcClient {
     } catch {
       // Refresh token failed, expired or invalid. Default to silent authN request. Promise result doesn't matter since authorize will navigate to auth server.
       this.logger.error('OidcClient', 'Refresh token is either missing or invalid, attempting a silent authentication request.', token);
+      this.clientStorage.removeToken();
       return this.authorize(undefined, true);
     }
   }
