@@ -71,17 +71,17 @@ const authnUrl = await oidcClient.authorizeUrl(/* optional login_hint */);
 // Used to get the user info from the userinfo endpoint on the auth server, must be used after user has gone through authorize flow and a token is available in storage.
 const userInfo = await oidcClient.fetchUserInfo();
 
-// Get the token from storage, if the existing token is invalid and a refresh token exists then a token refresh call will be made
+// Get the token from storage
 const token = await oidcClient.getToken();
 
 // If you need the state that was passed to the server, you can get it from the TokenResponse managed by the library
 const state = token.state;
 
-// Introspect the existing token in storage and return response
-await oidcClient.introspectToken();
-
 // Revoke the token on the server and remove it from storage
 await oidcClient.revokeToken();
+
+// Refresh the access token and store the new token in storage
+await oidcClient.refreshToken();
 
 // End the user's session using the end_session_endpoint on the auth server
 await oidcClient.endSession(/* optional post logout redirect uri */);
@@ -97,7 +97,6 @@ const clientOptions = {
 const openIdConfig = {
   authorization_endpoint: "https://auth.pingone.com/<env-id>/as/authorize", // Required
   token_endpoint: "https://auth.pingone.com/<env-id>/as/token", // Required
-  introspection_endpoint: "https://auth.pingone.com/<env-id>/as/introspect", // Required
   revocation_endpoint: "https://auth.pingone.com/<env-id>/as/revoke", // Required if using revokeToken() function
   userinfo_endpoint: "https://auth.pingone.com/<env-id>/as/userinfo" // Required if using fetchUserInfo() function
   end_session_endpoint: "https://auth.pingone.com/<env-id>/as/signoff" // Required if using endSession() function
