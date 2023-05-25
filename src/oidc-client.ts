@@ -215,7 +215,6 @@ export class OidcClient {
       body.append('grant_type', this.clientOptions.response_type === ResponseType.Token ? '' : 'authorization_code');
       body.append('code', code);
       body.append('redirect_uri', this.clientOptions.redirect_uri);
-      console.log('body', body);
 
       if (this.clientOptions.response_type === ResponseType.AuthorizationCode) {
         if (this.clientOptions.usePkce) {
