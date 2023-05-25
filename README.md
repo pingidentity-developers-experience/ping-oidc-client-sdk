@@ -38,7 +38,14 @@ There is an implementation example app, (not a demo), included in the project in
 
 Install from NPM:
 
-`npm install @pingidentity-developers-experience/ping-oidc-client-sdk`
+```
+# With npm
+npm install @pingidentity-developers-experience/ping-oidc-client-sdk
+
+# With yarn
+yarn add @pingidentity-developers-experience/ping-oidc-client-sdk
+```
+
 
 
 In your js file:
