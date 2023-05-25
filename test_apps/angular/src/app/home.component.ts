@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, NgZone } from '@angular/core';
 import { OidcClient, TokenResponse } from '@pingidentity-developers-experience/ping-oidc-client-sdk';
 
 @Component({
@@ -12,7 +12,7 @@ export class HomeComponent {
   token?: TokenResponse;
   userInfo?: any;
 
-  constructor() {
+  constructor(private readonly zone: NgZone) {
     this.init();
   }
 
@@ -26,6 +26,7 @@ export class HomeComponent {
 
       if (this.oidcClient.hasToken) {
         const token = await this.oidcClient.getToken();
+        console.log(token);
         this.tokenAvailable(token);
       }
 
@@ -46,7 +47,13 @@ export class HomeComponent {
   async tokenAvailable(token: TokenResponse) {
     this.token = token;
     console.log('state', token.state)
-    this.userInfo = await this.oidcClient?.fetchUserInfo();
+
+    try {
+      this.userInfo = await this.oidcClient?.fetchUserInfo();
+    } catch {
+      this.token = await this.oidcClient?.refreshToken() || undefined;
+      this.userInfo = await this.oidcClient?.fetchUserInfo();
+    }
   }
 
   signOff() {

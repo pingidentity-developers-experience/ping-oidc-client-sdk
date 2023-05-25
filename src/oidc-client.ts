@@ -287,26 +287,36 @@ export class OidcClient {
    */
 
   async refreshToken(): Promise<TokenResponse | void> {
-    let token = this.clientStorage.getToken();
-    const body = new URLSearchParams();
-    body.append('grant_type', 'refresh_token');
-    body.append('refresh_token', token.refresh_token);
+    this.logger.debug('OidcClient', 'refreshToken called');
 
-    try {
-      token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
-      this.clientStorage.storeToken(token);
-      return Promise.resolve(token);
-    } catch {
-      // Refresh token failed, expired or invalid. Default to silent authN request. Promise result doesn't matter since authorize will navigate to auth server.
-      this.logger.error('OidcClient', 'Refresh token is either missing or invalid, attempting a silent authentication request.', token);
-      this.clientStorage.removeToken();
-      return this.authorize(undefined, true);
+    const refreshToken = this.clientStorage.getRefreshToken();
+    this.clientStorage.removeToken();
+
+    if (refreshToken) {
+      this.logger.info('OidcClient', 'refreshToken found in storage, using that to get a new access token.');
+
+      const body = new URLSearchParams();
+      body.append('grant_type', 'refresh_token');
+      body.append('refresh_token', refreshToken);
+
+      try {
+        const token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
+        this.clientStorage.storeToken(token);
+        return Promise.resolve(token);
+      } catch {
+        this.logger.error('OidcClient', 'Refresh token is invalid or expired, attempting a silent authentication request.');
+      }
+    } else {
+      this.logger.warn('OidcClient', 'No refresh token found, the Authentication Server may not support refresh tokens, attempting a silent authentication request.');
     }
+
+    return this.authorize(undefined, true);
   }
 
   /**
    * End the users session using the end_session_endpoint from the issuer, the id token will be automatically appended
-   * to the url via the id_token_hint url parameter if it is available.
+   * to the url via the id_token_hint url parameter if it is available. This call will redirect the browser tab to the signoff
+   * endpoint so it does not return anything.
    *
    * @param postLogoutRedirectUri {string} optional url to redirect user to after their session has been ended
    */
