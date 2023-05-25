@@ -87,7 +87,11 @@ function App() {
           const userInfo = await oidcClient.current.fetchUserInfo();
           setUserInfo(userInfo);
         } catch (error) {
-          console.log('An error occurred attempting to fetch user info', error);
+          console.log('An error occurred attempting to fetch user info token is likely expired', error);
+          const token = await oidcClient.current.refreshToken();
+          setToken(token);
+          const userInfo = await oidcClient.current.fetchUserInfo();
+          setUserInfo(userInfo);
         }
       }
     };

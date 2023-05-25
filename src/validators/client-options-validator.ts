@@ -43,7 +43,7 @@ export class ClientOptionsValidator {
     }
 
     if (error) {
-      throw Error('An error occurred while validating ClientOptions, see console.error messages for more information');
+      throw Error('An error occurred while validating ClientOptions, client_id and redirect_uri are required.');
     }
 
     const result: ValidatedClientOptions = {
