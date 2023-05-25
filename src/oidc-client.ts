@@ -167,7 +167,7 @@ export class OidcClient {
    * Get a token. It will check for tokens in the following order:
    *
    * 1. Previously stored token
-   * 2. Token from the URL Hash (implicit, grant_type: 'token')
+   * 2. Token from the URL Hash (implicit)
    * 3. Token from the authorization server (authorization_code, grant_type: 'authorization_code' or default)
    *
    * Getting a token from the authorization server requires a 'code' url parameter or manually passing in the code if you'd like to manage it yourself.
@@ -211,9 +211,11 @@ export class OidcClient {
       }
 
       const body = new URLSearchParams();
-      body.append('grant_type', this.clientOptions.response_type === ResponseType.Token ? 'token' : 'authorization_code');
+      // grant_type will be omitted if implicit grant
+      body.append('grant_type', this.clientOptions.response_type === ResponseType.Token ? '' : 'authorization_code');
       body.append('code', code);
       body.append('redirect_uri', this.clientOptions.redirect_uri);
+      console.log('body', body);
 
       if (this.clientOptions.response_type === ResponseType.AuthorizationCode) {
         if (this.clientOptions.usePkce) {
