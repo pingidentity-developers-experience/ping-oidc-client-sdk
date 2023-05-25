@@ -1,6 +1,6 @@
 {
   "name": "@pingidentity-developers-experience/ping-oidc-client-sdk",
-  "version": "0.3.8-beta",
+  "version": "0.3.9-beta",
   "description": "An OAuth/OIDC SDK to simplify and fastrack integration with OAuth/OIDC protocol endpoints. AuthCode and implicit grant types. PKCE, state, userInfo, revoke, configurable logging.",
   "main": "lib/ping-oidc.js",
   "types": "lib/index.d.ts",
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Technical-Enablement-PingIdentity/dev-enablement-oidc.git"
+    "url": "git+https://github.com/pingidentity-developers-experience/ping-oidc-client-sdk.git"
   },
   "keywords": [
     "Ping Identity",
@@ -29,9 +29,9 @@
   "author": "Ping Identity Technical Enablement (https://www.pingidentity.com/)",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/Technical-Enablement-PingIdentity/dev-enablement-oidc/issues"
+    "url": "https://github.com/pingidentity-developers-experience/ping-oidc-client-sdk/issues"
   },
-  "homepage": "https://github.com/Technical-Enablement-PingIdentity/dev-enablement-oidc#readme",
+  "homepage": "https://github.com/pingidentity-developers-experience/ping-oidc-client-sdk#readme",
   "devDependencies": {
     "@babel/cli": "^7.17.0",
     "@babel/core": "^7.17.2",
