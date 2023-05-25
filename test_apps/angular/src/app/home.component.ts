@@ -1,4 +1,4 @@
-import { Component, NgZone } from '@angular/core';
+import { Component } from '@angular/core';
 import { OidcClient, TokenResponse } from '@pingidentity-developers-experience/ping-oidc-client-sdk';
 
 @Component({
@@ -12,7 +12,7 @@ export class HomeComponent {
   token?: TokenResponse;
   userInfo?: any;
 
-  constructor(private readonly zone: NgZone) {
+  constructor() {
     this.init();
   }
 
