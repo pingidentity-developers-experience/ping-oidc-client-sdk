@@ -6,7 +6,7 @@
  * @description The main entry point for your application's integration.
  */
 
-import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions, IntrospectionResponse } from './types';
+import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
 import { Logger, OAuth, ClientStorage, Url, BrowserUrlManager } from './utilities';
 import { ClientOptionsValidator } from './validators';
 
@@ -167,7 +167,7 @@ export class OidcClient {
    * Get a token. It will check for tokens in the following order:
    *
    * 1. Previously stored token
-   * 2. Token from the URL Hash (implicit, grant_type: 'token')
+   * 2. Token from the URL Hash (implicit)
    * 3. Token from the authorization server (authorization_code, grant_type: 'authorization_code' or default)
    *
    * Getting a token from the authorization server requires a 'code' url parameter or manually passing in the code if you'd like to manage it yourself.
@@ -190,26 +190,6 @@ export class OidcClient {
     let token = this.clientStorage.getToken();
 
     if (token) {
-      const introspectResponse = await this.introspectToken();
-      if (!introspectResponse.active) {
-        this.clientStorage.removeToken();
-
-        if (token.refresh_token) {
-          const newToken = await this.refreshToken(token.refresh_token);
-
-          if (newToken) {
-            this.clientStorage.storeToken(newToken);
-            return newToken;
-          }
-        } else {
-          await this.authorize(undefined, true);
-        }
-
-        // If this is encountered this.authorize was called and the browser will be navigated to auth server
-        return Promise.reject();
-      }
-
-      // Token is still active!
       return token;
     }
 
@@ -231,7 +211,8 @@ export class OidcClient {
       }
 
       const body = new URLSearchParams();
-      body.append('grant_type', this.clientOptions.response_type === ResponseType.Token ? 'token' : 'authorization_code');
+      // grant_type will be omitted if implicit grant
+      body.append('grant_type', this.clientOptions.response_type === ResponseType.Token ? '' : 'authorization_code');
       body.append('code', code);
       body.append('redirect_uri', this.clientOptions.redirect_uri);
 
@@ -262,40 +243,6 @@ export class OidcClient {
     return Promise.resolve(token);
   }
 
-  /**
-   * Introspect existing access token
-   *
-   * @returns {any} - HTTP response 200 only.
-   * @see https://www.rfc-editor.org/rfc/rfc7662#section-2
-   */
-  async introspectToken(): Promise<any> {
-    this.logger.debug('OidcClient', 'introspectToken called');
-
-    const token = this.verifyToken();
-
-    if (!token) {
-      return Promise.reject(Error('No token available'));
-    }
-
-    if (!this.issuerConfiguration?.introspection_endpoint) {
-      return Promise.reject(
-        Error(
-          `No introspection_endpoint has been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
-        ),
-      );
-    }
-
-    const body = new URLSearchParams();
-    body.append('token', token.access_token);
-    body.append('token_type_hint', 'access_token');
-
-    try {
-      const introspectResponse = await this.authenticationServerApiCall<IntrospectionResponse>(this.issuerConfiguration.introspection_endpoint, body);
-      return introspectResponse;
-    } catch (error) {
-      return Promise.reject(error);
-    }
-  }
   /**
    * Revoke the token managed by the library
    *
@@ -329,6 +276,31 @@ export class OidcClient {
       return revokeResponse;
     } catch (error) {
       return Promise.reject(error);
+    }
+  }
+
+  /**
+   * Get a new access token using refresh token.
+   *
+   * @returns Token response from auth server
+   * @see https://www.rfc-editor.org/rfc/rfc6749#section-6
+   */
+
+  async refreshToken(): Promise<TokenResponse | void> {
+    let token = this.clientStorage.getToken();
+    const body = new URLSearchParams();
+    body.append('grant_type', 'refresh_token');
+    body.append('refresh_token', token.refresh_token);
+
+    try {
+      token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
+      this.clientStorage.storeToken(token);
+      return Promise.resolve(token);
+    } catch {
+      // Refresh token failed, expired or invalid. Default to silent authN request. Promise result doesn't matter since authorize will navigate to auth server.
+      this.logger.error('OidcClient', 'Refresh token is either missing or invalid, attempting a silent authentication request.', token);
+      this.clientStorage.removeToken();
+      return this.authorize(undefined, true);
     }
   }
 
@@ -459,28 +431,6 @@ export class OidcClient {
       return await response.json();
     } catch {
       return undefined;
-    }
-  }
-
-  /**
-   * Get a new access token using refresh token.
-   *
-   * @returns Token response from auth server
-   * @param refresh_token {string} Refresh token to be used to get new access token
-   * @see https://www.rfc-editor.org/rfc/rfc6749#section-6
-   */
-
-  private async refreshToken(refresh_token: string): Promise<TokenResponse | void> {
-    const body = new URLSearchParams();
-    body.append('grant_type', 'refresh_token');
-    body.append('refresh_token', refresh_token);
-
-    try {
-      const token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
-      return Promise.resolve(token);
-    } catch {
-      // Refresh token failed, expired or invalid. Default to silent authN request. Promise result doesn't matter since authorize will navigate to auth server.
-      return this.authorize(undefined, true);
     }
   }
 }

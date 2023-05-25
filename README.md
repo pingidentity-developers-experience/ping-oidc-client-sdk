@@ -71,17 +71,17 @@ const authnUrl = await oidcClient.authorizeUrl(/* optional login_hint */);
 // Used to get the user info from the userinfo endpoint on the auth server, must be used after user has gone through authorize flow and a token is available in storage.
 const userInfo = await oidcClient.fetchUserInfo();
 
-// Get the token from storage, if the existing token is invalid and a refresh token exists then a token refresh call will be made
+// Get the token from storage
 const token = await oidcClient.getToken();
 
 // If you need the state that was passed to the server, you can get it from the TokenResponse managed by the library
 const state = token.state;
 
-// Introspect the existing token in storage and return response
-await oidcClient.introspectToken();
-
 // Revoke the token on the server and remove it from storage
 await oidcClient.revokeToken();
+
+// Refresh the access token and store the new token in storage
+await oidcClient.refreshToken();
 
 // End the user's session using the end_session_endpoint on the auth server
 await oidcClient.endSession(/* optional post logout redirect uri */);
@@ -97,7 +97,6 @@ const clientOptions = {
 const openIdConfig = {
   authorization_endpoint: "https://auth.pingone.com/<env-id>/as/authorize", // Required
   token_endpoint: "https://auth.pingone.com/<env-id>/as/token", // Required
-  introspection_endpoint: "https://auth.pingone.com/<env-id>/as/introspect", // Required
   revocation_endpoint: "https://auth.pingone.com/<env-id>/as/revoke", // Required if using revokeToken() function
   userinfo_endpoint: "https://auth.pingone.com/<env-id>/as/userinfo" // Required if using fetchUserInfo() function
   end_session_endpoint: "https://auth.pingone.com/<env-id>/as/signoff" // Required if using endSession() function
@@ -150,7 +149,7 @@ export interface TokenResponse {
 
 When using `authorize()` you can optionally pass in a login_hint parameter as a string if you have already collected a username or email from the user. The authorize function will build the url and navigate the current browser tab to it for you. Alternatively if you would like to get the authorization url ahead of time and trigger the navigation to the server yourself via an anchor href or click event, you can do so using the `authorizeUrl()` function instead. When using PKCE (which is enabled by default) the library will generate a code verifier and challenge for you and use the verifier when getting a token from the token_endpoint on the authentication server.
 
-After a user has authorized on the server they will be redirected back to your app with a token in the url hash (implicit grants or `grant_type: 'token'`) or with a `code` in the query string (`grant_type: 'authorization_code'`). The library will check for both cases when it is initialized and handle getting the token for you. It will also remove the token or code from the url and browser history. If you need the token from the library, use the `getToken()` function, the token response from that call also includes the state you passed through the clientOptions. The library will attempt to `JSON.parse` the state when it received from the authentication server, but if that fails it will be stored as a string.
+After a user has authorized on the server they will be redirected back to your app with a token in the url hash (implicit grants) or with a `code` in the query string (`grant_type: 'authorization_code'`). The library will check for both cases when it is initialized and handle getting the token for you. It will also remove the token or code from the url and browser history. If you need the token from the library, use the `getToken()` function, the token response from that call also includes the state you passed through the clientOptions. The library will attempt to `JSON.parse` the state when it received from the authentication server, but if that fails it will be stored as a string.
 
 ### Miscellany
 
