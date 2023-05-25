@@ -2,12 +2,15 @@
 ## From Ping Identity
 ### Authors: Technical Enablement Demo Team
 
-
 This project is an OAuth/OIDC SDK (hosted at npmjs.com), for bootstrapping the [OAuth](https://www.rfc-editor.org/rfc/rfc6749) and [OpenID Connect (OIDC)](https://openid.net/developers/specs/) protocol in your own custom applications, with the intent to automate or simplify steps in the protocol flow and integration of it. This allows you, the developer, to do what you do best, focusing on your company's business apps, while Ping Identity handles what we do best, identity security.
 
 With a developer-first focus and simplicity in design, native Javascript APIs were chosen as much as possible over 3rd-party packages and libraries which may conflict with your company's security standards. Additionally, native Javascript APIs simplify maintenance for Ping Identity and its customers, and reduces the potential attack vectors of this package in your applications. 
 
 ### Security
+
+#### Best practices
+
+For guidelines on security best practices please see [OAUTH 2.0 for Browser-Based Apps](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-07) and [OAUTH 2.0 Security Best Current Practice](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics-16).
 
 #### Software Bill of Materials
 
