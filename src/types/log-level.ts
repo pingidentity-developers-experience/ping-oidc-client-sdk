@@ -3,6 +3,7 @@ export enum LogLevel {
   Warning = 'warning',
   Info = 'info',
   Debug = 'debug',
+  None = 'none',
 }
 
 export default LogLevel;

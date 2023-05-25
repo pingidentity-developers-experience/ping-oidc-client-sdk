@@ -138,7 +138,7 @@ If you wish to use the library in a web application that does not use node or np
 | usePkce | boolean | Whether the library will add a code challenge to the url | `true`, `false` | `true` |
 | scope | string | Requested scopes for token | - | `'openid profile'` |
 | state | string \| object | State passed to server | - | Random string to act as a nonce token |
-| logLevel | string (LogLevel) | Logging level for statements printed to console | `'debug'`, `'info'`, `'warn'`, `'error'` | `'warn'`
+| logLevel | string (LogLevel) | Logging level for statements printed to console | `'debug'`, `'info'`, `'warn'`, `'error'`, `'none'` | `'warn'`
 
 Errors from the library are passed up to your application so that you can handle them gracefully if needed. You can catch them in try/catch block if you are using async/await or you can use the catch() method on the promise returned from the function call.
 

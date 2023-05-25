@@ -18,6 +18,10 @@ export class Logger {
    * @param {object} additionalData Optional additional data that will be shown in console
    */
   error(className: string, error: string, additionalData?: any): void {
+    if (this.logLevel === LogLevel.None) {
+      return;
+    }
+
     if (additionalData) {
       console.error(`OidcClient.${className}`, error, additionalData);
     } else {
