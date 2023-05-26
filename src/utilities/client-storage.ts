@@ -14,6 +14,9 @@ export class ClientStorage {
       // eslint-disable-next-line no-param-reassign
       delete token.refresh_token;
       localStorage.setItem(this.REFRESH_TOKEN_KEY, OAuth.btoa(refreshToken));
+    } else {
+      // Remove old refresh token just in case, would be weird to hit this...
+      localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     }
 
     this.inMemoryToken = token;
@@ -52,6 +55,7 @@ export class ClientStorage {
   removeToken() {
     this.inMemoryToken = null;
     localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
   }
 
   storeCodeVerifier(codeVerifier: string) {
@@ -65,9 +69,5 @@ export class ClientStorage {
     localStorage.removeItem(this.CODE_VERIFIER_KEY);
 
     return encodedStr ? OAuth.atob(encodedStr) : null;
-  }
-
-  clearAll() {
-    localStorage.clear();
   }
 }
