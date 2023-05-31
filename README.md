@@ -28,9 +28,6 @@ Before each release, we run the following commands against our project to ensure
 
 Because of the as-is offering and license of this project, it is highly recommended that users of this SDK run `npm audit` and evaluate the results and  make changes to meet their internal application security requirements. Alternatively or additionally you can submit issues in our [Github repo](https://github.com/pingidentity-developers-experience/ping-oidc-client-sdk/issues).
 
-### Disclaimer
-THIS ENTIRE PROJECT AND ALL ITS ASSETS IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PING IDENTITY OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) SUSTAINED BY YOU OR A THIRD PARTY, HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT ARISING IN ANY WAY OUT OF THE USE OF THIS SAMPLE CODE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 ### Included:
 
 This OAuth/OIDC Library allows you to quickly implement an OIDC flow in your Web Application. Its goal is to make it as easy as possible to authenticate a user and get an access token with as little developer intervention as possible. Currently this library only supports browser implementations.
@@ -163,9 +160,13 @@ After a user has authorized on the server they will be redirected back to your a
 
 ### Miscellany
 
-- The included unit tests located at `/test/` are being deprecated. Do not rely on them.
+- The included unit tests located at `/test/` have been deprecated. Do not rely on them.
 - Estimated Release Schedule Overview
   - Planning and development: Q1 2023.
-  - Internal beta testing period: April, 2023. (*May be extended if necessary.*)
-  - Feedback/updates sprint cycles: Q2, 2023.
-  - Productized: H2, 2023
+  - Internal beta testing period: April, 2023.
+  - Feedback/updates sprint: May, 2023.
+  - Early access release: June, 2023.
+  - Productized and GA release: H2, 2023
+
+### Disclaimer
+THIS ENTIRE PROJECT AND ALL ITS ASSETS IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PING IDENTITY OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) SUSTAINED BY YOU OR A THIRD PARTY, HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT ARISING IN ANY WAY OUT OF THE USE OF THIS SAMPLE CODE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
