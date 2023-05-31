@@ -61,9 +61,9 @@ function App() {
   useEffect(() => {
     async function initializeOidc() {
       const clientOptions = {
-        client_id: '6dea3779-356d-4222-935b-3a0b4e03b655',
+        // client_id: 'xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
         // redirect_uri: 'https://localhost:3000',
-        scope: 'openid profile revokescope', // defaults to 'openid profile email'
+        // scope: 'openid profile revokescope', // defaults to 'openid profile email'
         // response_type: 'token', // defaults to 'code'
         // usePkce: false, // defaults to true
         // state: 'xyz', // will apply a random state as a string, you can pass in a string or object

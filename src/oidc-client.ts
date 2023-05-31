@@ -80,7 +80,7 @@ export class OidcClient {
    * @see https://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
    */
   static async initializeFromOpenIdConfig(issuerUrl: string, clientOptions: ClientOptions): Promise<OidcClient> {
-    if (typeof issuerUrl !== 'string' || !Url.isValidUrl(issuerUrl, true)) {
+    if (typeof issuerUrl !== 'string' || !Url.isValidUrl(issuerUrl)) {
       return Promise.reject(new Error(`Error creating an OpenIdClient please ensure you have entered a valid url ${issuerUrl}`));
     }
 
