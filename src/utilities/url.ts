@@ -11,7 +11,6 @@ export class Url {
 
   static isValidUrl(urlString: string): boolean {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const url = new URL(urlString);
       return url.protocol === 'https:';
     } catch {
