@@ -13,7 +13,7 @@ export class Url {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const url = new URL(urlString);
-      return true;
+      return url.protocol === 'https:';
     } catch {
       return false;
     }
