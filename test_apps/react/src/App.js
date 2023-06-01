@@ -61,7 +61,7 @@ function App() {
   useEffect(() => {
     async function initializeOidc() {
       const clientOptions = {
-        // client_id: 'xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+        client_id: '6e610880-8e52-4ba7-a2dc-c5f9bd80f3ee',
         // redirect_uri: 'https://localhost:3000',
         // scope: 'openid profile revokescope', // defaults to 'openid profile email'
         // response_type: 'token', // defaults to 'code'
@@ -73,7 +73,7 @@ function App() {
       /**
        * Dynamically fetches your OAuth authorization servers endpoints from the spec-defied .well-known endpoint.
        */
-      const client = await OidcClient.initializeFromOpenIdConfig('https://auth.pingone.com/cc8801c7-a048-4a4f-bbc3-7a2604ca449a/as', clientOptions);
+      const client = await OidcClient.initializeFromOpenIdConfig('https://auth.pingone.com/b28c6458-9fc0-49cf-bf19-b7aaab1e7be7/as', clientOptions);
       oidcClient.current = client;
       setOidcReady(true);
 
@@ -111,7 +111,7 @@ function App() {
           <button className="app-link" onClick={authorize}>
             Ping OIDC Authorize URL
           </button>
-          <div className="app-example-user"><strong>Test user:</strong>&nbsp;etest / 2FederateM0re!</div>
+          <div className="app-example-user"><strong>Test user:</strong>&nbsp;demouser1 / 2FederateM0re!</div>
         </div>}
       {token &&
         <>
