@@ -18,8 +18,8 @@ export class HomeComponent {
 
   async init() {
     try {
-      this.oidcClient = await OidcClient.initializeFromOpenIdConfig('https://auth.pingone.com/cc8801c7-a048-4a4f-bbc3-7a2604ca449a/as', {
-        client_id: '6dea3779-356d-4222-935b-3a0b4e03b655',
+      this.oidcClient = await OidcClient.initializeFromOpenIdConfig('https://auth.pingone.com/b28c6458-9fc0-49cf-bf19-b7aaab1e7be7/as', {
+        client_id: '6e610880-8e52-4ba7-a2dc-c5f9bd80f3ee',
         redirect_uri: 'http://localhost:4200',
         scope: 'openid profile email revokescope', // defaults to 'openid profile email'
       });
