@@ -105,7 +105,7 @@ const openIdConfig = {
   authorization_endpoint: "https://auth.pingone.com/<env-id>/as/authorize", // Required
   token_endpoint: "https://auth.pingone.com/<env-id>/as/token", // Required
   revocation_endpoint: "https://auth.pingone.com/<env-id>/as/revoke", // Required if using revokeToken() function
-  userinfo_endpoint: "https://auth.pingone.com/<env-id>/as/userinfo" // Required if using fetchUserInfo() function
+  userinfo_endpoint: "https://auth.pingone.com/<env-id>/as/userinfo", // Required if using fetchUserInfo() function
   end_session_endpoint: "https://auth.pingone.com/<env-id>/as/signoff" // Required if using endSession() function
 };
 
@@ -160,7 +160,6 @@ After a user has authorized on the server they will be redirected back to your a
 
 ### Miscellany
 
-- The included unit tests located at `/test/` have been deprecated. Do not rely on them.
 - Estimated Release Schedule Overview
   - Planning and development: Q1 2023.
   - Internal beta testing period: April, 2023.
