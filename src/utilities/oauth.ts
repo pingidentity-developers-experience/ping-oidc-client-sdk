@@ -1,5 +1,5 @@
 import { ClientOptions } from '../types';
-import Logger from './logger';
+import { Logger } from './logger';
 
 interface PkceArtifacts {
   codeVerifier: string;

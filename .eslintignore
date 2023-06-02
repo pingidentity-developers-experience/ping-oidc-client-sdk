@@ -1,3 +1,4 @@
 # exlusions
-dist/
+lib/
 webpack*
+test_apps

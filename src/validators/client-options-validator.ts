@@ -1,5 +1,6 @@
-import { ClientOptions, ClientSecretAuthMethod, ValidatedClientOptions } from '../types';
-import GrantType from '../types/grant-type';
+/* eslint-disable camelcase */
+import { ClientOptions, ValidatedClientOptions } from '../types';
+import ResponseType from '../types/response-type';
 import { BrowserUrlManager, Logger } from '../utilities';
 
 export class ClientOptionsValidator {
@@ -12,7 +13,7 @@ export class ClientOptionsValidator {
   }
 
   /**
-   * Validates user passed options and gives nessessary feedback to console/through errors, will also set default values where applicable
+   * Validates user passed options and gives necessary feedback to console/through errors, will also set default values where applicable
    *
    * @param {ClientOptions} options Options to be validated
    * @returns {ClientOptions} options with applicable default values
@@ -20,66 +21,39 @@ export class ClientOptionsValidator {
   validate(options: ClientOptions): ValidatedClientOptions {
     let error = false;
 
-    // Need to validate required properies, users may not be using typescript so doublecheck them
-    if (!options.clientId) {
-      this.logger.error('ClientOptionsValidator', 'options.clientId is required to send an authorization request');
+    // Need to validate required properties, users may not be using typescript so double-check them
+    if (!options.client_id) {
+      this.logger.error('ClientOptionsValidator', 'options.client_id is required to send an authorization request');
       error = true;
     } else {
-      this.logger.debug('ClientOptionsValidator', 'options.clientId verified', options.clientId);
+      this.logger.debug('ClientOptionsValidator', 'options.client_id verified', options.client_id);
     }
 
     const { currentUrl } = this.browserUrlManager;
 
-    if (!options.redirectUri) {
+    if (!options.redirect_uri) {
       if (!currentUrl) {
-        this.logger.error('ClientOptionsValidator', 'options.redirectUri is required to send an authorization request');
+        this.logger.error('ClientOptionsValidator', 'options.redirect_uri is required to send an authorization request');
         error = true;
       } else {
-        this.logger.info('ClientOptionsValidator', 'options.redirectUri not passed in, defaulting to current browser URL', currentUrl);
+        this.logger.info('ClientOptionsValidator', 'options.redirect_uri not passed in, defaulting to current browser URL', currentUrl);
       }
     } else {
-      this.logger.debug('ClientOptionsValidator', 'options.redirectUri verified', options.redirectUri);
+      this.logger.debug('ClientOptionsValidator', 'options.redirect_uri verified', options.redirect_uri);
     }
 
     if (error) {
-      throw Error('An error occured while validating ClientOptions, see console.error messages for more information');
+      throw Error('An error occurred while validating ClientOptions, client_id and redirect_uri are required.');
     }
 
     const result: ValidatedClientOptions = {
-      clientId: options.clientId,
-      redirectUri: options.redirectUri || currentUrl,
-      grantType: this.getGrantType(options),
+      client_id: options.client_id,
+      redirect_uri: options.redirect_uri || currentUrl,
+      response_type: this.getResponseType(options),
       scope: this.getScope(options),
       usePkce: this.getUsePkce(options),
-      clientSecret: options.clientSecret,
       state: options.state,
-      tokenAvailableCallback: options.tokenAvailableCallback,
     };
-
-    if (result.grantType === GrantType.AuthorizationCode) {
-      if (!result.usePkce && !result.clientSecret) {
-        throw Error('You are trying to authenticate using a code without PKCE but did not provide a clientSecret, you will not be able to get a token');
-      } else if (options.clientSecretAuthMethod || result.clientSecret) {
-        if (result.usePkce) {
-          this.logger.warn(
-            'ClientOptionsValidator',
-            'You have passed a clientSecret and/or clientSecretAuthMethod but are also using PKCE, it is not recommended to use client secret authentication and PKCE',
-          );
-        }
-
-        if (!result.clientSecret) {
-          this.logger.warn('ClientOptionsValidator', 'You passed a clientSecretAuthMethod but no client secret, it will be ignored');
-        } else {
-          result.clientSecretAuthMethod = this.getClientSecretAuthMethod(options);
-        }
-      }
-    }
-
-    // If window is undefined we are in a node app and it's fine
-    if (result.clientSecret && window !== undefined) {
-      // Don't want to block people from doing this, but do want to warn them
-      this.logger.warn('ClientOptionsValidator', 'It is not recommended to use code grants without PKCE in browser applications, consider using PKCE and removing the client secret from your code');
-    }
 
     return result;
   }
@@ -100,53 +74,28 @@ export class ClientOptionsValidator {
   }
 
   /**
-   * Does verification of GrantType sent in through options and sets default of 'code' if not present or invalid
+   * Does verification of response_type sent in through options and sets default of 'code' if not present or invalid
    *
    * @param {ClientOptions} options Options sent into authorize method
-   * @returns {string} GrantType that will be used
+   * @returns {string} response_type that will be used
    */
-  private getGrantType(options: ClientOptions): GrantType {
-    let { grantType } = options;
-    const validResponseTypes = Object.values(GrantType);
+  private getResponseType(options: ClientOptions): ResponseType {
+    let { response_type } = options;
+    const validResponseTypes = Object.values(ResponseType);
 
-    if (!validResponseTypes.includes(grantType)) {
-      grantType = GrantType.AuthorizationCode;
+    if (!validResponseTypes.includes(response_type)) {
+      response_type = ResponseType.AuthorizationCode;
 
-      if (options.grantType) {
-        this.logger.warn('ClientOptionsValidator', `options.ResponseType contained an invalid option, valid options are '${validResponseTypes.join(', ')}'`, options.grantType);
+      if (options.response_type) {
+        this.logger.warn('ClientOptionsValidator', `options.ResponseType contained an invalid option, valid options are '${validResponseTypes.join(', ')}'`, options.response_type);
       } else {
         this.logger.info('ClientOptionsValidator', `options.ResponseType not provided, defaulting to 'code'`);
       }
     } else {
-      this.logger.debug('ClientOptionsValidator', 'options.ResponseType passed and valid', options.grantType);
+      this.logger.debug('ClientOptionsValidator', 'options.ResponseType passed and valid', options.response_type);
     }
 
-    return grantType;
-  }
-
-  /**
-   * Does verification of ClientSecretAuthMethod sent in through options and sets default of 'client_secret_basic' if not present or invalid
-   *
-   * @param {ClientOptions} options Options sent into authorize method
-   * @returns {string} ClientSecretAuthMethod that will be used
-   */
-  private getClientSecretAuthMethod(options: ClientOptions): ClientSecretAuthMethod {
-    let { clientSecretAuthMethod } = options;
-    const validResponseTypes = Object.values(ClientSecretAuthMethod);
-
-    if (!validResponseTypes.includes(clientSecretAuthMethod)) {
-      clientSecretAuthMethod = ClientSecretAuthMethod.Basic;
-
-      if (options.clientSecretAuthMethod) {
-        this.logger.warn('ClientOptionsValidator', `options.clientSecretAuthMethod contained an invalid option, valid options are '${validResponseTypes.join(', ')}'`, options.clientSecretAuthMethod);
-      } else {
-        this.logger.info('ClientOptionsValidator', `options.clientSecretAuthMethod not provided, defaulting to 'client_secret_basic'`);
-      }
-    } else {
-      this.logger.debug('ClientOptionsValidator', 'options.clientSecretAuthMethod passed and valid', options.clientSecretAuthMethod);
-    }
-
-    return clientSecretAuthMethod;
+    return response_type;
   }
 
   /**
@@ -156,7 +105,7 @@ export class ClientOptionsValidator {
    * @returns {string} Scope that will be passed to PingOne endpoint
    */
   private getScope(options: ClientOptions): string {
-    const defaultScope = 'openid profile';
+    const defaultScope = 'openid profile email';
 
     if (!options.scope) {
       this.logger.info('ClientOptionsValidator', `options.Scope not provided, defaulting to '${defaultScope}'`);
@@ -167,5 +116,3 @@ export class ClientOptionsValidator {
     return options.scope || defaultScope;
   }
 }
-
-export default ClientOptionsValidator;

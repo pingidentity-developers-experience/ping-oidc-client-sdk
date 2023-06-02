@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 /**
  * OAuth/OIDC SDK
  * Ping Identity
@@ -5,14 +6,14 @@
  * @description The main entry point for your application's integration.
  */
 
-import { ClientOptions, ClientSecretAuthMethod, GrantType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
+import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
 import { Logger, OAuth, ClientStorage, Url, BrowserUrlManager } from './utilities';
 import { ClientOptionsValidator } from './validators';
 
 /**
  * Class representing the OIDC client. The main interface to the SDK.
  */
-class OidcClient {
+export class OidcClient {
   private readonly clientOptions: ValidatedClientOptions;
   private readonly issuerConfiguration: OpenIdConfiguration;
   private readonly logger: Logger;
@@ -20,11 +21,11 @@ class OidcClient {
   private readonly browserUrlManager: BrowserUrlManager;
 
   /**
-   * It is recommended to initialize this class using the fromIssuer method which allows the open id configuration to be built
+   * It is recommended to initialize this class using the initializeFromOpenIdConfig method which allows the open id configuration to be built
    * from your issuer's well-known endpoint. However if you wish, you can initialize the OidcClient class manually passing
-   * in the OpenIdConfiguation manually.
+   * in the OpenIdConfiguration manually.
    *
-   * @param clientOptions {ClientOptions} Options for the OIDC Client, clientId and redirectUri are required
+   * @param clientOptions {ClientOptions} Options for the OIDC Client, client_id is required
    * @param issuerConfig {OpenIdConfiguration} OpenIdConfiguration object that the library will use
    */
   constructor(clientOptions: ClientOptions, issuerConfig: OpenIdConfiguration) {
@@ -41,16 +42,7 @@ class OidcClient {
     this.issuerConfiguration = issuerConfig;
     this.clientOptions = new ClientOptionsValidator(this.logger, this.browserUrlManager).validate(clientOptions);
 
-    if (this.hasToken || this.browserUrlManager.tokenReady) {
-      const preExistingToken = this.hasToken;
-      this.getToken().then((token) => {
-        let state;
-        if (!preExistingToken) {
-          state = this.browserUrlManager.checkUrlForState();
-        }
-        this.clientOptions.tokenAvailableCallback?.(token, state);
-      });
-    }
+    this.logger.debug('OidcClient', 'initialized with issuerConfig', issuerConfig);
   }
 
   /**
@@ -61,16 +53,34 @@ class OidcClient {
   }
 
   /**
+   * Asynchronous wrapper around the constructor that allows apps to wait for a potential token
+   * to be extracted/retrieved when initializing an OidcClient object.
+   *
+   * @param clientOptions {ClientOptions} Options for the OIDC Client, client_id is required
+   * @param issuerConfig {OpenIdConfiguration} OpenIdConfiguration object that the library will use
+   * @returns {Promise<OidcClient>} Promise that will resolve with an OidcClient
+   */
+  static async initializeClient(clientOptions: ClientOptions, issuerConfig: OpenIdConfiguration): Promise<OidcClient> {
+    const client = new OidcClient(clientOptions, issuerConfig);
+
+    if (client.hasToken || client.browserUrlManager.tokenReady) {
+      await client.getToken();
+    }
+
+    return client;
+  }
+
+  /**
    * Creates the client-options object for you using the metadata from your authorization servers well-known endpoint.
    *
    * @param issuerUrl {string} Base URL for the issuer, /.well-known/openid-configuration will be appended in this method
-   * @param clientOptions {ClientOptions} Options for the OIDC Client, clientId and redirectUri are required
+   * @param clientOptions {ClientOptions} Options for the OIDC Client, client_id is required
    * @returns {object}
    * @see https://www.rfc-editor.org/rfc/rfc8414.html#section-3
    * @see https://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery
    */
-  static async fromIssuer(issuerUrl: string, clientOptions: ClientOptions): Promise<OidcClient> {
-    if (typeof issuerUrl !== 'string' || !Url.isValidUrl(issuerUrl, true)) {
+  static async initializeFromOpenIdConfig(issuerUrl: string, clientOptions: ClientOptions): Promise<OidcClient> {
+    if (typeof issuerUrl !== 'string' || !Url.isValidUrl(issuerUrl)) {
       return Promise.reject(new Error(`Error creating an OpenIdClient please ensure you have entered a valid url ${issuerUrl}`));
     }
 
@@ -78,7 +88,7 @@ class OidcClient {
       const wellKnownResponse = await fetch(`${Url.trimTrailingSlash(issuerUrl)}/.well-known/openid-configuration`);
       const responseBody = await wellKnownResponse.json();
 
-      return new OidcClient(clientOptions, responseBody);
+      return await OidcClient.initializeClient(clientOptions, responseBody);
     } catch (error) {
       return Promise.reject(error);
     }
@@ -91,9 +101,9 @@ class OidcClient {
    * @returns {Promise} Will navigate the current browser tab to the authorization url that is generated through the authorizeUrl method
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-3.1
    */
-  async authorize(loginHint?: string): Promise<void> {
+  async authorize(loginHint?: string, silentAuthN?: boolean): Promise<void> {
     try {
-      const authUrl = await this.authorizeUrl(loginHint);
+      const authUrl = await this.authorizeUrl(loginHint, silentAuthN);
       this.browserUrlManager.navigate(authUrl);
     } catch (error) {
       return Promise.reject(error);
@@ -107,28 +117,29 @@ class OidcClient {
    * Typically you will want to apply the url to an anchor tag or redirect to it using window.location.assign(xxx).
    *
    * @param loginHint {string} login_hint url parameter that will be appended to URL in case you have a username/email already
+   * @param silentAuthN {boolean} If true, silent authentication is initiated
    * @returns {Promise<string>} Promise that will resolve with a url you should redirect to
    * @see https://openid.net/specs/openid-connect-core-1_0.html#ThirdPartyInitiatedLogin
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-4
    */
-  async authorizeUrl(loginHint?: string): Promise<string> {
+  async authorizeUrl(loginHint?: string, silentAuthN?: boolean): Promise<string> {
     this.logger.debug('OidcClient', 'authorized called');
 
     if (!this.issuerConfiguration?.authorization_endpoint) {
       return Promise.reject(
         Error(
-          `No authorization_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a authorization_enpoint with the OpenIdConfiguration object`,
+          `No authorization_endpoint has not been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a authorization_endpoint with the OpenIdConfiguration object`,
         ),
       );
     }
 
     const urlParams = new URLSearchParams();
-    urlParams.append('response_type', this.clientOptions.grantType === GrantType.Token ? 'token' : 'code');
-    urlParams.append('client_id', this.clientOptions.clientId);
-    urlParams.append('redirect_uri', this.clientOptions.redirectUri);
+    urlParams.append('response_type', this.clientOptions.response_type);
+    urlParams.append('client_id', this.clientOptions.client_id);
+    urlParams.append('redirect_uri', this.clientOptions.redirect_uri);
     urlParams.append('scope', this.clientOptions.scope);
 
-    if (this.clientOptions.grantType === GrantType.AuthorizationCode) {
+    if (this.clientOptions.response_type === ResponseType.AuthorizationCode) {
       const pkceArtifacts = await OAuth.generatePkceArtifacts(this.clientOptions, this.logger);
       urlParams.append('state', pkceArtifacts.state);
       urlParams.append('nonce', pkceArtifacts.nonce);
@@ -145,6 +156,10 @@ class OidcClient {
       urlParams.append('login_hint', encodeURIComponent(loginHint));
     }
 
+    if (silentAuthN) {
+      urlParams.append('prompt', 'none');
+    }
+
     return Promise.resolve(`${this.issuerConfiguration?.authorization_endpoint}?${urlParams.toString()}`);
   }
 
@@ -152,11 +167,11 @@ class OidcClient {
    * Get a token. It will check for tokens in the following order:
    *
    * 1. Previously stored token
-   * 2. Token from the URL Hash (implicit, grantType: 'token')
-   * 3. Token from the authorization server (authorization_code, grantType: 'authorization_code' or default)
+   * 2. Token from the URL Hash (implicit)
+   * 3. Token from the authorization server (authorization_code, grant_type: 'authorization_code' or default)
    *
    * Getting a token from the authorization server requires a 'code' url parameter or manually passing in the code if you'd like to manage it yourself.
-   * Please note if the token or code is retreived from the url it will automatically be removed from the URL and browser history after the library has
+   * Please note if the token or code is retrieved from the url it will automatically be removed from the URL and browser history after the library has
    * a token.
    *
    * @returns Token response from auth server
@@ -175,13 +190,13 @@ class OidcClient {
     let token = this.clientStorage.getToken();
 
     if (token) {
-      return Promise.resolve(token);
+      return token;
     }
 
     if (!this.issuerConfiguration?.token_endpoint) {
       return Promise.reject(
         Error(
-          `No token_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a token_enpoint with the OpenIdConfiguration object`,
+          `No token_endpoint has not been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a token_endpoint with the OpenIdConfiguration object`,
         ),
       );
     }
@@ -196,13 +211,14 @@ class OidcClient {
       }
 
       const body = new URLSearchParams();
-      body.append('grant_type', this.clientOptions.grantType);
+      // grant_type will be omitted if implicit grant
+      body.append('grant_type', this.clientOptions.response_type === ResponseType.Token ? '' : 'authorization_code');
       body.append('code', code);
-      body.append('redirect_uri', this.clientOptions.redirectUri);
+      body.append('redirect_uri', this.clientOptions.redirect_uri);
 
-      if (this.clientOptions.grantType === GrantType.AuthorizationCode) {
+      if (this.clientOptions.response_type === ResponseType.AuthorizationCode) {
         if (this.clientOptions.usePkce) {
-          // PKCE uses a code_verifier from client and does not require client secret authentication
+          // PKCE uses a code_verifier from client
           const codeVerifier = this.clientStorage.getCodeVerifier();
 
           if (!codeVerifier) {
@@ -214,11 +230,13 @@ class OidcClient {
       }
 
       try {
-        token = await this.clientSecretAuthenticatedApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
+        token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
       } catch (error) {
         return Promise.reject(error);
       }
     }
+
+    token.state = this.browserUrlManager.checkUrlForState();
 
     this.clientStorage.storeToken(token);
 
@@ -243,7 +261,7 @@ class OidcClient {
     if (!this.issuerConfiguration?.revocation_endpoint) {
       return Promise.reject(
         Error(
-          `No revocation_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
+          `No revocation_endpoint has been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
         ),
       );
     }
@@ -253,7 +271,7 @@ class OidcClient {
     body.append('token_type_hint', 'access_token');
 
     try {
-      const revokeResponse = await this.clientSecretAuthenticatedApiCall(this.issuerConfiguration.revocation_endpoint, body);
+      const revokeResponse = await this.authenticationServerApiCall(this.issuerConfiguration.revocation_endpoint, body);
       this.clientStorage.removeToken();
       return revokeResponse;
     } catch (error) {
@@ -262,7 +280,81 @@ class OidcClient {
   }
 
   /**
-   * Retreive the User Info from the issuer, uses OpenIdConfiguration from the server and the token managed by the library
+   * Get a new access token using refresh token.
+   *
+   * @returns Token response from auth server
+   * @see https://www.rfc-editor.org/rfc/rfc6749#section-6
+   */
+
+  async refreshToken(): Promise<TokenResponse | void> {
+    this.logger.debug('OidcClient', 'refreshToken called');
+
+    const refreshToken = this.clientStorage.getRefreshToken();
+    this.clientStorage.removeToken();
+
+    if (refreshToken) {
+      this.logger.info('OidcClient', 'refreshToken found in storage, using that to get a new access token.');
+
+      const body = new URLSearchParams();
+      body.append('grant_type', 'refresh_token');
+      body.append('refresh_token', refreshToken);
+
+      try {
+        const token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
+        this.clientStorage.storeToken(token);
+        return Promise.resolve(token);
+      } catch {
+        this.logger.error('OidcClient', 'Refresh token is invalid or expired, attempting a silent authentication request.');
+      }
+    } else {
+      this.logger.warn('OidcClient', 'No refresh token found, the Authentication Server may not support refresh tokens, attempting a silent authentication request.');
+    }
+
+    return this.authorize(undefined, true);
+  }
+
+  /**
+   * End the users session using the end_session_endpoint from the issuer, the id token will be automatically appended
+   * to the url via the id_token_hint url parameter if it is available. This call will redirect the browser tab to the signoff
+   * endpoint so it does not return anything.
+   *
+   * @param postLogoutRedirectUri {string} optional url to redirect user to after their session has been ended
+   */
+  endSession(postLogoutRedirectUri?: string): void {
+    this.logger.debug('OidcClient', 'endSession called');
+
+    if (!this.issuerConfiguration?.end_session_endpoint) {
+      this.logger.error(
+        'OidcClient',
+        'No end_session_endpoint has not been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a end_session_endpoint with the OpenIdConfiguration object',
+      );
+      return;
+    }
+
+    let logoutUrl = this.issuerConfiguration.end_session_endpoint;
+    const search = new URLSearchParams();
+
+    const token = this.clientStorage.getToken();
+
+    if (token?.id_token) {
+      this.logger.info('OidcClient', 'id_token found, appending id_token_hint the end session url');
+      search.append('id_token_hint', token.id_token);
+    }
+
+    if (postLogoutRedirectUri) {
+      this.logger.debug('OidcClient', 'postLogoutRedirectUri passed in, appending post_logout_redirect_uri to end session url', postLogoutRedirectUri);
+      search.append('post_logout_redirect_uri', postLogoutRedirectUri);
+    }
+
+    const params = search.toString();
+    logoutUrl += params ? `?${params}` : '';
+
+    this.clientStorage.removeToken();
+    this.browserUrlManager.navigate(logoutUrl);
+  }
+
+  /**
+   * Retrieve the User Info from the issuer, uses OpenIdConfiguration from the server and the token managed by the library
    *
    * @returns {any} User Info returned from the issuer
    * @see https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
@@ -279,7 +371,7 @@ class OidcClient {
     if (!this.issuerConfiguration?.userinfo_endpoint) {
       return Promise.reject(
         Error(
-          `No userinfo_endpoint has not been found, either initialize the client with OidcClient.fromIssuer() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
+          `No userinfo_endpoint has not been found, either initialize the client with OidcClient.initializeFromOpenIdConfig() using an issuer with a .well-known endpoint or ensure you have passed in a userinfo_endpoint with the OpenIdConfiguration object`,
         ),
       );
     }
@@ -303,7 +395,7 @@ class OidcClient {
     }
 
     if (!response?.ok) {
-      this.logger.error('OidcClient', `unsuccessful response ecounterd from url ${this.issuerConfiguration.userinfo_endpoint}`, response);
+      this.logger.error('OidcClient', `unsuccessful response encountered from url ${this.issuerConfiguration.userinfo_endpoint}`, response);
       return Promise.reject(body);
     }
 
@@ -321,19 +413,11 @@ class OidcClient {
     return token;
   }
 
-  private async clientSecretAuthenticatedApiCall<T>(url: string, body: URLSearchParams): Promise<T> {
+  private async authenticationServerApiCall<T>(url: string, body: URLSearchParams): Promise<T> {
     const headers = new Headers();
     headers.append('Content-Type', 'application/x-www-form-urlencoded');
 
-    body.append('client_id', this.clientOptions.clientId);
-
-    if (this.clientOptions.clientSecretAuthMethod === ClientSecretAuthMethod.Post) {
-      this.logger.info('OidcClient', 'client secret auth method is Post, adding to request body');
-      body.append('client_secret', this.clientOptions.clientSecret);
-    } else if (this.clientOptions.clientSecretAuthMethod === ClientSecretAuthMethod.Basic) {
-      this.logger.info('OidcClient', 'client secret auth method is Basic, adding Authorization request header');
-      headers.append('Authorization', `Basic ${OAuth.btoa(`${this.clientOptions.clientId}:${this.clientOptions.clientSecret}`)}`);
-    }
+    body.append('client_id', this.clientOptions.client_id);
 
     const request: RequestInit = {
       method: 'POST',
@@ -360,5 +444,3 @@ class OidcClient {
     }
   }
 }
-
-export default OidcClient;

@@ -7,7 +7,7 @@
  * @see https://react.dev/learn/start-a-new-react-project
  */
 
-import OidcClient from '@ping-identity-developer-enablement/dev-enablement-oidc';
+import { OidcClient } from '@pingidentity-developers-experience/ping-oidc-client-sdk';
 import logo from './logo.svg';
 import './App.css';
 
@@ -34,18 +34,6 @@ function App() {
   const [userInfo, setUserInfo] = useState();
   const [, setOidcReady] = useState(false);
 
-  const tokenAvailableCallback = async (token, state) => {
-    setToken(token);
-    console.log('state', state)
-    
-    try {
-      const userInfo = await oidcClient.current.fetchUserInfo();
-      setUserInfo(userInfo);
-    } catch (error) {
-      console.log('An error occurred attempting to fetch user info', error);
-    }
-  };
-
   const authorize = async () => {
     try {
       oidcClient.current.authorize(/* optional login_hint (e.g. username) */)
@@ -63,30 +51,49 @@ function App() {
     }
   }
 
+  const signOff = () => {
+    oidcClient.current.endSession('https://localhost:3000');
+  }
+
   /**
    * Initializes the SDK when the app loads.
    */
   useEffect(() => {
     async function initializeOidc() {
       const clientOptions = {
-        clientId: '6dea3779-356d-4222-935b-3a0b4e03b655',
-        // redirectUri: 'https://localhost:3000',
-        scope: 'openid profile revokescope', // defaults to 'openid profile'
-        // grantType: 'token', // defaults to 'authorization_code'
+        client_id: '6e610880-8e52-4ba7-a2dc-c5f9bd80f3ee',
+        // redirect_uri: 'https://localhost:3000',
+        scope: 'openid profile revokescope', // defaults to 'openid profile email'
+        // response_type: 'token', // defaults to 'code'
         // usePkce: false, // defaults to true
-        // clientSecret: 'xxx', // required if using clientSecretAuthMethod (not recommended in client side apps, pkce prefered)
-        // clientSecretAuthMethod: 'basic', // omitted by default
         // state: 'xyz', // will apply a random state as a string, you can pass in a string or object
         // logLevel: 'debug', // defaults to 'warn'
-        tokenAvailableCallback,
       };
   
       /**
        * Dynamically fetches your OAuth authorization servers endpoints from the spec-defied .well-known endpoint.
        */
-      const client = await OidcClient.fromIssuer('https://auth.pingone.com/cc8801c7-a048-4a4f-bbc3-7a2604ca449a/as', clientOptions);
+      const client = await OidcClient.initializeFromOpenIdConfig('https://auth.pingone.com/b28c6458-9fc0-49cf-bf19-b7aaab1e7be7/as', clientOptions);
       oidcClient.current = client;
       setOidcReady(true);
+
+      if (client.hasToken) {
+        const token = await client.getToken();
+        setToken(token);
+        
+        console.log('state', token.state)
+        
+        try {
+          const userInfo = await oidcClient.current.fetchUserInfo();
+          setUserInfo(userInfo);
+        } catch (error) {
+          console.log('An error occurred attempting to fetch user info token is likely expired', error);
+          const token = await oidcClient.current.refreshToken();
+          setToken(token);
+          const userInfo = await oidcClient.current.fetchUserInfo();
+          setUserInfo(userInfo);
+        }
+      }
     };
 
     initializeOidc()
@@ -104,7 +111,7 @@ function App() {
           <button className="app-link" onClick={authorize}>
             Ping OIDC Authorize URL
           </button>
-          <div className="app-example-user"><strong>Test user:</strong>&nbsp;etest / 2FederateM0re!</div>
+          <div className="app-example-user"><strong>Test user:</strong>&nbsp;demouser1 / 2FederateM0re!</div>
         </div>}
       {token &&
         <>
@@ -127,6 +134,7 @@ function App() {
                 </div>
               </>}
               {oidcClient.current && <button className="app-revoke-button" onClick={revokeToken}>Revoke Token</button>}
+              {oidcClient.current && <button className="app-signoff-button" onClick={signOff}>Sign Off</button>}
           </div>
         </>
       }

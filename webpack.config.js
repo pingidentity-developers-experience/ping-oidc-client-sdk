@@ -1,27 +1,28 @@
-const path = require("path")
+const path = require("path");
 
 module.exports = {
   entry: {
-    index: path.resolve(__dirname, "./src/index.ts"),
-    'oidc-client': path.resolve(__dirname, "./src/oidc-client.ts"),
+    "ping-oidc": path.resolve(__dirname, "./src/index.ts"),
   },
+  devtool: "source-map",
   output: {
-    path: path.resolve(__dirname, "./dist/"),
-    filename: '[name].js',
-    library: "pingDevLib",
+    path: path.resolve(__dirname, "./lib/"),
+    filename: "[name].js",
+    library: "pingOidc",
     libraryTarget: "umd",
+    umdNamedDefine: true,
   },
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: [".ts", ".js"],
   },
   module: {
     rules: [
       {
         test: /\.ts?$/,
-        exclude: /node_modules/,
         loader: 'babel-loader',
-      },
+        exclude: /node_modules/,
+      }
     ],
   },
   mode: "production",
-}
+};
