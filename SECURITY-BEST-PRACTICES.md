@@ -46,8 +46,8 @@ Because security has no finish line.
 - [OAuth 2.0 for Browser-based Apps](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-07)
 - tldr; key topics:
     - [Overview](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-07#section-4)
-    - [Javascript Applications w/o a Backend](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-07#section-6.3)
-    -- [Other JS App Architecture Patterns](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-07#section-6)
+    - [Javascript Applications w/o a Backend (architecture)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-07#section-6.3)
+    - [Other JS App Architecture Patterns](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-07#section-6)
     - [Refresh Tokens](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-07#section-8)
     - [Client Authentication](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-07#section-9.2)
 
