@@ -30,13 +30,14 @@ export class OidcClient {
    */
   constructor(clientOptions: ClientOptions, issuerConfig: OpenIdConfiguration) {
     this.logger = new Logger(clientOptions?.logLevel);
+    this.logger.debug('test me', 'this');
 
     if (!clientOptions || !issuerConfig) {
       throw Error('clientOptions and issuerConfig are required to initialize an OidcClient');
     }
 
     this.browserUrlManager = new BrowserUrlManager(this.logger);
-    this.clientStorage = new ClientStorage();
+    this.clientStorage = new ClientStorage(clientOptions?.storageType);
 
     // TODO - validator for issuerConfig?
     this.issuerConfiguration = issuerConfig;

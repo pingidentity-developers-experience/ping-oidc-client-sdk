@@ -62,12 +62,13 @@ function App() {
     async function initializeOidc() {
       const clientOptions = {
         client_id: '6e610880-8e52-4ba7-a2dc-c5f9bd80f3ee',
-        // redirect_uri: 'https://localhost:3000',
-        scope: 'openid profile revokescope', // defaults to 'openid profile email'
+        redirect_uri: 'https://localhost:3000',
+        // scope: 'openid profile revokescope', // defaults to 'openid profile email'
         // response_type: 'token', // defaults to 'code'
         // usePkce: false, // defaults to true
         // state: 'xyz', // will apply a random state as a string, you can pass in a string or object
         // logLevel: 'debug', // defaults to 'warn'
+        // storageType: 'worker' // defaults to 'local'. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present.
       };
   
       /**

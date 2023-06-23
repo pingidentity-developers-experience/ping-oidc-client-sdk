@@ -53,6 +53,7 @@ export class ClientOptionsValidator {
       scope: this.getScope(options),
       usePkce: this.getUsePkce(options),
       state: options.state,
+      storageType: options.storageType,
     };
 
     return result;
