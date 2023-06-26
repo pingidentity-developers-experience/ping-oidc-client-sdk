@@ -8,6 +8,9 @@
 
 import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
 import { Logger, OAuth, ClientStorage, Url, BrowserUrlManager } from './utilities';
+import { LocalClientStorage } from './utilities/local-store';
+import { SessionClientStorage } from './utilities/session-store';
+import { WorkerClientStorage } from './utilities/worker-store';
 import { ClientOptionsValidator } from './validators';
 
 /**
@@ -36,8 +39,24 @@ export class OidcClient {
       throw Error('clientOptions and issuerConfig are required to initialize an OidcClient');
     }
 
+    switch (clientOptions?.storageType) {
+      case 'local':
+        this.clientStorage = new LocalClientStorage();
+        break;
+      case 'session':
+        this.clientStorage = new SessionClientStorage();
+        break;
+      case 'worker':
+        if (window.Worker) {
+          this.clientStorage = new WorkerClientStorage();
+          break;
+        }
+      // eslint-disable-next-line no-fallthrough
+      default:
+        this.clientStorage = new LocalClientStorage();
+    }
+
     this.browserUrlManager = new BrowserUrlManager(this.logger);
-    this.clientStorage = new ClientStorage(clientOptions?.storageType);
 
     // TODO - validator for issuerConfig?
     this.issuerConfiguration = issuerConfig;

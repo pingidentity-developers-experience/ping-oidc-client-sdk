@@ -1,6 +1,6 @@
 export enum StorageType {
-  Local = 'localStorage',
-  Session = 'sessionStorage',
+  Local = 'local',
+  Session = 'session',
   Worker = 'worker',
 }
 
