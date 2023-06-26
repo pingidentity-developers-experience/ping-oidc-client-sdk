@@ -1,5 +1,4 @@
 import { TokenResponse } from '../types';
-import StorageType from '../types/client-storage';
 
 export abstract class ClientStorage {
   abstract readonly TOKEN_KEY: string;

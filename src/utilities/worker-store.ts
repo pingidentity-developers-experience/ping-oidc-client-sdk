@@ -5,7 +5,6 @@
  * {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Functions_and_classes_available_to_workers}
  */
 
-import { StorageType } from '../types';
 import { TokenResponse } from '../types/token-response';
 import { ClientStorage } from './client-storage';
 
