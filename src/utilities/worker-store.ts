@@ -47,11 +47,9 @@ export class WorkerClientStorage extends ClientStorage {
 
   override getToken(): Promise<TokenResponse> {
     return new Promise((resolve, reject) => {
-      // tk
       this.msg = { method: 'getToken', payload: this.TOKEN_KEY };
       this.workerThread.postMessage(this.msg);
       this.workerThread.onmessage = (response) => {
-        // TODO parse token our here or in worker?
         const encodedStr = response.data.payload;
         if (encodedStr) {
           const decodedStr = OAuth.atob(encodedStr);

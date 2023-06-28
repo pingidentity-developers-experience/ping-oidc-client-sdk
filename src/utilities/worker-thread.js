@@ -13,29 +13,29 @@ let responseMsg = {}; // A specific object from oathCache.
 // { method: 'storeToken', payload: { this.TOKEN_KEY, OAuth.btoa(token) } }
 
 // eslint-disable-next-line no-undef
-onmessage = async (inboundMsg) => {
-  switch (inboundMsg.method) {
+onmessage = (inboundMsg) => {
+  switch (inboundMsg.data.method) {
     case 'storeToken':
       if (oauthCache.length === 0) {
-        oauthCache.push(inboundMsg.payload);
+        oauthCache.push(inboundMsg.data.payload);
       } else {
         // TODO Array.map() or Array.splice() to add or update object.
       }
       break;
     case 'getToken':
-      responseMsg = oauthCache.find((element) => element.payload === inboundMsg.payload);
+      responseMsg = oauthCache.find((element) => element.payload === inboundMsg.data.payload);
       // TODO need to parse out the token before posting message.
       // eslint-disable-next-line no-undef
       postmessage(responseMsg);
       break;
     case 'getRefreshToken':
-      responseMsg = oauthCache.find((element) => element.payload === inboundMsg.payload);
+      responseMsg = oauthCache.find((element) => element.payload === inboundMsg.data.payload);
       // TODO need to parse out the token before posting message.
       // eslint-disable-next-line no-undef
       postmessage(responseMsg);
       break;
     case 'removeToken':
-      if (inboundMsg?.payload) {
+      if (inboundMsg.data?.payload) {
         // delete specific object by inboundMsg.payload
       } else {
         // Delete all the thingz
@@ -44,13 +44,13 @@ onmessage = async (inboundMsg) => {
       break;
     case 'storeCodeVerifier':
       if (oauthCache.length === 0) {
-        oauthCache.push(inboundMsg.payload);
+        oauthCache.push(inboundMsg.data.payload);
       } else {
         // TODO Array.map( OR Array.splice() to add or update object.
       }
       break;
     case 'getCodeVerifier':
-      responseMsg = oauthCache.find((element) => element.payload === inboundMsg.payload);
+      responseMsg = oauthCache.find((element) => element.payload === inboundMsg.data.payload);
       // TODO need to parse out the token before posting message.
       // oauthCache.splice(4, 1, inboundMsg.payload);
       // Replaces 1 element at index 4
@@ -61,18 +61,6 @@ onmessage = async (inboundMsg) => {
       throw new Error();
   }
 };
-
-// TODO Could this replace the switch/case statement?
-// function updateOauthCache(inMsg) {
-//   const newOauthCache = oauthCache.map((currentObj) => {
-//     if (currentObj.key === inMsg.key) {
-//       // look at inMsg.method and update / return object accordingly.
-//       return 'update';
-//     }
-//     return currentObj;
-//   });
-//   oauthCache = newOauthCache;
-// }
 
 // sample inbound objects - delete this comment
 // { method: 'removeToken', payload: this.TOKEN_KEY };
