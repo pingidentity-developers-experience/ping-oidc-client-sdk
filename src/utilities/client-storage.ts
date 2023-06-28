@@ -1,9 +1,9 @@
 import { TokenResponse } from '../types';
 
 export abstract class ClientStorage {
-  abstract readonly TOKEN_KEY: string;
-  abstract readonly REFRESH_TOKEN_KEY: string;
-  abstract readonly CODE_VERIFIER_KEY: string;
+  readonly TOKEN_KEY = 'oidc-client:response';
+  readonly REFRESH_TOKEN_KEY = 'oidc-client:refresh_token';
+  readonly CODE_VERIFIER_KEY = 'oidc-client:code_verifier';
 
   abstract storeToken(token: TokenResponse): void;
 

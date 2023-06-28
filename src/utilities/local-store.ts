@@ -12,9 +12,6 @@ import OAuth from './oauth';
 
 export class LocalClientStorage extends ClientStorage {
   private inMemoryToken: TokenResponse;
-  readonly TOKEN_KEY = 'oidc-client:response';
-  readonly REFRESH_TOKEN_KEY = 'oidc-client:refresh_token';
-  readonly CODE_VERIFIER_KEY = 'oidc-client:code_verifier';
   readonly storage: StorageType;
 
   // eslint-disable-next-line no-useless-constructor
