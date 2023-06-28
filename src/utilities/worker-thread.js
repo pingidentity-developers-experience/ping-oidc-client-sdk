@@ -52,6 +52,8 @@ onmessage = async (inboundMsg) => {
     case 'getCodeVerifier':
       responseMsg = oauthCache.find((element) => element.payload === inboundMsg.payload);
       // TODO need to parse out the token before posting message.
+      // oauthCache.splice(4, 1, inboundMsg.payload);
+      // Replaces 1 element at index 4
       // eslint-disable-next-line no-undef
       postmessage(responseMsg);
       break;
