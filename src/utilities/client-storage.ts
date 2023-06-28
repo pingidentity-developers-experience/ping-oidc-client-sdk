@@ -7,13 +7,13 @@ export abstract class ClientStorage {
 
   abstract storeToken(token: TokenResponse): void;
 
-  abstract getToken(): TokenResponse;
+  abstract getToken(): Promise<TokenResponse>;
 
-  abstract getRefreshToken(): string | null;
+  abstract getRefreshToken(): Promise<string | null>;
 
   abstract removeToken(): void;
 
   abstract storeCodeVerifier(codeVerifier: string): void;
 
-  abstract getCodeVerifier(): string;
+  abstract getCodeVerifier(): Promise<string>;
 }

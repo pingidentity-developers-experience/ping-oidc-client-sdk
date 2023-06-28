@@ -35,7 +35,7 @@ export class SessionClientStorage extends ClientStorage {
     sessionStorage.setItem(this.TOKEN_KEY, OAuth.btoa(str));
   }
 
-  override getToken(): TokenResponse {
+  override async getToken(): Promise<TokenResponse> {
     if (this.inMemoryToken) {
       return this.inMemoryToken;
     }
@@ -54,7 +54,7 @@ export class SessionClientStorage extends ClientStorage {
     return null;
   }
 
-  override getRefreshToken(): string {
+  override async getRefreshToken(): Promise<string> {
     const refreshToken = sessionStorage.getItem(this.REFRESH_TOKEN_KEY);
 
     // Self destruct on retrieval, only needed once when refreshToken is called
@@ -73,7 +73,7 @@ export class SessionClientStorage extends ClientStorage {
     sessionStorage.setItem(this.CODE_VERIFIER_KEY, OAuth.btoa(codeVerifier));
   }
 
-  override getCodeVerifier(): string {
+  override async getCodeVerifier(): Promise<string> {
     const encodedStr = sessionStorage.getItem(this.CODE_VERIFIER_KEY);
 
     // Self destruct on retrieval, only needed once to get the token from the authorization server

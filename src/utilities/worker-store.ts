@@ -45,29 +45,40 @@ export class WorkerClientStorage extends ClientStorage {
     this.workerThread.postMessage(this.msg);
   }
 
-  // TODO can we make this a promise that resolves when onmessage is called?
-  override getToken(): TokenResponse {
-    this.msg = { method: 'getToken', payload: this.TOKEN_KEY };
-    const encodedStr = this.workerThread.postMessage(this.msg);
-
-    if (encodedStr) {
-      const decodedStr = OAuth.atob(encodedStr);
-      const token = JSON.parse(decodedStr);
-
-      return token;
-    }
-
-    return null;
+  override getToken(): Promise<TokenResponse> {
+    return new Promise((resolve, reject) => {
+      // tk
+      this.msg = { method: 'getToken', payload: this.TOKEN_KEY };
+      this.workerThread.postMessage(this.msg);
+      this.workerThread.onmessage = (response) => {
+        // TODO parse token our here or in worker?
+        const encodedStr = response.data.payload;
+        if (encodedStr) {
+          const decodedStr = OAuth.atob(encodedStr);
+          const token = JSON.parse(decodedStr);
+          resolve(token);
+        } else {
+          reject(new Error('Token not found.'));
+        }
+      };
+    });
   }
 
-  override getRefreshToken(): string {
-    this.msg = { method: 'getRefreshToken', payload: this.REFRESH_TOKEN_KEY };
-    const refreshToken = this.workerThread.postMessage(this.msg);
-
-    // Self destruct on retrieval, only needed once when refreshToken is called
-    this.msg = { method: 'removeToken', payload: this.REFRESH_TOKEN_KEY };
-    this.removeToken();
-    return refreshToken ? OAuth.atob(refreshToken) : null;
+  override getRefreshToken(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      this.msg = { method: 'getRefreshToken', payload: this.REFRESH_TOKEN_KEY };
+      this.workerThread.postMessage(this.msg);
+      this.workerThread.onmessage = (response) => {
+        const refreshToken = response.data.payload;
+        if (refreshToken) {
+          this.msg = { method: 'removeToken', payload: this.REFRESH_TOKEN_KEY };
+          this.removeToken();
+          resolve(OAuth.atob(refreshToken));
+        } else {
+          reject(new Error('Token not found.'));
+        }
+      };
+    });
   }
 
   override removeToken(): void {
@@ -86,14 +97,20 @@ export class WorkerClientStorage extends ClientStorage {
     this.workerThread.postMessage(this.msg);
   }
 
-  override getCodeVerifier(): string {
-    this.msg = { method: 'getCodeVerifier', payload: this.CODE_VERIFIER_KEY };
-    const encodedStr = this.workerThread.postMessage(this.msg);
-
-    // Self destruct on retrieval, only needed once to get the token from the authorization server
-    this.msg = { method: 'removeToken', payload: this.CODE_VERIFIER_KEY };
-    this.removeToken();
-
-    return encodedStr ? OAuth.atob(encodedStr) : null;
+  override getCodeVerifier(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      this.msg = { method: 'getCodeVerifier', payload: this.CODE_VERIFIER_KEY };
+      this.workerThread.postMessage(this.msg);
+      this.workerThread.onmessage = (response) => {
+        const codeVerifier = response.data.payload;
+        if (codeVerifier) {
+          this.msg = { method: 'removeToken', payload: this.CODE_VERIFIER_KEY };
+          this.removeToken();
+          resolve(OAuth.atob(codeVerifier));
+        } else {
+          reject(new Error('Code verifier not found.'));
+        }
+      };
+    });
   }
 }
