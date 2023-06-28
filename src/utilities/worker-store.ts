@@ -18,9 +18,6 @@ export interface WorkerMessage {
 }
 
 export class WorkerClientStorage extends ClientStorage {
-  readonly TOKEN_KEY = 'oidc-client:response';
-  readonly REFRESH_TOKEN_KEY = 'oidc-client:refresh_token';
-  readonly CODE_VERIFIER_KEY = 'oidc-client:code_verifier';
   private readonly workerThread;
   private msg: WorkerMessage;
 
@@ -35,8 +32,7 @@ export class WorkerClientStorage extends ClientStorage {
     if (refreshToken) {
       // eslint-disable-next-line no-param-reassign
       delete token.refresh_token;
-      const refreshKey = this.REFRESH_TOKEN_KEY;
-      this.msg = { method: 'storeToken', payload: { refreshKey: OAuth.btoa(refreshToken) } };
+      this.msg = { method: 'storeToken', payload: { [this.REFRESH_TOKEN_KEY]: OAuth.btoa(refreshToken) } };
       this.workerThread.postMessage(this.msg);
     } else {
       // Remove old refresh token just in case, would be weird to hit this...
@@ -45,11 +41,11 @@ export class WorkerClientStorage extends ClientStorage {
     }
 
     const str = JSON.stringify(token);
-    const tokenKey = this.TOKEN_KEY;
-    this.msg = { method: 'storeToken', payload: { tokenKey: OAuth.btoa(str) } };
+    this.msg = { method: 'storeToken', payload: { [this.TOKEN_KEY]: OAuth.btoa(str) } };
     this.workerThread.postMessage(this.msg);
   }
 
+  // TODO can we make this a promise that resolves when onmessage is called?
   override getToken(): TokenResponse {
     this.msg = { method: 'getToken', payload: this.TOKEN_KEY };
     const encodedStr = this.workerThread.postMessage(this.msg);
@@ -86,8 +82,7 @@ export class WorkerClientStorage extends ClientStorage {
   }
 
   override storeCodeVerifier(codeVerifier: string): void {
-    const verifierKey = this.CODE_VERIFIER_KEY;
-    this.msg = { method: 'storeCodeVerifier', payload: { verifierKey: OAuth.btoa(codeVerifier) } };
+    this.msg = { method: 'storeCodeVerifier', payload: { [this.CODE_VERIFIER_KEY]: OAuth.btoa(codeVerifier) } };
     this.workerThread.postMessage(this.msg);
   }
 
