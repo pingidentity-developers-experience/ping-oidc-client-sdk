@@ -250,7 +250,7 @@ export class OidcClient {
       }
 
       try {
-        token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
+        token = this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
       } catch (error) {
         return Promise.reject(error);
       }
