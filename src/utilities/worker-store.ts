@@ -10,8 +10,10 @@ import { ClientStorage } from './client-storage';
 import OAuth from './oauth';
 
 // We need to import this file as plain text so we can stick it in a blob and use it as an objectURL
-// eslint-disable-next-line import/extensions, import/no-unresolved
-import workerCode from './worker-thread.txt.js';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+// eslint-disable-next-line import/no-webpack-loader-syntax, import/extensions, import/no-unresolved
+import workerCode from '!!raw-loader!../../uglify-raw!babel-loader!./worker-thread.js';
 
 // Local interface unique to this subclass
 export interface WorkerMessage {
