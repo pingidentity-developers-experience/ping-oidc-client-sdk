@@ -9,6 +9,10 @@ import { TokenResponse } from '../types/token-response';
 import { ClientStorage } from './client-storage';
 import OAuth from './oauth';
 
+// We need to import this file as plain text so we can stick it in a blob and used it as an objectURL
+// eslint-disable-next-line import/extensions
+import workerCode from './worker-thread.txt.js';
+
 // Local interface unique to this subclass
 export interface WorkerMessage {
   // Name of method posting message to the Web Worker
@@ -23,7 +27,9 @@ export class WorkerClientStorage extends ClientStorage {
 
   constructor() {
     super();
-    this.workerThread = new Worker('./worker-thread.js');
+    const workerBlob = new Blob([workerCode], { type: 'text/javascript' });
+    this.workerThread = new Worker(window.URL.createObjectURL(workerBlob));
+    console.log(workerBlob, this.workerThread, workerCode);
   }
 
   override storeToken(token: TokenResponse): void {
