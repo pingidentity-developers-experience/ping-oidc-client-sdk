@@ -9,8 +9,8 @@ import { TokenResponse } from '../types/token-response';
 import { ClientStorage } from './client-storage';
 import OAuth from './oauth';
 
-// We need to import this file as plain text so we can stick it in a blob and used it as an objectURL
-// eslint-disable-next-line import/extensions
+// We need to import this file as plain text so we can stick it in a blob and use it as an objectURL
+// eslint-disable-next-line import/extensions, import/no-unresolved
 import workerCode from './worker-thread.txt.js';
 
 // Local interface unique to this subclass
@@ -56,13 +56,14 @@ export class WorkerClientStorage extends ClientStorage {
       this.msg = { method: 'getToken', payload: this.TOKEN_KEY };
       this.workerThread.postMessage(this.msg);
       this.workerThread.onmessage = (response) => {
-        const encodedStr = response.data.payload;
+        const encodedStr = response.data?.payload;
         if (encodedStr) {
           const decodedStr = OAuth.atob(encodedStr);
           const token = JSON.parse(decodedStr);
           resolve(token);
         } else {
-          reject(new Error('Token not found.'));
+          resolve(null);
+          // reject(new Error('Token not found.'));
         }
       };
     });
@@ -97,8 +98,10 @@ export class WorkerClientStorage extends ClientStorage {
   }
 
   override storeCodeVerifier(codeVerifier: string): void {
+    console.log('storing code verifier');
     this.msg = { method: 'storeCodeVerifier', payload: { [this.CODE_VERIFIER_KEY]: OAuth.btoa(codeVerifier) } };
     this.workerThread.postMessage(this.msg);
+    console.log('this.msg', JSON.stringify(this.msg));
   }
 
   override getCodeVerifier(): Promise<string> {
@@ -106,13 +109,14 @@ export class WorkerClientStorage extends ClientStorage {
       this.msg = { method: 'getCodeVerifier', payload: this.CODE_VERIFIER_KEY };
       this.workerThread.postMessage(this.msg);
       this.workerThread.onmessage = (response) => {
-        const codeVerifier = response.data.payload;
+        const codeVerifier = response.data?.payload;
         if (codeVerifier) {
           this.msg = { method: 'removeToken', payload: this.CODE_VERIFIER_KEY };
           this.removeToken();
           resolve(OAuth.atob(codeVerifier));
         } else {
-          reject(new Error('Code verifier not found.'));
+          resolve(null);
+          // reject(new Error('Code verifier not found.'));
         }
       };
     });
