@@ -55,6 +55,15 @@ function App() {
     oidcClient.current.endSession('https://localhost:3000');
   }
 
+  const refreshToken = async () => {
+    try {
+      const token = await oidcClient.current.refreshToken();
+      console.log(token);
+    } catch (error) {
+      console.log('An error occured using refreshToken');
+    }
+  }
+
   /**
    * Initializes the SDK when the app loads.
    */
@@ -68,7 +77,7 @@ function App() {
         // usePkce: false, // defaults to true
         // state: 'xyz', // will apply a random state as a string, you can pass in a string or object
         // logLevel: 'debug', // defaults to 'warn'
-        // storageType: 'worker' // defaults to 'local'. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present.
+        storageType: 'worker' // defaults to 'local'. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present.
       };
   
       /**
@@ -136,6 +145,7 @@ function App() {
               </>}
               {oidcClient.current && <button className="app-revoke-button" onClick={revokeToken}>Revoke Token</button>}
               {oidcClient.current && <button className="app-signoff-button" onClick={signOff}>Sign Off</button>}
+              {oidcClient.current && <button className="app-signoff-button" onClick={refreshToken}>Refresh Token</button>}
           </div>
         </>
       }

@@ -21,7 +21,14 @@ module.exports = {
         test: /\.ts?$/,
         loader: 'babel-loader',
         exclude: /node_modules/,
-      }
+      },
+      {
+        test: /\.txt.js$/i,
+        loader: 'raw-loader',
+        options: {
+          esModule: false,
+        },
+      },
     ],
   },
   mode: "production",
