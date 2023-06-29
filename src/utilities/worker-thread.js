@@ -8,10 +8,6 @@
 const oauthCache = []; // I.e. [{},{},{}]. The payload portions of the inbound message for store methods.
 let responseMsg = {}; // A specific object from oathCache.
 
-// sample inbound objects - delete this comment
-// { method: 'getToken', payload: this.TOKEN_KEY };
-// { method: 'storeToken', payload: { this.TOKEN_KEY, OAuth.btoa(token) } }
-
 // eslint-disable-next-line no-undef
 onmessage = (inboundMsg) => {
   switch (inboundMsg.data.method) {
@@ -19,20 +15,22 @@ onmessage = (inboundMsg) => {
       if (oauthCache.length === 0) {
         oauthCache.push(inboundMsg.data.payload);
       } else {
-        // TODO Array.map() or Array.splice() to add or update object.
+        const keyToChange = Object.keys(inboundMsg.data.payload);
+        const index = oauthCache.map((element) => element[Object.keys(element)[0]]).indexOf(keyToChange);
+        oauthCache.splice(index, 1, inboundMsg.payload);
       }
       break;
     case 'getToken':
       responseMsg = oauthCache.find((element) => element.payload === inboundMsg.data.payload);
-      // TODO need to parse out the token before posting message.
+      // TODO ??? need to parse out the token before posting message.
       // eslint-disable-next-line no-undef
-      postmessage(responseMsg);
+      postMessage(responseMsg);
       break;
     case 'getRefreshToken':
       responseMsg = oauthCache.find((element) => element.payload === inboundMsg.data.payload);
-      // TODO need to parse out the token before posting message.
+      // TODO ??? need to parse out the token before posting message.
       // eslint-disable-next-line no-undef
-      postmessage(responseMsg);
+      postMessage(responseMsg);
       break;
     case 'removeToken':
       if (inboundMsg.data?.payload) {
@@ -55,13 +53,9 @@ onmessage = (inboundMsg) => {
       // oauthCache.splice(4, 1, inboundMsg.payload);
       // Replaces 1 element at index 4
       // eslint-disable-next-line no-undef
-      postmessage(responseMsg);
+      postMessage(responseMsg);
       break;
     default:
       throw new Error();
   }
 };
-
-// sample inbound objects - delete this comment
-// { method: 'removeToken', payload: this.TOKEN_KEY };
-// { method: 'storeCodeVerifier', payload: { this.CODE_VERIFIER_KEY, OAuth.btoa(codeVerifier) } }
