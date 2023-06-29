@@ -25,7 +25,7 @@ export class HomeComponent {
         storageType: StorageType.Local,
       });
 
-      if (this.oidcClient.hasToken) {
+      if (await this.oidcClient.hasToken()) {
         const token = await this.oidcClient.getToken();
         console.log(token);
         this.tokenAvailable(token);

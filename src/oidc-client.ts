@@ -33,7 +33,6 @@ export class OidcClient {
    */
   constructor(clientOptions: ClientOptions, issuerConfig: OpenIdConfiguration) {
     this.logger = new Logger(clientOptions?.logLevel);
-    this.logger.debug('test me', 'this');
 
     if (!clientOptions || !issuerConfig) {
       throw Error('clientOptions and issuerConfig are required to initialize an OidcClient');
@@ -41,19 +40,26 @@ export class OidcClient {
 
     switch (clientOptions?.storageType) {
       case 'local':
+        this.logger.info('OidcClient', 'option for storageType was local, using localStorage');
         this.clientStorage = new LocalClientStorage();
         break;
       case 'session':
+        this.logger.info('OidcClient', 'option for storageType was session, using sessionStorage');
         this.clientStorage = new SessionClientStorage();
         break;
       case 'worker':
         if (window.Worker) {
           this.clientStorage = new WorkerClientStorage();
           break;
+        } else {
+          this.logger.warn('OidcClient', 'could not initialize a Web Worker, ensure your browser supports them, localStorage will be used instead');
+          this.clientStorage = new LocalClientStorage();
+          break;
         }
-      // eslint-disable-next-line no-fallthrough
       default:
+        this.logger.info('OidcClient', 'option for storageType was not passed, defaulting to localStorage');
         this.clientStorage = new LocalClientStorage();
+        break;
     }
 
     this.browserUrlManager = new BrowserUrlManager(this.logger);
@@ -83,7 +89,7 @@ export class OidcClient {
   static async initializeClient(clientOptions: ClientOptions, issuerConfig: OpenIdConfiguration): Promise<OidcClient> {
     const client = new OidcClient(clientOptions, issuerConfig);
 
-    if (client.hasToken || client.browserUrlManager.tokenReady) {
+    if ((await client.hasToken()) || client.browserUrlManager.tokenReady) {
       await client.getToken();
     }
 
@@ -207,7 +213,7 @@ export class OidcClient {
       this.clientStorage.removeToken();
     }
 
-    let token = this.clientStorage.getToken();
+    let token = await this.clientStorage.getToken();
 
     if (token) {
       return token;
@@ -250,15 +256,15 @@ export class OidcClient {
       }
 
       try {
-        token = this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
+        token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
       } catch (error) {
         return Promise.reject(error);
       }
     }
 
-    (await token).state = this.browserUrlManager.checkUrlForState();
+    token.state = this.browserUrlManager.checkUrlForState();
 
-    this.clientStorage.storeToken(await token);
+    this.clientStorage.storeToken(token);
 
     return Promise.resolve(token);
   }
@@ -272,7 +278,7 @@ export class OidcClient {
   async revokeToken(): Promise<any> {
     this.logger.debug('OidcClient', 'revokeToken called');
 
-    const token = this.verifyToken();
+    const token = await this.verifyToken();
 
     if (!token) {
       return Promise.reject(Error('No token available'));
@@ -287,7 +293,7 @@ export class OidcClient {
     }
 
     const body = new URLSearchParams();
-    body.append('token', (await token).access_token);
+    body.append('token', token.access_token);
     body.append('token_type_hint', 'access_token');
 
     try {
@@ -382,7 +388,7 @@ export class OidcClient {
   async fetchUserInfo<T>(): Promise<T> {
     this.logger.debug('OidcClient', 'fetchUserInfo called');
 
-    const token = this.verifyToken();
+    const token = await this.verifyToken();
 
     if (!token) {
       return Promise.reject(Error('No token available'));
@@ -397,7 +403,7 @@ export class OidcClient {
     }
 
     const headers = new Headers();
-    headers.append('Authorization', `Bearer ${(await token).access_token}`);
+    headers.append('Authorization', `Bearer ${token.access_token}`);
 
     const request: RequestInit = {
       method: 'GET',

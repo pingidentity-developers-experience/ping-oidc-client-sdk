@@ -14,11 +14,6 @@ export class SessionClientStorage extends ClientStorage {
   private inMemoryToken: TokenResponse;
   readonly storage: StorageType;
 
-  // eslint-disable-next-line no-useless-constructor
-  constructor() {
-    super();
-  }
-
   override storeToken(token: TokenResponse): void {
     const refreshToken = token.refresh_token;
     if (refreshToken) {

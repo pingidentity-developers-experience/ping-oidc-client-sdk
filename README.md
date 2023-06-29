@@ -80,19 +80,21 @@ const authnUrl = await oidcClient.authorizeUrl(/* optional login_hint */);
 const userInfo = await oidcClient.fetchUserInfo();
 
 // Get the token from storage
-const token = await oidcClient.getToken();
+if (await oidcClient.hasToken()) {
+  const token = await oidcClient.getToken();
 
-// If you need the state that was passed to the server, you can get it from the TokenResponse managed by the library
-const state = token.state;
+  // If you need the state that was passed to the server, you can get it from the TokenResponse managed by the library
+  const state = token.state;
 
-// Revoke the token on the server and remove it from storage
-await oidcClient.revokeToken();
+  // Revoke the token on the server and remove it from storage
+  await oidcClient.revokeToken();
 
-// Refresh the access token and store the new token in storage
-await oidcClient.refreshToken();
+  // Refresh the access token and store the new token in storage
+  await oidcClient.refreshToken();
 
-// End the user's session using the end_session_endpoint on the auth server
-await oidcClient.endSession(/* optional post logout redirect uri */);
+  // End the user's session using the end_session_endpoint on the auth server
+  await oidcClient.endSession(/* optional post logout redirect uri */);
+}
 ```
 
 We recommend you initialize the library using the static initializeFromOpenIdConfig method shown above, as this will hit the authorization server's well-known endpoint and use the endpoints defined in the response. Alternatively you can initialize an OidcClient manually.
