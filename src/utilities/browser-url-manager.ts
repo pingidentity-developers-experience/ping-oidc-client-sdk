@@ -53,7 +53,7 @@ export class BrowserUrlManager {
     return this.getAndRemoveSearchParameter('code');
   }
 
-  checkUrlForToken(): TokenResponse {
+  async checkUrlForToken(): Promise<TokenResponse> {
     if (this.hashParams.has('access_token')) {
       const token: TokenResponse = {
         access_token: this.hashParams.get('access_token'),

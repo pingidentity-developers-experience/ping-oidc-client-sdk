@@ -45,7 +45,7 @@ export class WorkerClientStorage extends ClientStorage {
     this.workerThread.postMessage(this.msg);
   }
 
-  override getToken(): Promise<TokenResponse> {
+  override async getToken(): Promise<TokenResponse> {
     return new Promise((resolve, reject) => {
       this.msg = { method: 'getToken', payload: this.TOKEN_KEY };
       this.workerThread.postMessage(this.msg);

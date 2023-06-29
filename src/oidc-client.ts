@@ -68,8 +68,8 @@ export class OidcClient {
   /**
    * Whether there is a token managed by the library available
    */
-  get hasToken(): boolean {
-    return !!this.clientStorage.getToken()?.access_token;
+  async hasToken(): Promise<boolean> {
+    return !!(await this.clientStorage.getToken())?.access_token;
   }
 
   /**
@@ -239,7 +239,7 @@ export class OidcClient {
       if (this.clientOptions.response_type === ResponseType.AuthorizationCode) {
         if (this.clientOptions.usePkce) {
           // PKCE uses a code_verifier from client
-          const codeVerifier = this.clientStorage.getCodeVerifier();
+          const codeVerifier = await this.clientStorage.getCodeVerifier();
 
           if (!codeVerifier) {
             throw Error('usePkce is true but a code verifier was not found in localStorage');
@@ -256,9 +256,9 @@ export class OidcClient {
       }
     }
 
-    token.state = this.browserUrlManager.checkUrlForState();
+    (await token).state = this.browserUrlManager.checkUrlForState();
 
-    this.clientStorage.storeToken(token);
+    this.clientStorage.storeToken(await token);
 
     return Promise.resolve(token);
   }
@@ -287,7 +287,7 @@ export class OidcClient {
     }
 
     const body = new URLSearchParams();
-    body.append('token', token.access_token);
+    body.append('token', (await token).access_token);
     body.append('token_type_hint', 'access_token');
 
     try {
@@ -309,7 +309,7 @@ export class OidcClient {
   async refreshToken(): Promise<TokenResponse | void> {
     this.logger.debug('OidcClient', 'refreshToken called');
 
-    const refreshToken = this.clientStorage.getRefreshToken();
+    const refreshToken = await this.clientStorage.getRefreshToken();
     this.clientStorage.removeToken();
 
     if (refreshToken) {
@@ -340,7 +340,7 @@ export class OidcClient {
    *
    * @param postLogoutRedirectUri {string} optional url to redirect user to after their session has been ended
    */
-  endSession(postLogoutRedirectUri?: string): void {
+  async endSession(postLogoutRedirectUri?: string): Promise<void> {
     this.logger.debug('OidcClient', 'endSession called');
 
     if (!this.issuerConfiguration?.end_session_endpoint) {
@@ -354,7 +354,7 @@ export class OidcClient {
     let logoutUrl = this.issuerConfiguration.end_session_endpoint;
     const search = new URLSearchParams();
 
-    const token = this.clientStorage.getToken();
+    const token = await this.clientStorage.getToken();
 
     if (token?.id_token) {
       this.logger.info('OidcClient', 'id_token found, appending id_token_hint the end session url');
@@ -397,7 +397,7 @@ export class OidcClient {
     }
 
     const headers = new Headers();
-    headers.append('Authorization', `Bearer ${token.access_token}`);
+    headers.append('Authorization', `Bearer ${(await token).access_token}`);
 
     const request: RequestInit = {
       method: 'GET',
@@ -422,8 +422,8 @@ export class OidcClient {
     return Promise.resolve(body);
   }
 
-  private verifyToken(): TokenResponse {
-    const token = this.clientStorage.getToken();
+  private async verifyToken(): Promise<TokenResponse> {
+    const token = await this.clientStorage.getToken();
 
     if (!token?.access_token) {
       this.logger.error('OidcClient', 'Token not found, make sure you have called authorize and getToken methods before attempting to get user info.', token);
