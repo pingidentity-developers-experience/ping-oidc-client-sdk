@@ -80,7 +80,7 @@ export class WorkerClientStorage extends ClientStorageBase {
           this.removeToken();
           resolve(OAuth.atob(refreshToken));
         } else {
-          reject(new Error('Token not found.'));
+          resolve(null);
         }
       };
     });
