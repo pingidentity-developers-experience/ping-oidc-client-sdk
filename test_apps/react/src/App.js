@@ -52,6 +52,7 @@ function App() {
   }
 
   const signOff = () => {
+    // Its just an app for testing and example, so we're assuming React's default dev port is available.
     oidcClient.current.endSession('https://localhost:3000');
   }
 
@@ -76,7 +77,7 @@ function App() {
         // response_type: 'token', // defaults to 'code'
         // usePkce: false, // defaults to true
         // state: 'xyz', // will apply a random state as a string, you can pass in a string or object
-        // logLevel: 'debug', // defaults to 'warn'
+        logLevel: 'debug', // defaults to 'warn'
         storageType: 'worker' // defaults to 'local'. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present.
       };
   
@@ -92,6 +93,7 @@ function App() {
         setToken(token);
         
         console.log('state', token.state)
+        console.log('token', token)
         
         try {
           const userInfo = await oidcClient.current.fetchUserInfo();
@@ -103,6 +105,9 @@ function App() {
           const userInfo = await oidcClient.current.fetchUserInfo();
           setUserInfo(userInfo);
         }
+      } else { 
+        // TODO delete this else block
+        console.log('WTH?!?!')
       }
     };
 

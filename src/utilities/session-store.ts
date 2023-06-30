@@ -63,17 +63,4 @@ export class SessionClientStorage extends ClientStorage {
     sessionStorage.removeItem(this.TOKEN_KEY);
     sessionStorage.removeItem(this.REFRESH_TOKEN_KEY);
   }
-
-  override storeCodeVerifier(codeVerifier: string): void {
-    sessionStorage.setItem(this.CODE_VERIFIER_KEY, OAuth.btoa(codeVerifier));
-  }
-
-  override async getCodeVerifier(): Promise<string> {
-    const encodedStr = sessionStorage.getItem(this.CODE_VERIFIER_KEY);
-
-    // Self destruct on retrieval, only needed once to get the token from the authorization server
-    sessionStorage.removeItem(this.CODE_VERIFIER_KEY);
-
-    return encodedStr ? OAuth.atob(encodedStr) : null;
-  }
 }

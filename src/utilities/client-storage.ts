@@ -1,4 +1,5 @@
 import { TokenResponse } from '../types';
+import OAuth from './oauth';
 
 export abstract class ClientStorage {
   readonly TOKEN_KEY = 'oidc-client:response';
@@ -13,7 +14,16 @@ export abstract class ClientStorage {
 
   abstract removeToken(): void;
 
-  abstract storeCodeVerifier(codeVerifier: string): void;
+  storeCodeVerifier(codeVerifier: string): void {
+    sessionStorage.setItem(this.CODE_VERIFIER_KEY, OAuth.btoa(codeVerifier));
+  }
 
-  abstract getCodeVerifier(): Promise<string>;
+  async getCodeVerifier(): Promise<string> {
+    const encodedStr = sessionStorage.getItem(this.CODE_VERIFIER_KEY);
+
+    // Self destruct on retrieval, only needed once to get the token from the authorization server
+    sessionStorage.removeItem(this.CODE_VERIFIER_KEY);
+
+    return encodedStr ? OAuth.atob(encodedStr) : null;
+  }
 }

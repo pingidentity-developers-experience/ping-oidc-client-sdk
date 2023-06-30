@@ -44,7 +44,7 @@ export class WorkerClientStorage extends ClientStorage {
       this.workerThread.postMessage(this.msg);
     } else {
       // Remove old refresh token just in case, would be weird to hit this...
-      this.msg = { method: 'removeToken', payload: this.REFRESH_TOKEN_KEY };
+      this.msg = { method: 'removeToken', payload: [this.REFRESH_TOKEN_KEY] };
       this.removeToken();
     }
 
@@ -55,13 +55,16 @@ export class WorkerClientStorage extends ClientStorage {
 
   override async getToken(): Promise<TokenResponse> {
     return new Promise((resolve, reject) => {
-      this.msg = { method: 'getToken', payload: this.TOKEN_KEY };
+      this.msg = { method: 'getToken', payload: `${this.TOKEN_KEY}` };
+      console.log('getToken msg', this.msg);
       this.workerThread.postMessage(this.msg);
       this.workerThread.onmessage = (response) => {
+        console.log('encodedStr: ', response);
         const encodedStr = response.data?.payload;
         if (encodedStr) {
           const decodedStr = OAuth.atob(encodedStr);
           const token = JSON.parse(decodedStr);
+          console.log('token: ', token);
           resolve(token);
         } else {
           resolve(null);
@@ -73,12 +76,13 @@ export class WorkerClientStorage extends ClientStorage {
 
   override getRefreshToken(): Promise<string> {
     return new Promise((resolve, reject) => {
-      this.msg = { method: 'getRefreshToken', payload: this.REFRESH_TOKEN_KEY };
+      this.msg = { method: 'getRefreshToken', payload: `${this.REFRESH_TOKEN_KEY}` };
+      console.log('getRefreshToken msg', this.msg);
       this.workerThread.postMessage(this.msg);
       this.workerThread.onmessage = (response) => {
-        const refreshToken = response.data.payload;
+        const refreshToken = response.data?.payload;
         if (refreshToken) {
-          this.msg = { method: 'removeToken', payload: this.REFRESH_TOKEN_KEY };
+          this.msg = { method: 'removeToken', payload: `${this.REFRESH_TOKEN_KEY}` };
           this.removeToken();
           resolve(OAuth.atob(refreshToken));
         } else {
@@ -97,30 +101,5 @@ export class WorkerClientStorage extends ClientStorage {
       this.msg = { method: 'removeToken' };
       this.workerThread.postMessage(this.msg);
     }
-  }
-
-  override storeCodeVerifier(codeVerifier: string): void {
-    console.log('storing code verifier');
-    this.msg = { method: 'storeCodeVerifier', payload: { [this.CODE_VERIFIER_KEY]: OAuth.btoa(codeVerifier) } };
-    this.workerThread.postMessage(this.msg);
-    console.log('this.msg', JSON.stringify(this.msg));
-  }
-
-  override getCodeVerifier(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      this.msg = { method: 'getCodeVerifier', payload: this.CODE_VERIFIER_KEY };
-      this.workerThread.postMessage(this.msg);
-      this.workerThread.onmessage = (response) => {
-        const codeVerifier = response.data?.payload;
-        if (codeVerifier) {
-          this.msg = { method: 'removeToken', payload: this.CODE_VERIFIER_KEY };
-          this.removeToken();
-          resolve(OAuth.atob(codeVerifier));
-        } else {
-          resolve(null);
-          // reject(new Error('Code verifier not found.'));
-        }
-      };
-    });
   }
 }
