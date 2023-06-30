@@ -58,7 +58,7 @@ export class WorkerClientStorage extends ClientStorageBase {
       this.msg = { method: 'getToken', payload: `${this.TOKEN_KEY}` };
       console.log('getToken msg', this.msg);
       this.workerThread.postMessage(this.msg);
-      this.workerThread.addEventListener('message', (response) => {
+      this.workerThread.onmessage = (response) => {
         console.log('encodedStr: ', response);
         const encodedStr = response.data?.[this.TOKEN_KEY];
         if (encodedStr) {
@@ -69,7 +69,7 @@ export class WorkerClientStorage extends ClientStorageBase {
         } else {
           resolve(null);
         }
-      });
+      };
     });
   }
 
@@ -78,7 +78,7 @@ export class WorkerClientStorage extends ClientStorageBase {
       this.msg = { method: 'getRefreshToken', payload: `${this.REFRESH_TOKEN_KEY}` };
       console.log('getRefreshToken msg', this.msg);
       this.workerThread.postMessage(this.msg);
-      this.workerThread.addEventListener('message', (response) => {
+      this.workerThread.onmessage = (response) => {
         const refreshToken = response.data?.[this.REFRESH_TOKEN_KEY];
         if (refreshToken) {
           this.msg = { method: 'removeToken', payload: `${this.REFRESH_TOKEN_KEY}` };
@@ -87,7 +87,7 @@ export class WorkerClientStorage extends ClientStorageBase {
         } else {
           reject(new Error('Token not found.'));
         }
-      });
+      };
     });
   }
 
