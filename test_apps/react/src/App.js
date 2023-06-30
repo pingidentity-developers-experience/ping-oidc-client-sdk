@@ -78,7 +78,7 @@ function App() {
         // usePkce: false, // defaults to true
         // state: 'xyz', // will apply a random state as a string, you can pass in a string or object
         logLevel: 'debug', // defaults to 'warn'
-        storageType: 'worker' // defaults to 'local'. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present.
+        storageType: 'session' // defaults to 'local'. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present.
       };
   
       /**

@@ -1,16 +1,16 @@
 /**
  * Class representing browser sessionStorage.
- * Subclass of the clientStorage abstract class.
+ * Subclass of the ClientStorageBase abstract class.
  * {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API}
  * {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API}
  * {@link https://developer.mozilla.org/en-US/docs/Web/API/Storage}
  */
 
 import { StorageType, TokenResponse } from '../types';
-import { ClientStorage } from './client-storage';
+import { ClientStorageBase } from './client-storage-base';
 import OAuth from './oauth';
 
-export class SessionClientStorage extends ClientStorage {
+export class SessionClientStorage extends ClientStorageBase {
   private inMemoryToken: TokenResponse;
   readonly storage: StorageType;
 

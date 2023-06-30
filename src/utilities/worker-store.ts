@@ -6,7 +6,7 @@
  */
 
 import { TokenResponse } from '../types/token-response';
-import { ClientStorage } from './client-storage';
+import { ClientStorageBase } from './client-storage-base';
 import OAuth from './oauth';
 
 // We need to import this file as plain text so we can stick it in a blob and use it as an objectURL
@@ -23,7 +23,7 @@ export interface WorkerMessage {
   payload?: string | object;
 }
 
-export class WorkerClientStorage extends ClientStorage {
+export class WorkerClientStorage extends ClientStorageBase {
   private readonly workerThread;
   private msg: WorkerMessage;
 
@@ -58,7 +58,7 @@ export class WorkerClientStorage extends ClientStorage {
       this.msg = { method: 'getToken', payload: `${this.TOKEN_KEY}` };
       console.log('getToken msg', this.msg);
       this.workerThread.postMessage(this.msg);
-      this.workerThread.onmessage = (response) => {
+      this.workerThread.addEventListener('message', (response) => {
         console.log('encodedStr: ', response);
         const encodedStr = response.data?.payload;
         if (encodedStr) {
@@ -70,7 +70,20 @@ export class WorkerClientStorage extends ClientStorage {
           resolve(null);
           // reject(new Error('Token not found.'));
         }
-      };
+      });
+      // this.workerThread.onmessage = (response) => {
+      //   console.log('encodedStr: ', response);
+      //   const encodedStr = response.data?.payload;
+      //   if (encodedStr) {
+      //     const decodedStr = OAuth.atob(encodedStr);
+      //     const token = JSON.parse(decodedStr);
+      //     console.log('token: ', token);
+      //     resolve(token);
+      //   } else {
+      //     resolve(null);
+      //     // reject(new Error('Token not found.'));
+      //   }
+      // };
     });
   }
 
@@ -79,7 +92,7 @@ export class WorkerClientStorage extends ClientStorage {
       this.msg = { method: 'getRefreshToken', payload: `${this.REFRESH_TOKEN_KEY}` };
       console.log('getRefreshToken msg', this.msg);
       this.workerThread.postMessage(this.msg);
-      this.workerThread.onmessage = (response) => {
+      this.workerThread.addEventListener('message', (response) => {
         const refreshToken = response.data?.payload;
         if (refreshToken) {
           this.msg = { method: 'removeToken', payload: `${this.REFRESH_TOKEN_KEY}` };
@@ -88,7 +101,17 @@ export class WorkerClientStorage extends ClientStorage {
         } else {
           reject(new Error('Token not found.'));
         }
-      };
+      });
+      // this.workerThread.onmessage = (response) => {
+      //   const refreshToken = response.data?.payload;
+      //   if (refreshToken) {
+      //     this.msg = { method: 'removeToken', payload: `${this.REFRESH_TOKEN_KEY}` };
+      //     this.removeToken();
+      //     resolve(OAuth.atob(refreshToken));
+      //   } else {
+      //     reject(new Error('Token not found.'));
+      //   }
+      // };
     });
   }
 

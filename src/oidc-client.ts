@@ -7,7 +7,7 @@
  */
 
 import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
-import { Logger, OAuth, ClientStorage, Url, BrowserUrlManager } from './utilities';
+import { Logger, OAuth, ClientStorageBase, Url, BrowserUrlManager } from './utilities';
 import { LocalClientStorage } from './utilities/local-store';
 import { SessionClientStorage } from './utilities/session-store';
 import { WorkerClientStorage } from './utilities/worker-store';
@@ -20,7 +20,7 @@ export class OidcClient {
   private readonly clientOptions: ValidatedClientOptions;
   private readonly issuerConfiguration: OpenIdConfiguration;
   private readonly logger: Logger;
-  private readonly clientStorage: ClientStorage;
+  private readonly clientStorage: ClientStorageBase;
   private readonly browserUrlManager: BrowserUrlManager;
 
   /**

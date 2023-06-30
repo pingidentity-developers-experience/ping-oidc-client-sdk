@@ -1,5 +1,5 @@
 export * from './browser-url-manager';
-export * from './client-storage';
+export * from './client-storage-base';
 export * from './logger';
 export * from './oauth';
 export * from './url';
