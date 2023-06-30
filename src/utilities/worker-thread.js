@@ -42,7 +42,7 @@ onmessage = async (inboundMsg) => {
       } else {
         // TODO just pushing the object while testing. Need to find existing object and update.
         // oauthCache.push(inboundMsg.data.payload);
-        const keyToChange = Object.keys(inboundMsg.payload);
+        const keyToChange = Object.keys(inboundMsg.data.payload);
         const index = oauthCache.map((element) => element[Object.keys(element)[0]]).indexOf(keyToChange);
         oauthCache.splice(index, 1, inboundMsg.payload);
       }
