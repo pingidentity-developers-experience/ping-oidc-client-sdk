@@ -4,26 +4,8 @@
  * {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers}
  */
 
-// Object to cache OAuth artifacts; tokens, refresh tokens.
-const oauthCache = []; // I.e. [{},{},{}]. The payload portions of the inbound message for store methods.
-let responseMsg = {}; // A specific object from oauthCache requested by the Worker Store.
-
-/**
- * Extract cache data by object key.
- * All data, regardless of type is stored in cache the same, so the shape is predictable.
- * @param {*} key The static key from the client storage base class by which OAuth artifacts are stored.
- */
-const extractCacheDataByKey = (key) => {
-  console.log('Getting token with key: ', key);
-  console.log('cache length: ', oauthCache.length);
-  responseMsg = oauthCache.find((element) => {
-    console.log('looking at element', element);
-    const test = Object.keys(element)[0];
-    console.log('looking at key: ', test);
-    return Object.keys(element)[0] === key;
-  });
-  return responseMsg;
-};
+let cachedTokenResponse = null;
+let cachedRefreshToken = null;
 
 /**
  * Web Worker onmessage event handler.
@@ -33,43 +15,36 @@ const extractCacheDataByKey = (key) => {
  */
 // eslint-disable-next-line no-undef
 onmessage = async (inboundMsg) => {
-  console.log('inboundMsg', inboundMsg);
   switch (inboundMsg.data.method) {
     case 'storeToken':
-      console.log('Storing token in cache.');
-      if (oauthCache.length === 0) {
-        oauthCache.push(inboundMsg.data.payload);
-      } else {
-        // TODO just pushing the object while testing. Need to find existing object and update.
-        // oauthCache.push(inboundMsg.data.payload);
-        const keyToChange = Object.keys(inboundMsg.data.payload);
-        const index = oauthCache.map((element) => element[Object.keys(element)[0]]).indexOf(keyToChange);
-        oauthCache.splice(index, 1, inboundMsg.payload);
+      if (Object.keys(inboundMsg.data.payload)[0].toString().split(':')[1] === 'response') {
+        cachedTokenResponse = inboundMsg.data.payload;
+      } else if (Object.keys(inboundMsg.data.payload)[0].toString().split(':')[1] === 'refresh_token') {
+        cachedRefreshToken = inboundMsg.data.payload;
       }
       break;
     case 'getToken':
-    case 'getRefreshToken':
-      responseMsg = extractCacheDataByKey(inboundMsg.data.payload);
-      // TODO ??? need to parse out the token before posting message.
       // eslint-disable-next-line no-undef
-      postMessage(responseMsg);
+      postMessage(cachedTokenResponse);
+      break;
+    case 'getRefreshToken':
+      // eslint-disable-next-line no-undef
+      postMessage(cachedRefreshToken);
       break;
     case 'removeToken':
-      console.log('Removing token(s).');
       if (inboundMsg.data?.payload) {
-        // delete specific object by inboundMsg.payload
-        const keyToChange = Object.keys(inboundMsg.payload);
-        const index = oauthCache.map((element) => element[Object.keys(element)[0]]).indexOf(keyToChange);
-        oauthCache.splice(index, 1);
+        if (Object.keys(inboundMsg.data.payload)[0].toString().split(':')[1] === 'response') {
+          cachedTokenResponse = null;
+        } else if (Object.keys(inboundMsg.data.payload)[0].toString().split(':')[1] === 'refresh_token') {
+          cachedRefreshToken = null;
+        }
       } else {
-        // Delete all the thingz
-        oauthCache.length = 0;
+        cachedTokenResponse = null;
+        cachedRefreshToken = null;
       }
       break;
 
     default:
       throw new Error('Storage method not found in inboundMsg or illegal shape of inboundMsg.');
   }
-  const clone = structuredClone(oauthCache);
-  console.log('oauthCache', JSON.stringify(clone));
 };

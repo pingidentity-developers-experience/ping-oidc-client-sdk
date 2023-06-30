@@ -31,7 +31,6 @@ export class WorkerClientStorage extends ClientStorageBase {
     super();
     const workerBlob = new Blob([workerCode], { type: 'text/javascript' });
     this.workerThread = new Worker(window.URL.createObjectURL(workerBlob));
-    console.log(workerBlob, this.workerThread, workerCode);
   }
 
   override storeToken(token: TokenResponse): void {
@@ -56,15 +55,12 @@ export class WorkerClientStorage extends ClientStorageBase {
   override async getToken(): Promise<TokenResponse> {
     return new Promise((resolve, reject) => {
       this.msg = { method: 'getToken', payload: `${this.TOKEN_KEY}` };
-      console.log('getToken msg', this.msg);
       this.workerThread.postMessage(this.msg);
       this.workerThread.onmessage = (response) => {
-        console.log('encodedStr: ', response);
         const encodedStr = response.data?.[this.TOKEN_KEY];
         if (encodedStr) {
           const decodedStr = OAuth.atob(encodedStr);
           const token = JSON.parse(decodedStr);
-          console.log('token: ', token);
           resolve(token);
         } else {
           resolve(null);
@@ -76,7 +72,6 @@ export class WorkerClientStorage extends ClientStorageBase {
   override getRefreshToken(): Promise<string> {
     return new Promise((resolve, reject) => {
       this.msg = { method: 'getRefreshToken', payload: `${this.REFRESH_TOKEN_KEY}` };
-      console.log('getRefreshToken msg', this.msg);
       this.workerThread.postMessage(this.msg);
       this.workerThread.onmessage = (response) => {
         const refreshToken = response.data?.[this.REFRESH_TOKEN_KEY];

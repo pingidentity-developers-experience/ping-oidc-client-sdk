@@ -27,7 +27,6 @@ export class HomeComponent {
 
       if (await this.oidcClient.hasToken()) {
         const token = await this.oidcClient.getToken();
-        console.log(token);
         this.tokenAvailable(token);
       }
     } catch (err) {
@@ -46,7 +45,6 @@ export class HomeComponent {
 
   async tokenAvailable(token: TokenResponse) {
     this.token = token;
-    console.log('state', token.state);
 
     try {
       this.userInfo = await this.oidcClient?.fetchUserInfo();

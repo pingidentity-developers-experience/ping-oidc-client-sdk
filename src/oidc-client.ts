@@ -75,7 +75,6 @@ export class OidcClient {
    * Whether there is a token managed by the library available
    */
   async hasToken(): Promise<boolean> {
-    console.log('has token?', !!(await this.clientStorage.getToken())?.access_token);
     return !!(await this.clientStorage.getToken())?.access_token;
   }
 
@@ -172,7 +171,6 @@ export class OidcClient {
       urlParams.append('nonce', pkceArtifacts.nonce);
 
       if (this.clientOptions.usePkce) {
-        console.log('Have codeVerifier', pkceArtifacts.codeVerifier);
         urlParams.append('code_challenge', pkceArtifacts.codeChallenge);
         // Basic is not recommended, just use S256
         urlParams.append('code_challenge_method', 'S256');
