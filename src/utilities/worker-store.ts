@@ -60,7 +60,7 @@ export class WorkerClientStorage extends ClientStorageBase {
       this.workerThread.postMessage(this.msg);
       this.workerThread.addEventListener('message', (response) => {
         console.log('encodedStr: ', response);
-        const encodedStr = response.data?.payload;
+        const encodedStr = response.data?.[this.TOKEN_KEY];
         if (encodedStr) {
           const decodedStr = OAuth.atob(encodedStr);
           const token = JSON.parse(decodedStr);
@@ -68,22 +68,8 @@ export class WorkerClientStorage extends ClientStorageBase {
           resolve(token);
         } else {
           resolve(null);
-          // reject(new Error('Token not found.'));
         }
       });
-      // this.workerThread.onmessage = (response) => {
-      //   console.log('encodedStr: ', response);
-      //   const encodedStr = response.data?.payload;
-      //   if (encodedStr) {
-      //     const decodedStr = OAuth.atob(encodedStr);
-      //     const token = JSON.parse(decodedStr);
-      //     console.log('token: ', token);
-      //     resolve(token);
-      //   } else {
-      //     resolve(null);
-      //     // reject(new Error('Token not found.'));
-      //   }
-      // };
     });
   }
 
@@ -93,7 +79,7 @@ export class WorkerClientStorage extends ClientStorageBase {
       console.log('getRefreshToken msg', this.msg);
       this.workerThread.postMessage(this.msg);
       this.workerThread.addEventListener('message', (response) => {
-        const refreshToken = response.data?.payload;
+        const refreshToken = response.data?.[this.REFRESH_TOKEN_KEY];
         if (refreshToken) {
           this.msg = { method: 'removeToken', payload: `${this.REFRESH_TOKEN_KEY}` };
           this.removeToken();
@@ -102,16 +88,6 @@ export class WorkerClientStorage extends ClientStorageBase {
           reject(new Error('Token not found.'));
         }
       });
-      // this.workerThread.onmessage = (response) => {
-      //   const refreshToken = response.data?.payload;
-      //   if (refreshToken) {
-      //     this.msg = { method: 'removeToken', payload: `${this.REFRESH_TOKEN_KEY}` };
-      //     this.removeToken();
-      //     resolve(OAuth.atob(refreshToken));
-      //   } else {
-      //     reject(new Error('Token not found.'));
-      //   }
-      // };
     });
   }
 

@@ -4,10 +4,9 @@
  * {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers}
  */
 
-// Object to cache OAuth artifacts; tokens, refresh tokens, code verifier.
+// Object to cache OAuth artifacts; tokens, refresh tokens.
 const oauthCache = []; // I.e. [{},{},{}]. The payload portions of the inbound message for store methods.
 let responseMsg = {}; // A specific object from oauthCache requested by the Worker Store.
-let objectIndex = 0;
 
 /**
  * Extract cache data by object key.
@@ -23,7 +22,7 @@ const extractCacheDataByKey = (key) => {
     console.log('looking at key: ', test);
     return Object.keys(element)[0] === key;
   });
-  console.log('responseMsg1', responseMsg);
+  return responseMsg;
 };
 
 /**
@@ -42,10 +41,10 @@ onmessage = async (inboundMsg) => {
         oauthCache.push(inboundMsg.data.payload);
       } else {
         // TODO just pushing the object while testing. Need to find existing object and update.
-        oauthCache.push(inboundMsg.data.payload);
-        // const keyToChange = Object.keys(inboundMsg.data.payload);
-        // const index = oauthCache.map((element) => element[Object.keys(element)[0]]).indexOf(keyToChange);
-        // oauthCache.splice(index, 1, inboundMsg.payload);
+        // oauthCache.push(inboundMsg.data.payload);
+        const keyToChange = Object.keys(inboundMsg.payload);
+        const index = oauthCache.map((element) => element[Object.keys(element)[0]]).indexOf(keyToChange);
+        oauthCache.splice(index, 1, inboundMsg.payload);
       }
       break;
     case 'getToken':
@@ -59,10 +58,9 @@ onmessage = async (inboundMsg) => {
       console.log('Removing token(s).');
       if (inboundMsg.data?.payload) {
         // delete specific object by inboundMsg.payload
-        objectIndex = oauthCache.findIndex((element) => {
-          return Object.keys(element)[0] === element.data.payload;
-        });
-        oauthCache.splice(objectIndex, 1);
+        const keyToChange = Object.keys(inboundMsg.payload);
+        const index = oauthCache.map((element) => element[Object.keys(element)[0]]).indexOf(keyToChange);
+        oauthCache.splice(index, 1);
       } else {
         // Delete all the thingz
         oauthCache.length = 0;
