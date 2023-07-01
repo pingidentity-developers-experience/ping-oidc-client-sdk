@@ -3,14 +3,14 @@
   "bomFormat": "CycloneDX",
   "specVersion": "1.4",
   "version": 1,
-  "serialNumber": "urn:uuid:bf9fd627-d218-4da4-9a26-8043192bf059",
+  "serialNumber": "urn:uuid:46580374-e248-449e-a177-0c366bd54c0c",
   "metadata": {
-    "timestamp": "2023-05-25T17:26:52.646Z",
+    "timestamp": "2023-07-01T00:18:13.061Z",
     "tools": [
       {
         "vendor": "@cyclonedx",
         "name": "cyclonedx-npm",
-        "version": "1.9.0",
+        "version": "1.11.0",
         "externalReferences": [
           {
             "url": "git+https://github.com/CycloneDX/cyclonedx-node-npm.git",
@@ -32,7 +32,7 @@
       {
         "vendor": "@cyclonedx",
         "name": "cyclonedx-library",
-        "version": "1.12.1",
+        "version": "1.14.0",
         "externalReferences": [
           {
             "url": "git+https://github.com/CycloneDX/cyclonedx-javascript-library.git",
@@ -56,10 +56,10 @@
       "type": "library",
       "name": "ping-oidc-client-sdk",
       "group": "@pingidentity-developers-experience",
-      "version": "0.3.10-beta",
-      "bom-ref": "@pingidentity-developers-experience/ping-oidc-client-sdk@0.3.10-beta",
+      "version": "2.0.0",
+      "bom-ref": "@pingidentity-developers-experience/ping-oidc-client-sdk@2.0.0",
       "author": "Ping Identity Technical Enablement",
-      "description": "An OAuth/OIDC SDK to simplify and fastrack integration with OAuth/OIDC protocol endpoints. AuthCode and implicit grant types. PKCE, state, userInfo, revoke, configurable logging.",
+      "description": "An OAuth/OIDC SDK to simplify and fastrack integration with OAuth/OIDC protocol endpoints in SPAs (browser-based apps). AuthCode and implicit grant types. PKCE, state, userInfo, revoke, configurable logging, and token storage options.",
       "licenses": [
         {
           "license": {
@@ -67,7 +67,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40pingidentity-developers-experience/ping-oidc-client-sdk@0.3.10-beta?vcs_url=git%2Bhttps%3A//github.com/pingidentity-developers-experience/ping-oidc-client-sdk.git",
+      "purl": "pkg:npm/%40pingidentity-developers-experience/ping-oidc-client-sdk@2.0.0?vcs_url=git%2Bhttps%3A//github.com/pingidentity-developers-experience/ping-oidc-client-sdk.git",
       "externalReferences": [
         {
           "url": "git+https://github.com/pingidentity-developers-experience/ping-oidc-client-sdk.git",
@@ -379,6 +379,7 @@
       "bom-ref": "@nicolo-ribaudo/chokidar-2@2.1.8-no-fsevents.3",
       "author": "Nicolò Ribaudo",
       "description": "A wrapper around chokidar@2 to be able to specify both @2 and @3 as dependencies",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -433,6 +434,7 @@
       "bom-ref": "chokidar@3.5.3",
       "author": "Paul Miller",
       "description": "Minimal and efficient cross-platform file watching library",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -487,6 +489,7 @@
       "bom-ref": "anymatch@3.1.3",
       "author": "Elan Shanker",
       "description": "Matches strings against configurable strings, globs, regular expressions, and/or functions",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -541,6 +544,7 @@
       "bom-ref": "normalize-path@3.0.0",
       "author": "Jon Schlinkert",
       "description": "Normalize slashes in a file path to be posix/unix-like forward slashes. Also condenses repeat slashes to a single slash and removes and trailing slashes, unless disabled.",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -864,6 +868,7 @@
       "version": "2.3.2",
       "bom-ref": "fsevents@2.3.2",
       "description": "Native Access to MacOS FSEvents",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -1026,6 +1031,7 @@
       "bom-ref": "is-binary-path@2.1.0",
       "author": "Sindre Sorhus",
       "description": "Check if a file path is a binary file",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -1080,6 +1086,7 @@
       "bom-ref": "binary-extensions@2.2.0",
       "author": "Sindre Sorhus",
       "description": "List of binary file extensions",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -1134,6 +1141,7 @@
       "bom-ref": "readdirp@3.6.0",
       "author": "Thorsten Lorenz",
       "description": "Recursive version of fs.readdir with streaming API.",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -22391,6 +22399,386 @@
     },
     {
       "type": "library",
+      "name": "raw-loader",
+      "version": "4.0.2",
+      "bom-ref": "raw-loader@4.0.2",
+      "author": "Tobias Koppers @sokra",
+      "description": "A loader for webpack that allows importing files as a String",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "66749c215dda83d038c0f5ff65acb12ff8d91fe7ae61be857148a73dc822416d3e501b44bf43ba43794677772a27e1871feae4b04bf73e3f7da31277bb754828"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/raw-loader@4.0.2",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/webpack-contrib/raw-loader.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/webpack-contrib/raw-loader",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/webpack-contrib/raw-loader/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/raw-loader/-/raw-loader-4.0.2.tgz",
+          "type": "distribution",
+          "comment": "as detected from npm-ls property \"resolved\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/raw-loader"
+        },
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ],
+      "components": [
+        {
+          "type": "library",
+          "name": "schema-utils",
+          "version": "3.3.0",
+          "bom-ref": "raw-loader@4.0.2|schema-utils@3.3.0",
+          "author": "webpack Contrib",
+          "description": "webpack Validation Utils",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "a4dff2380bdc0bee6b4399c4446bb0ae32e562f2d36c289b9d9d48ec1d4b6a2033f41441944f4632013f7aa577d0feda25051fec37629b2fd1b1b60efc6ad51a"
+            }
+          ],
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT"
+              }
+            }
+          ],
+          "purl": "pkg:npm/schema-utils@3.3.0",
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/webpack/schema-utils.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/webpack/schema-utils",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/webpack/schema-utils/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/schema-utils/-/schema-utils-3.3.0.tgz",
+              "type": "distribution",
+              "comment": "as detected from npm-ls property \"resolved\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/raw-loader/node_modules/schema-utils"
+            },
+            {
+              "name": "cdx:npm:package:development",
+              "value": "true"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "loader-utils",
+      "version": "2.0.4",
+      "bom-ref": "loader-utils@2.0.4",
+      "author": "Tobias Koppers @sokra",
+      "description": "utils for webpack loaders",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "c57aa95e820d7c5860b9af718aa0fc7cf147824a2ad669a6a44f765a50db9bdacd45dfc46d16fe1aa7fdd3c4f60cc7ee1e38c9964b222b645b1d539d0ff32a4b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/loader-utils@2.0.4",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/webpack/loader-utils.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/webpack/loader-utils#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/webpack/loader-utils/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/loader-utils/-/loader-utils-2.0.4.tgz",
+          "type": "distribution",
+          "comment": "as detected from npm-ls property \"resolved\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/loader-utils"
+        },
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "big.js",
+      "version": "5.2.2",
+      "bom-ref": "big.js@5.2.2",
+      "author": "Michael Mclaughlin",
+      "description": "A small, fast, easy-to-use library for arbitrary-precision decimal arithmetic",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "bf22f63b2989c666ab3bc83132bd2684286c3bd406c21ca77eebb8f8c1d3016e9ccdfabd86e98207bacaa548c377d6148833d4e26ce9caea454af382940c1b99"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/big.js@5.2.2",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/MikeMcl/big.js.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/MikeMcl/big.js#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/MikeMcl/big.js/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/big.js/-/big.js-5.2.2.tgz",
+          "type": "distribution",
+          "comment": "as detected from npm-ls property \"resolved\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/big.js"
+        },
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "emojis-list",
+      "version": "3.0.0",
+      "bom-ref": "emojis-list@3.0.0",
+      "author": "Kiko Beats",
+      "description": "Complete list of standard emojis.",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "fe4c8cd7c11f8a7c1765b9e8f45c9419e161f3b282f074500501a295d1d96c4b91c9614e9afd54d74a3d041a7c5d564354d36e40ac88188bb96580005c9d15d9"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/emojis-list@3.0.0",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/kikobeats/emojis-list.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://nidecoc.io/Kikobeats/emojis-list",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/Kikobeats/emojis-list/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/emojis-list/-/emojis-list-3.0.0.tgz",
+          "type": "distribution",
+          "comment": "as detected from npm-ls property \"resolved\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/emojis-list"
+        },
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "ajv-keywords",
+      "version": "3.5.2",
+      "bom-ref": "ajv-keywords@3.5.2",
+      "author": "Evgeny Poberezkin",
+      "description": "Custom JSON-Schema keywords for Ajv validator",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "e69e964cdd03753195424e958dc123bb5f4881a1ee75a95c7da6c3ef284319e03a6dc42798bf82a6f78b26aff786f7f07756a87fa2f7f3a3ae824c7a45fc8c21"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/ajv-keywords@3.5.2",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/epoberezkin/ajv-keywords.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/epoberezkin/ajv-keywords#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/epoberezkin/ajv-keywords/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/ajv-keywords/-/ajv-keywords-3.5.2.tgz",
+          "type": "distribution",
+          "comment": "as detected from npm-ls property \"resolved\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/ajv-keywords"
+        },
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "uglify-js",
+      "version": "3.17.4",
+      "bom-ref": "uglify-js@3.17.4",
+      "author": "Mihai Bazon",
+      "description": "JavaScript parser, mangler/compressor and beautifier toolkit",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "4fdabcd93248f5efc2d5303162f7dbd7ac4ed76d2d315159ac60377fdfcfe38db80cdbbaca92b5d37cb418f1556b5ef2a2dc12c995b98985e08d81e41ab256fe"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:npm/uglify-js@3.17.4",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/mishoo/UglifyJS.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/mishoo/UglifyJS#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/mishoo/UglifyJS/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/uglify-js/-/uglify-js-3.17.4.tgz",
+          "type": "distribution",
+          "comment": "as detected from npm-ls property \"resolved\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/uglify-js"
+        },
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "name": "webpack-cli",
       "version": "5.0.2",
       "bom-ref": "webpack-cli@5.0.2",
@@ -25695,60 +26083,6 @@
     },
     {
       "type": "library",
-      "name": "ajv-keywords",
-      "version": "3.5.2",
-      "bom-ref": "ajv-keywords@3.5.2",
-      "author": "Evgeny Poberezkin",
-      "description": "Custom JSON-Schema keywords for Ajv validator",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "e69e964cdd03753195424e958dc123bb5f4881a1ee75a95c7da6c3ef284319e03a6dc42798bf82a6f78b26aff786f7f07756a87fa2f7f3a3ae824c7a45fc8c21"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/ajv-keywords@3.5.2",
-      "externalReferences": [
-        {
-          "url": "git+https://github.com/epoberezkin/ajv-keywords.git",
-          "type": "vcs",
-          "comment": "as detected from PackageJson property \"repository.url\""
-        },
-        {
-          "url": "https://github.com/epoberezkin/ajv-keywords#readme",
-          "type": "website",
-          "comment": "as detected from PackageJson property \"homepage\""
-        },
-        {
-          "url": "https://github.com/epoberezkin/ajv-keywords/issues",
-          "type": "issue-tracker",
-          "comment": "as detected from PackageJson property \"bugs.url\""
-        },
-        {
-          "url": "https://registry.npmjs.org/ajv-keywords/-/ajv-keywords-3.5.2.tgz",
-          "type": "distribution",
-          "comment": "as detected from npm-ls property \"resolved\""
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/ajv-keywords"
-        },
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "name": "terser-webpack-plugin",
       "version": "5.3.7",
       "bom-ref": "terser-webpack-plugin@5.3.7",
@@ -26722,7 +27056,7 @@
   ],
   "dependencies": [
     {
-      "ref": "@pingidentity-developers-experience/ping-oidc-client-sdk@0.3.10-beta",
+      "ref": "@pingidentity-developers-experience/ping-oidc-client-sdk@2.0.0",
       "dependsOn": [
         "@babel/cli@7.21.5",
         "@babel/core@7.21.8",
@@ -26738,7 +27072,9 @@
         "eslint@8.39.0",
         "ghooks@2.0.4",
         "prettier@2.8.8",
+        "raw-loader@4.0.2",
         "typescript@5.0.4",
+        "uglify-js@3.17.4",
         "webpack-cli@5.0.2",
         "webpack@5.82.0"
       ]
@@ -29418,6 +29754,45 @@
       "ref": "spawn-command@0.0.2"
     },
     {
+      "ref": "raw-loader@4.0.2",
+      "dependsOn": [
+        "loader-utils@2.0.4",
+        "raw-loader@4.0.2|schema-utils@3.3.0",
+        "webpack@5.82.0"
+      ]
+    },
+    {
+      "ref": "raw-loader@4.0.2|schema-utils@3.3.0",
+      "dependsOn": [
+        "@types/json-schema@7.0.11",
+        "ajv-keywords@3.5.2",
+        "ajv@6.12.6"
+      ]
+    },
+    {
+      "ref": "loader-utils@2.0.4",
+      "dependsOn": [
+        "big.js@5.2.2",
+        "emojis-list@3.0.0",
+        "json5@2.2.3"
+      ]
+    },
+    {
+      "ref": "big.js@5.2.2"
+    },
+    {
+      "ref": "emojis-list@3.0.0"
+    },
+    {
+      "ref": "ajv-keywords@3.5.2",
+      "dependsOn": [
+        "ajv@6.12.6"
+      ]
+    },
+    {
+      "ref": "uglify-js@3.17.4"
+    },
+    {
       "ref": "webpack-cli@5.0.2",
       "dependsOn": [
         "@discoveryjs/json-ext@0.5.7",
@@ -29731,12 +30106,6 @@
     },
     {
       "ref": "neo-async@2.6.2"
-    },
-    {
-      "ref": "ajv-keywords@3.5.2",
-      "dependsOn": [
-        "ajv@6.12.6"
-      ]
     },
     {
       "ref": "terser-webpack-plugin@5.3.7",
