@@ -1,7 +1,7 @@
 {
   "name": "@pingidentity-developers-experience/ping-oidc-client-sdk",
-  "version": "1.0.1",
-  "description": "An OAuth/OIDC SDK to simplify and fastrack integration with OAuth/OIDC protocol endpoints. AuthCode and implicit grant types. PKCE, state, userInfo, revoke, configurable logging.",
+  "version": "2.0.0",
+  "description": "An OAuth/OIDC SDK to simplify and fastrack integration with OAuth/OIDC protocol endpoints in SPAs (browser-based apps). AuthCode and implicit grant types. PKCE, state, userInfo, revoke, configurable logging, and token storage options.",
   "main": "lib/ping-oidc.js",
   "types": "lib/index.d.ts",
   "files": [
@@ -47,7 +47,9 @@
     "eslint-plugin-prettier": "^4.2.1",
     "ghooks": "^2.0.4",
     "prettier": "^2.7.1",
+    "raw-loader": "^4.0.2",
     "typescript": "^5.0.4",
+    "uglify-js": "^3.17.4",
     "webpack": "^5.69.0",
     "webpack-cli": "^5.0.2"
   },

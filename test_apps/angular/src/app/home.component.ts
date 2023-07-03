@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { OidcClient, TokenResponse } from '@pingidentity-developers-experience/ping-oidc-client-sdk';
+import { OidcClient, TokenResponse, StorageType } from '@pingidentity-developers-experience/ping-oidc-client-sdk';
 
 @Component({
   selector: 'home',
@@ -22,14 +22,13 @@ export class HomeComponent {
         client_id: '6e610880-8e52-4ba7-a2dc-c5f9bd80f3ee',
         redirect_uri: 'http://localhost:4200',
         scope: 'openid profile email revokescope', // defaults to 'openid profile email'
+        storageType: StorageType.Local,
       });
 
-      if (this.oidcClient.hasToken) {
+      if (await this.oidcClient.hasToken()) {
         const token = await this.oidcClient.getToken();
-        console.log(token);
         this.tokenAvailable(token);
       }
-
     } catch (err) {
       console.error('Error initializing OidcClient', err);
     }
@@ -46,12 +45,11 @@ export class HomeComponent {
 
   async tokenAvailable(token: TokenResponse) {
     this.token = token;
-    console.log('state', token.state)
 
     try {
       this.userInfo = await this.oidcClient?.fetchUserInfo();
     } catch {
-      this.token = await this.oidcClient?.refreshToken() || undefined;
+      this.token = (await this.oidcClient?.refreshToken()) || undefined;
       this.userInfo = await this.oidcClient?.fetchUserInfo();
     }
   }

@@ -64,6 +64,7 @@ const clientOptions = {
   // scope: 'openid profile revokescope',
   // state: 'xyz', 
   // logLevel: 'debug',
+  // storageType: 'worker'  // defaults to 'local'. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present.
 };
 
 // Initialize the library using an authentication server's well-known endpoint. Note this takes in the base url of the auth server, not the well-known endpoint itself. '/.well-known/openid-configuration' will be appended to the url by the SDK.
@@ -79,19 +80,21 @@ const authnUrl = await oidcClient.authorizeUrl(/* optional login_hint */);
 const userInfo = await oidcClient.fetchUserInfo();
 
 // Get the token from storage
-const token = await oidcClient.getToken();
+if (await oidcClient.hasToken()) {
+  const token = await oidcClient.getToken();
 
-// If you need the state that was passed to the server, you can get it from the TokenResponse managed by the library
-const state = token.state;
+  // If you need the state that was passed to the server, you can get it from the TokenResponse managed by the library
+  const state = token.state;
 
-// Revoke the token on the server and remove it from storage
-await oidcClient.revokeToken();
+  // Revoke the token on the server and remove it from storage
+  await oidcClient.revokeToken();
 
-// Refresh the access token and store the new token in storage
-await oidcClient.refreshToken();
+  // Refresh the access token and store the new token in storage
+  await oidcClient.refreshToken();
 
-// End the user's session using the end_session_endpoint on the auth server
-await oidcClient.endSession(/* optional post logout redirect uri */);
+  // End the user's session using the end_session_endpoint on the auth server
+  await oidcClient.endSession(/* optional post logout redirect uri */);
+}
 ```
 
 We recommend you initialize the library using the static initializeFromOpenIdConfig method shown above, as this will hit the authorization server's well-known endpoint and use the endpoints defined in the response. Alternatively you can initialize an OidcClient manually.
@@ -136,6 +139,7 @@ If you wish to use the library in a web application that does not use node or np
 | scope | string | Requested scopes for token | - | `'openid profile'` |
 | state | string \| object | State passed to server | - | Random string to act as a nonce token |
 | logLevel | string (LogLevel) | Logging level for statements printed to console | `'debug'`, `'info'`, `'warn'`, `'error'`, `'none'` | `'warn'`
+| storageType | string (StorageType) | Where tokens are stored; localStorage, sessionStorage, Web Worker. Worker is recommended for better security. | `'local'`, `'session'`, `'worker'` | `'local'` (for backwards compatibility) |
 
 Errors from the library are passed up to your application so that you can handle them gracefully if needed. You can catch them in try/catch block if you are using async/await or you can use the catch() method on the promise returned from the function call.
 

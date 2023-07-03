@@ -52,7 +52,17 @@ function App() {
   }
 
   const signOff = () => {
+    // Its just an app for testing and example, so we're assuming React's default dev port is available.
     oidcClient.current.endSession('https://localhost:3000');
+  }
+
+  const refreshToken = async () => {
+    try {
+      const token = await oidcClient.current.refreshToken();
+      console.log(token);
+    } catch (error) {
+      console.log('An error occured using refreshToken');
+    }
   }
 
   /**
@@ -62,12 +72,13 @@ function App() {
     async function initializeOidc() {
       const clientOptions = {
         client_id: '6e610880-8e52-4ba7-a2dc-c5f9bd80f3ee',
-        // redirect_uri: 'https://localhost:3000',
-        scope: 'openid profile revokescope', // defaults to 'openid profile email'
+        redirect_uri: 'https://localhost:3000',
+        scope: 'openid profile email revokescope', // defaults to 'openid profile email'
         // response_type: 'token', // defaults to 'code'
         // usePkce: false, // defaults to true
         // state: 'xyz', // will apply a random state as a string, you can pass in a string or object
         // logLevel: 'debug', // defaults to 'warn'
+        // storageType: 'worker' // 'local' | 'session' | 'worker'. defaults to 'local'. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present.
       };
   
       /**
@@ -77,11 +88,12 @@ function App() {
       oidcClient.current = client;
       setOidcReady(true);
 
-      if (client.hasToken) {
+      if (await client.hasToken()) {
         const token = await client.getToken();
         setToken(token);
         
         console.log('state', token.state)
+        console.log('token', token)
         
         try {
           const userInfo = await oidcClient.current.fetchUserInfo();
@@ -93,6 +105,9 @@ function App() {
           const userInfo = await oidcClient.current.fetchUserInfo();
           setUserInfo(userInfo);
         }
+      } else { 
+        // TODO delete this else block
+        console.log('WTH?!?!')
       }
     };
 
@@ -135,6 +150,7 @@ function App() {
               </>}
               {oidcClient.current && <button className="app-revoke-button" onClick={revokeToken}>Revoke Token</button>}
               {oidcClient.current && <button className="app-signoff-button" onClick={signOff}>Sign Off</button>}
+              {oidcClient.current && <button className="app-signoff-button" onClick={refreshToken}>Refresh Token</button>}
           </div>
         </>
       }

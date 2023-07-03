@@ -1,5 +1,6 @@
 import ResponseType from './response-type';
 import LogLevel from './log-level';
+import StorageType from './client-storage';
 
 export interface ClientOptions {
   /** Required - client id to authorize */
@@ -22,4 +23,7 @@ export interface ClientOptions {
 
   /** Optional - default is 'warn' */
   logLevel?: LogLevel;
+
+  /** Optional - defaults to 'local', either local, session, or worker. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present. */
+  storageType?: StorageType;
 }
