@@ -2,9 +2,15 @@ import { TokenResponse } from '../types';
 import OAuth from './oauth';
 
 export abstract class ClientStorageBase {
-  readonly TOKEN_KEY = 'oidc-client:response';
-  readonly REFRESH_TOKEN_KEY = 'oidc-client:refresh_token';
-  readonly CODE_VERIFIER_KEY = 'oidc-client:code_verifier';
+  protected readonly TOKEN_KEY: string;
+  protected readonly REFRESH_TOKEN_KEY: string;
+  protected readonly CODE_VERIFIER_KEY: string;
+
+  constructor(clientId: string) {
+    this.TOKEN_KEY = `oidc-client:response:${clientId}`;
+    this.REFRESH_TOKEN_KEY = `oidc-client:refresh_token:${clientId}`;
+    this.CODE_VERIFIER_KEY = `oidc-client:code_verifier:${clientId}`;
+  }
 
   abstract storeToken(token: TokenResponse): void;
 

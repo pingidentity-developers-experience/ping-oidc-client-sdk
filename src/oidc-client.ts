@@ -38,35 +38,37 @@ export class OidcClient {
       throw Error('clientOptions and issuerConfig are required to initialize an OidcClient');
     }
 
-    switch (clientOptions?.storageType) {
-      case 'local':
-        this.logger.info('OidcClient', 'option for storageType was local, using localStorage');
-        this.clientStorage = new LocalClientStorage();
-        break;
-      case 'session':
-        this.logger.info('OidcClient', 'option for storageType was session, using sessionStorage');
-        this.clientStorage = new SessionClientStorage();
-        break;
-      case 'worker':
-        if (window.Worker) {
-          this.clientStorage = new WorkerClientStorage();
-          break;
-        } else {
-          this.logger.warn('OidcClient', 'could not initialize a Web Worker, ensure your browser supports them, localStorage will be used instead');
-          this.clientStorage = new LocalClientStorage();
-          break;
-        }
-      default:
-        this.logger.info('OidcClient', 'option for storageType was not passed, defaulting to localStorage');
-        this.clientStorage = new LocalClientStorage();
-        break;
-    }
-
     this.browserUrlManager = new BrowserUrlManager(this.logger);
 
     // TODO - validator for issuerConfig?
     this.issuerConfiguration = issuerConfig;
     this.clientOptions = new ClientOptionsValidator(this.logger, this.browserUrlManager).validate(clientOptions);
+
+    const clientId = this.clientOptions.client_id;
+
+    switch (clientOptions?.storageType) {
+      case 'local':
+        this.logger.info('OidcClient', 'option for storageType was local, using localStorage');
+        this.clientStorage = new LocalClientStorage(clientId);
+        break;
+      case 'session':
+        this.logger.info('OidcClient', 'option for storageType was session, using sessionStorage');
+        this.clientStorage = new SessionClientStorage(clientId);
+        break;
+      case 'worker':
+        if (window.Worker) {
+          this.clientStorage = new WorkerClientStorage(clientId);
+          break;
+        } else {
+          this.logger.warn('OidcClient', 'could not initialize a Web Worker, ensure your browser supports them, localStorage will be used instead');
+          this.clientStorage = new LocalClientStorage(clientId);
+          break;
+        }
+      default:
+        this.logger.info('OidcClient', 'option for storageType was not passed, defaulting to localStorage');
+        this.clientStorage = new LocalClientStorage(clientId);
+        break;
+    }
 
     this.logger.debug('OidcClient', 'initialized with issuerConfig', issuerConfig);
   }

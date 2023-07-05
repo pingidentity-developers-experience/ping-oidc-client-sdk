@@ -27,8 +27,9 @@ export class WorkerClientStorage extends ClientStorageBase {
   private readonly workerThread;
   private msg: WorkerMessage;
 
-  constructor() {
-    super();
+  constructor(clientId: string) {
+    super(clientId);
+
     const workerBlob = new Blob([workerCode], { type: 'text/javascript' });
     this.workerThread = new Worker(window.URL.createObjectURL(workerBlob));
   }
@@ -53,7 +54,7 @@ export class WorkerClientStorage extends ClientStorageBase {
   }
 
   override async getToken(): Promise<TokenResponse> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       this.msg = { method: 'getToken', payload: `${this.TOKEN_KEY}` };
       this.workerThread.postMessage(this.msg);
       this.workerThread.onmessage = (response) => {
@@ -70,7 +71,7 @@ export class WorkerClientStorage extends ClientStorageBase {
   }
 
   override getRefreshToken(): Promise<string> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       this.msg = { method: 'getRefreshToken', payload: `${this.REFRESH_TOKEN_KEY}` };
       this.workerThread.postMessage(this.msg);
       this.workerThread.onmessage = (response) => {
