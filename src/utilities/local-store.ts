@@ -1,14 +1,20 @@
-import { TokenResponse } from '../types';
+/**
+ * Class representing browser localStorage.
+ * Subclass of the ClientStorageBase abstract class.
+ * {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API}
+ * {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API}
+ * {@link https://developer.mozilla.org/en-US/docs/Web/API/Storage}
+ */
+
+import { StorageType, TokenResponse } from '../types';
+import { ClientStorageBase } from './client-storage-base';
 import OAuth from './oauth';
 
-export class ClientStorage {
-  private readonly TOKEN_KEY = 'oidc-client:response';
-  private readonly REFRESH_TOKEN_KEY = 'oidc-client:refresh_token';
-  private readonly CODE_VERIFIER_KEY = 'oidc-client:code_verifier';
-
+export class LocalClientStorage extends ClientStorageBase {
   private inMemoryToken: TokenResponse;
+  readonly storage: StorageType;
 
-  storeToken(token: TokenResponse) {
+  override storeToken(token: TokenResponse): void {
     const refreshToken = token.refresh_token;
     if (refreshToken) {
       // eslint-disable-next-line no-param-reassign
@@ -24,7 +30,7 @@ export class ClientStorage {
     localStorage.setItem(this.TOKEN_KEY, OAuth.btoa(str));
   }
 
-  getToken(): TokenResponse {
+  override async getToken(): Promise<TokenResponse> {
     if (this.inMemoryToken) {
       return this.inMemoryToken;
     }
@@ -43,7 +49,7 @@ export class ClientStorage {
     return null;
   }
 
-  getRefreshToken(): string | null {
+  override async getRefreshToken(): Promise<string> {
     const refreshToken = localStorage.getItem(this.REFRESH_TOKEN_KEY);
 
     // Self destruct on retrieval, only needed once when refreshToken is called
@@ -52,17 +58,17 @@ export class ClientStorage {
     return refreshToken ? OAuth.atob(refreshToken) : null;
   }
 
-  removeToken() {
+  override removeToken(): void {
     this.inMemoryToken = null;
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
   }
 
-  storeCodeVerifier(codeVerifier: string) {
+  override storeCodeVerifier(codeVerifier: string): void {
     localStorage.setItem(this.CODE_VERIFIER_KEY, OAuth.btoa(codeVerifier));
   }
 
-  getCodeVerifier() {
+  override async getCodeVerifier(): Promise<string> {
     const encodedStr = localStorage.getItem(this.CODE_VERIFIER_KEY);
 
     // Self destruct on retrieval, only needed once to get the token from the authorization server

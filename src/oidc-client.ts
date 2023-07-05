@@ -7,7 +7,10 @@
  */
 
 import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
-import { Logger, OAuth, ClientStorage, Url, BrowserUrlManager } from './utilities';
+import { Logger, OAuth, ClientStorageBase, Url, BrowserUrlManager } from './utilities';
+import { LocalClientStorage } from './utilities/local-store';
+import { SessionClientStorage } from './utilities/session-store';
+import { WorkerClientStorage } from './utilities/worker-store';
 import { ClientOptionsValidator } from './validators';
 
 /**
@@ -17,7 +20,7 @@ export class OidcClient {
   private readonly clientOptions: ValidatedClientOptions;
   private readonly issuerConfiguration: OpenIdConfiguration;
   private readonly logger: Logger;
-  private readonly clientStorage: ClientStorage;
+  private readonly clientStorage: ClientStorageBase;
   private readonly browserUrlManager: BrowserUrlManager;
 
   /**
@@ -35,8 +38,31 @@ export class OidcClient {
       throw Error('clientOptions and issuerConfig are required to initialize an OidcClient');
     }
 
+    switch (clientOptions?.storageType) {
+      case 'local':
+        this.logger.info('OidcClient', 'option for storageType was local, using localStorage');
+        this.clientStorage = new LocalClientStorage();
+        break;
+      case 'session':
+        this.logger.info('OidcClient', 'option for storageType was session, using sessionStorage');
+        this.clientStorage = new SessionClientStorage();
+        break;
+      case 'worker':
+        if (window.Worker) {
+          this.clientStorage = new WorkerClientStorage();
+          break;
+        } else {
+          this.logger.warn('OidcClient', 'could not initialize a Web Worker, ensure your browser supports them, localStorage will be used instead');
+          this.clientStorage = new LocalClientStorage();
+          break;
+        }
+      default:
+        this.logger.info('OidcClient', 'option for storageType was not passed, defaulting to localStorage');
+        this.clientStorage = new LocalClientStorage();
+        break;
+    }
+
     this.browserUrlManager = new BrowserUrlManager(this.logger);
-    this.clientStorage = new ClientStorage();
 
     // TODO - validator for issuerConfig?
     this.issuerConfiguration = issuerConfig;
@@ -48,8 +74,8 @@ export class OidcClient {
   /**
    * Whether there is a token managed by the library available
    */
-  get hasToken(): boolean {
-    return !!this.clientStorage.getToken()?.access_token;
+  async hasToken(): Promise<boolean> {
+    return !!(await this.clientStorage.getToken())?.access_token;
   }
 
   /**
@@ -63,7 +89,7 @@ export class OidcClient {
   static async initializeClient(clientOptions: ClientOptions, issuerConfig: OpenIdConfiguration): Promise<OidcClient> {
     const client = new OidcClient(clientOptions, issuerConfig);
 
-    if (client.hasToken || client.browserUrlManager.tokenReady) {
+    if ((await client.hasToken()) || client.browserUrlManager.tokenReady) {
       await client.getToken();
     }
 
@@ -187,7 +213,7 @@ export class OidcClient {
       this.clientStorage.removeToken();
     }
 
-    let token = this.clientStorage.getToken();
+    let token = await this.clientStorage.getToken();
 
     if (token) {
       return token;
@@ -219,7 +245,7 @@ export class OidcClient {
       if (this.clientOptions.response_type === ResponseType.AuthorizationCode) {
         if (this.clientOptions.usePkce) {
           // PKCE uses a code_verifier from client
-          const codeVerifier = this.clientStorage.getCodeVerifier();
+          const codeVerifier = await this.clientStorage.getCodeVerifier();
 
           if (!codeVerifier) {
             throw Error('usePkce is true but a code verifier was not found in localStorage');
@@ -252,7 +278,7 @@ export class OidcClient {
   async revokeToken(): Promise<any> {
     this.logger.debug('OidcClient', 'revokeToken called');
 
-    const token = this.verifyToken();
+    const token = await this.verifyToken();
 
     if (!token) {
       return Promise.reject(Error('No token available'));
@@ -289,7 +315,7 @@ export class OidcClient {
   async refreshToken(): Promise<TokenResponse | void> {
     this.logger.debug('OidcClient', 'refreshToken called');
 
-    const refreshToken = this.clientStorage.getRefreshToken();
+    const refreshToken = await this.clientStorage.getRefreshToken();
     this.clientStorage.removeToken();
 
     if (refreshToken) {
@@ -320,7 +346,7 @@ export class OidcClient {
    *
    * @param postLogoutRedirectUri {string} optional url to redirect user to after their session has been ended
    */
-  endSession(postLogoutRedirectUri?: string): void {
+  async endSession(postLogoutRedirectUri?: string): Promise<void> {
     this.logger.debug('OidcClient', 'endSession called');
 
     if (!this.issuerConfiguration?.end_session_endpoint) {
@@ -334,7 +360,7 @@ export class OidcClient {
     let logoutUrl = this.issuerConfiguration.end_session_endpoint;
     const search = new URLSearchParams();
 
-    const token = this.clientStorage.getToken();
+    const token = await this.clientStorage.getToken();
 
     if (token?.id_token) {
       this.logger.info('OidcClient', 'id_token found, appending id_token_hint the end session url');
@@ -362,7 +388,7 @@ export class OidcClient {
   async fetchUserInfo<T>(): Promise<T> {
     this.logger.debug('OidcClient', 'fetchUserInfo called');
 
-    const token = this.verifyToken();
+    const token = await this.verifyToken();
 
     if (!token) {
       return Promise.reject(Error('No token available'));
@@ -402,8 +428,8 @@ export class OidcClient {
     return Promise.resolve(body);
   }
 
-  private verifyToken(): TokenResponse {
-    const token = this.clientStorage.getToken();
+  private async verifyToken(): Promise<TokenResponse> {
+    const token = await this.clientStorage.getToken();
 
     if (!token?.access_token) {
       this.logger.error('OidcClient', 'Token not found, make sure you have called authorize and getToken methods before attempting to get user info.', token);
