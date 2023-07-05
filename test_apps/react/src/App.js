@@ -92,9 +92,6 @@ function App() {
         const token = await client.getToken();
         setToken(token);
         
-        console.log('state', token.state)
-        console.log('token', token)
-        
         try {
           const userInfo = await oidcClient.current.fetchUserInfo();
           setUserInfo(userInfo);
@@ -105,9 +102,6 @@ function App() {
           const userInfo = await oidcClient.current.fetchUserInfo();
           setUserInfo(userInfo);
         }
-      } else { 
-        // TODO delete this else block
-        console.log('WTH?!?!')
       }
     };
 
