@@ -68,12 +68,24 @@ export class LocalClientStorage extends ClientStorageBase {
     localStorage.setItem(this.CODE_VERIFIER_KEY, OAuth.btoa(codeVerifier));
   }
 
-  override async getCodeVerifier(): Promise<string> {
+  override getCodeVerifier(): string {
     const encodedStr = localStorage.getItem(this.CODE_VERIFIER_KEY);
 
     // Self destruct on retrieval, only needed once to get the token from the authorization server
     localStorage.removeItem(this.CODE_VERIFIER_KEY);
 
     return encodedStr ? OAuth.atob(encodedStr) : null;
+  }
+
+  override setClientState(state: string): void {
+    localStorage.setItem(this.STATE_KEY, state);
+  }
+
+  override getClientState(): string {
+    return localStorage.getItem(this.STATE_KEY);
+  }
+
+  override removeClientState(): void {
+    localStorage.removeItem(this.STATE_KEY);
   }
 }

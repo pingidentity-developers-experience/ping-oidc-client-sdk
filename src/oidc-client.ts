@@ -91,7 +91,15 @@ export class OidcClient {
   static async initializeClient(clientOptions: ClientOptions, issuerConfig: OpenIdConfiguration): Promise<OidcClient> {
     const client = new OidcClient(clientOptions, issuerConfig);
 
-    if ((await client.hasToken()) || client.browserUrlManager.tokenReady) {
+    // Checking the raw state string against client storage to see if it's for this client instance
+    const urlState = client.browserUrlManager.rawState;
+    const tokenReadyForClient = !!urlState && client.clientStorage.getClientState() === urlState;
+
+    if (tokenReadyForClient) {
+      client.clientStorage.removeToken();
+    }
+
+    if ((await client.hasToken()) || tokenReadyForClient) {
       await client.getToken();
     }
 
@@ -172,6 +180,10 @@ export class OidcClient {
       urlParams.append('state', pkceArtifacts.state);
       urlParams.append('nonce', pkceArtifacts.nonce);
 
+      // We need to store state so we have something to compare the state returned from the auth server
+      // against to see if code applies to current client instance
+      this.clientStorage.setClientState(pkceArtifacts.state);
+
       if (this.clientOptions.usePkce) {
         urlParams.append('code_challenge', pkceArtifacts.codeChallenge);
         // Basic is not recommended, just use S256
@@ -209,11 +221,6 @@ export class OidcClient {
    */
   async getToken(): Promise<TokenResponse> {
     this.logger.debug('OidcClient', 'getToken called');
-
-    // Clear lingering token from storage if a new one is ready.
-    if (this.browserUrlManager.tokenReady) {
-      this.clientStorage.removeToken();
-    }
 
     let token = await this.clientStorage.getToken();
 
@@ -266,6 +273,7 @@ export class OidcClient {
 
     token.state = this.browserUrlManager.checkUrlForState();
 
+    this.clientStorage.removeClientState();
     this.clientStorage.storeToken(token);
 
     return Promise.resolve(token);
