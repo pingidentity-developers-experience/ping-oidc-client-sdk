@@ -12,7 +12,12 @@ export abstract class ClientStorageBase {
     this.REFRESH_TOKEN_KEY = `oidc-client:refresh_token:${clientId}`;
     this.CODE_VERIFIER_KEY = `oidc-client:code_verifier:${clientId}`;
     this.STATE_KEY = `oidc-client:state:${clientId}`;
+
+    this.migrateTokens?.(clientId);
   }
+
+  // Need to migrate old stored tokens (without clientId) in the Key, this does not apply to WorkerClientStorage and thus is optional
+  protected migrateTokens?(clientId: string): void;
 
   abstract storeToken(token: TokenResponse): void;
 

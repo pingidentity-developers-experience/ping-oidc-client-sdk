@@ -14,6 +14,18 @@ export class LocalClientStorage extends ClientStorageBase {
   private inMemoryToken: TokenResponse;
   readonly storage: StorageType;
 
+  protected override migrateTokens(clientId: string): void {
+    const migrateKeys = [`oidc-client:response`, `oidc-client:refresh_token`, `oidc-client:code_verifier`];
+
+    migrateKeys.forEach((key) => {
+      const item = localStorage.getItem(key);
+      if (item) {
+        localStorage.setItem(`${key}:${clientId}`, item);
+        localStorage.removeItem(key);
+      }
+    });
+  }
+
   override storeToken(token: TokenResponse): void {
     const refreshToken = token.refresh_token;
     if (refreshToken) {
