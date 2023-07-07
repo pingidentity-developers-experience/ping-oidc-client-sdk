@@ -14,6 +14,18 @@ export class SessionClientStorage extends ClientStorageBase {
   private inMemoryToken: TokenResponse;
   readonly storage: StorageType;
 
+  protected override migrateTokens(clientId: string): void {
+    const migrateKeys = [`oidc-client:response`, `oidc-client:refresh_token`, `oidc-client:code_verifier`];
+
+    migrateKeys.forEach((key) => {
+      const item = sessionStorage.getItem(key);
+      if (item) {
+        sessionStorage.setItem(`${key}:${clientId}`, item);
+        sessionStorage.removeItem(key);
+      }
+    });
+  }
+
   override storeToken(token: TokenResponse): void {
     const refreshToken = token.refresh_token;
     if (refreshToken) {

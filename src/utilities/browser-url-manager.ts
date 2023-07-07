@@ -34,6 +34,10 @@ export class BrowserUrlManager {
     return Url.trimTrailingSlash(window?.location?.href?.split('?')?.[0] || '');
   }
 
+  get rawState(): string | undefined {
+    return this.searchParams.get('state');
+  }
+
   checkUrlForState(): string | any {
     const state = this.getAndRemoveSearchParameter('state');
 
@@ -50,6 +54,7 @@ export class BrowserUrlManager {
   }
 
   checkUrlForCode(): string {
+    this.logger.debug('BrowserUrlManager', 'checking code', { code: this.searchParams.get('code'), url: window.location });
     return this.getAndRemoveSearchParameter('code');
   }
 

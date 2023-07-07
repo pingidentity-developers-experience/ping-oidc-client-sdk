@@ -14,6 +14,18 @@ export class LocalClientStorage extends ClientStorageBase {
   private inMemoryToken: TokenResponse;
   readonly storage: StorageType;
 
+  protected override migrateTokens(clientId: string): void {
+    const migrateKeys = [`oidc-client:response`, `oidc-client:refresh_token`, `oidc-client:code_verifier`];
+
+    migrateKeys.forEach((key) => {
+      const item = localStorage.getItem(key);
+      if (item) {
+        localStorage.setItem(`${key}:${clientId}`, item);
+        localStorage.removeItem(key);
+      }
+    });
+  }
+
   override storeToken(token: TokenResponse): void {
     const refreshToken = token.refresh_token;
     if (refreshToken) {
@@ -68,12 +80,24 @@ export class LocalClientStorage extends ClientStorageBase {
     localStorage.setItem(this.CODE_VERIFIER_KEY, OAuth.btoa(codeVerifier));
   }
 
-  override async getCodeVerifier(): Promise<string> {
+  override getCodeVerifier(): string {
     const encodedStr = localStorage.getItem(this.CODE_VERIFIER_KEY);
 
     // Self destruct on retrieval, only needed once to get the token from the authorization server
     localStorage.removeItem(this.CODE_VERIFIER_KEY);
 
     return encodedStr ? OAuth.atob(encodedStr) : null;
+  }
+
+  override setClientState(state: string): void {
+    localStorage.setItem(this.STATE_KEY, state);
+  }
+
+  override getClientState(): string {
+    return localStorage.getItem(this.STATE_KEY);
+  }
+
+  override removeClientState(): void {
+    localStorage.removeItem(this.STATE_KEY);
   }
 }
