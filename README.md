@@ -34,7 +34,7 @@ This OAuth/OIDC Library allows you to quickly implement an OIDC flow in your Web
 
 ### Getting Started:
 
-There is an implementation example app, (not a demo), included in the project in test_apps/oidc. The test app is a React app created with the create-react-app package but usage applies with other web frameworks as well!
+There is an implementation example app, (not a demo), included in the project in test_apps/react. The test app is a React app created with the create-react-app package but usage applies with other web frameworks as well! There is also an Angular example included.
 
 Install from NPM:
 
@@ -45,9 +45,6 @@ npm install @pingidentity-developers-experience/ping-oidc-client-sdk
 # With yarn
 yarn add @pingidentity-developers-experience/ping-oidc-client-sdk
 ```
-
-
-
 In your js file:
 
 `import { OidcClient } from '@pingidentity-developers-experience/ping-oidc-client-sdk';`
@@ -155,6 +152,10 @@ export interface TokenResponse {
   state: string | any;
 }
 ```
+
+#### Multiple Clients on a Page
+
+The OidcClient supports multiple instances out of the box, allowing you to manage multiple tokens on the same page. Please note that the OidcClient class uses state to ensure that the correct client instance is processing the token or authorization code when the user is redirected back to the app from the authorization server. If you do not provide state through the ClientOptions a random string is created for you.
 
 #### Implementation Details:
 

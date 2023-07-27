@@ -38,35 +38,37 @@ export class OidcClient {
       throw Error('clientOptions and issuerConfig are required to initialize an OidcClient');
     }
 
-    switch (clientOptions?.storageType) {
-      case 'local':
-        this.logger.info('OidcClient', 'option for storageType was local, using localStorage');
-        this.clientStorage = new LocalClientStorage();
-        break;
-      case 'session':
-        this.logger.info('OidcClient', 'option for storageType was session, using sessionStorage');
-        this.clientStorage = new SessionClientStorage();
-        break;
-      case 'worker':
-        if (window.Worker) {
-          this.clientStorage = new WorkerClientStorage();
-          break;
-        } else {
-          this.logger.warn('OidcClient', 'could not initialize a Web Worker, ensure your browser supports them, localStorage will be used instead');
-          this.clientStorage = new LocalClientStorage();
-          break;
-        }
-      default:
-        this.logger.info('OidcClient', 'option for storageType was not passed, defaulting to localStorage');
-        this.clientStorage = new LocalClientStorage();
-        break;
-    }
-
     this.browserUrlManager = new BrowserUrlManager(this.logger);
 
     // TODO - validator for issuerConfig?
     this.issuerConfiguration = issuerConfig;
     this.clientOptions = new ClientOptionsValidator(this.logger, this.browserUrlManager).validate(clientOptions);
+
+    const clientId = this.clientOptions.client_id;
+
+    switch (clientOptions?.storageType) {
+      case 'local':
+        this.logger.info('OidcClient', 'option for storageType was local, using localStorage');
+        this.clientStorage = new LocalClientStorage(clientId);
+        break;
+      case 'session':
+        this.logger.info('OidcClient', 'option for storageType was session, using sessionStorage');
+        this.clientStorage = new SessionClientStorage(clientId);
+        break;
+      case 'worker':
+        if (window.Worker) {
+          this.clientStorage = new WorkerClientStorage(clientId);
+          break;
+        } else {
+          this.logger.warn('OidcClient', 'could not initialize a Web Worker, ensure your browser supports them, localStorage will be used instead');
+          this.clientStorage = new LocalClientStorage(clientId);
+          break;
+        }
+      default:
+        this.logger.info('OidcClient', 'option for storageType was not passed, defaulting to localStorage');
+        this.clientStorage = new LocalClientStorage(clientId);
+        break;
+    }
 
     this.logger.debug('OidcClient', 'initialized with issuerConfig', issuerConfig);
   }
@@ -89,7 +91,15 @@ export class OidcClient {
   static async initializeClient(clientOptions: ClientOptions, issuerConfig: OpenIdConfiguration): Promise<OidcClient> {
     const client = new OidcClient(clientOptions, issuerConfig);
 
-    if ((await client.hasToken()) || client.browserUrlManager.tokenReady) {
+    // Checking the raw state string against client storage to see if it's for this client instance
+    const urlState = client.browserUrlManager.rawState;
+    const tokenReadyForClient = !!urlState && client.clientStorage.getClientState() === urlState;
+
+    if (tokenReadyForClient) {
+      client.clientStorage.removeToken();
+    }
+
+    if ((await client.hasToken()) || tokenReadyForClient) {
       await client.getToken();
     }
 
@@ -170,6 +180,10 @@ export class OidcClient {
       urlParams.append('state', pkceArtifacts.state);
       urlParams.append('nonce', pkceArtifacts.nonce);
 
+      // We need to store state so we have something to compare the state returned from the auth server
+      // against to see if code applies to current client instance
+      this.clientStorage.setClientState(pkceArtifacts.state);
+
       if (this.clientOptions.usePkce) {
         urlParams.append('code_challenge', pkceArtifacts.codeChallenge);
         // Basic is not recommended, just use S256
@@ -207,11 +221,6 @@ export class OidcClient {
    */
   async getToken(): Promise<TokenResponse> {
     this.logger.debug('OidcClient', 'getToken called');
-
-    // Clear lingering token from storage if a new one is ready.
-    if (this.browserUrlManager.tokenReady) {
-      this.clientStorage.removeToken();
-    }
 
     let token = await this.clientStorage.getToken();
 
@@ -264,6 +273,7 @@ export class OidcClient {
 
     token.state = this.browserUrlManager.checkUrlForState();
 
+    this.clientStorage.removeClientState();
     this.clientStorage.storeToken(token);
 
     return Promise.resolve(token);
