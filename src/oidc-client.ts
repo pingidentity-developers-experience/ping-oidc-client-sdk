@@ -121,7 +121,8 @@ export class OidcClient {
     }
 
     try {
-      const wellKnownResponse = await fetch(`${Url.trimTrailingSlash(issuerUrl)}/.well-known/openid-configuration`);
+      const url = issuerUrl.match(/\.well-known\/openid-configuration/) ? issuerUrl : `${Url.trimTrailingSlash(issuerUrl)}/.well-known/openid-configuration`;
+      const wellKnownResponse = await fetch(url);
       const responseBody = await wellKnownResponse.json();
 
       return await OidcClient.initializeClient(clientOptions, responseBody);
