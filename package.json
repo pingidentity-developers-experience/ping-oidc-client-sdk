@@ -27,7 +27,7 @@
     "SDK"
   ],
   "author": "Ping Identity Technical Enablement (https://www.pingidentity.com/)",
-  "license": "GPL-3.0",
+  "license": "Apache License 2.0",
   "bugs": {
     "url": "https://github.com/pingidentity-developers-experience/ping-oidc-client-sdk/issues"
   },
