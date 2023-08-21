@@ -11,6 +11,7 @@
 - Our top priorities are Security, quality, integrity.
 - Notwithstanding `devDependencies`, we DO NOT use 3rd-party packages, and only use intrinsic Javascript functions and APIs to remove or reduce the supply chain threat landscape. Transitive dependencies run deep in package managers and quickly increase your risk score.
 - We develop in Typescript for strongly typed implementations.
+- See the `devDependencies` section of the `package.json` file for what development tools and utilities we use for this SDK.
 
 ## Commits
 - We prefer signed commits in support of non-repudiation, but do not enforce it since we don't control your environment or internal business requirements. See the reference documentation below.
