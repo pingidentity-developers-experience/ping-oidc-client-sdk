@@ -1,7 +1,9 @@
 # Contributor Guidelines
 
 ## Requirements
-- The OAuth and OIDC specs are the requirements. No bespoke enhancements
+- The OAuth and OIDC specs are the requirements. No bespoke enhancements. No tight coupling with products/vendors.
+- One of the original goals of this SDK was to make OAuth/OIDC as simple as possible for the developer. If we can infer it based on our knowledge of the spec, don't bother the developer with it. The developer just needs to get a token and use it. 
+- 
 
 ## Coding Conventions
 
@@ -13,15 +15,20 @@
 - We prefer signed commits in support of non-repudiation, but do not enforce it since we don't control your environment or internal business requirements. See the reference documentation below.
 - Commit messages should be concise but clear. When relevant, reference an issue number.
 
+## Pull Requests
+- tk
+
 ## Issues
 - Use the standard [Issues](https://github.com/pingidentity-developers-experience/ping-oidc-client-sdk/issues) page to report any findings.
 - Use labels.
-  - We created a `security` label for findings that are a potential vulnerability, or the issue puts security at risk, or if you made a security enhancement. This can be combined with related labels, such as `bug` or `enahncement`.
+  - We created a `security` label for findings that are a potential vulnerability, or the issue puts security at risk, or if you made a security enhancement. This can be combined with related labels, such as `bug` or `enhancement`.
 - Titles should be concise but clear.
 - The comment section should include steps to reproduce, expected and actual behavior.
 
-## Pull Requests
-- tk
+## Community Expectations
+- Be professional.
+- Remember, the world can see your work and comments.
+- "All your code are belong to us."
 
 ## Reference Documentation
 - [Signed Commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
@@ -30,7 +37,3 @@
   - [For browser-based apps](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps-07)
   - [Security Best Practices](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics-16)
 - [OIDC Spec](https://openid.net/specs/openid-connect-core-1_0.html)
-
-
-## Community Expectations
-- tk
