@@ -113,7 +113,7 @@ function App() {
     <div className="app">
       <header className="app-header">
         <img src={logo} className="app-logo" alt="logo" />
-        <h1>OIDC Client Sample App</h1>
+        <h1>OIDC Client Test App</h1>
       </header>
       {!token && oidcClient.current &&
         <div>
