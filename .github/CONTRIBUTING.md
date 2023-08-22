@@ -4,14 +4,14 @@ If you'd like to contribute, start by searching through the pull requests to see
 
 ## Requirements
 - The OAuth and OIDC specs are the requirements. No bespoke enhancements. No tight coupling with products/vendors.
-- Our top priorities are Security, quality, integrity.
+- Our top priorities are security, quality, and integrity.
 - One of the original goals of this SDK was to make OAuth/OIDC as simple as possible for the developer. If we can infer it based on our knowledge of the spec, don't bother the developer with it. The developer just needs to get a token and use it. 
 - To date, we have no plans to support ROPC or client credentials grants. They are less secure protocol options, and are planned to be removed from the OAuth spec in [the coming 2.1 draft version](https://oauth.net/2.1/). The client credentials grant, however, may make an appearance in a future server-side version of this SDK.
   - If you have a need for the SDK to support these other less secure grant types, you can always clone the repository, instead of forking it, and start your own version of this SDK. OAuth specs are linked below under Reference Documentation.
 
 ## Coding Conventions
 
-- Our top priorities are Security, quality, integrity.
+- Our top priorities are security, quality, and integrity.
 - Notwithstanding `devDependencies`, we DO NOT use 3rd-party packages, and only use intrinsic Javascript functions and APIs to remove or reduce the supply chain threat landscape. Transitive dependencies run deep in package managers and quickly increase your risk score.
 - We develop in Typescript for strongly typed implementations.
 - See the `devDependencies` section of the `package.json` file for what development tools and utilities we use for this SDK.
@@ -38,7 +38,7 @@ If you'd like to contribute, start by searching through the pull requests to see
 ## Community Expectations
 - Be professional.
 - Remember, the world can see your work and comments.
-- Your top priorities are Security, quality, integrity.
+- Your top priorities are security, quality, and integrity.
 
 
 ## Reference Documentation
