@@ -2,7 +2,7 @@
  * OAuth/OIDC SDK implementation example app 
  * Ping Identity
  * @author Technical Enablement Demo Team
- * @description A bare-bones sample app built with create-react-app (CRA) to show an implementation example. 
+ * @description A bare-bones test app built with create-react-app (CRA) to show an implementation example. 
  * The SDK is not based on React. CRA just makes it easy to bootstrap a quick Javascript app to prototype or test.
  * @see https://react.dev/learn/start-a-new-react-project
  */
@@ -113,7 +113,7 @@ function App() {
     <div className="app">
       <header className="app-header">
         <img src={logo} className="app-logo" alt="logo" />
-        <h1>OIDC Client Sample App</h1>
+        <h1>OIDC Client Test App</h1>
       </header>
       {!token && oidcClient.current &&
         <div>

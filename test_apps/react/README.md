@@ -39,8 +39,8 @@ Instead, it will copy all the configuration files and the transitive dependencie
 
 You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-## Customizing the Sample App
-You can point the sample app to your own environment by updating the client_id and client values in `/src/App.js`.
+## Customizing the Test App
+You can point the test app to your own environment by updating the client_id and client values in `/src/App.js`.
 After you've made your changes, save the file and the app should reload with the new values. 
 
 ## Learn More
