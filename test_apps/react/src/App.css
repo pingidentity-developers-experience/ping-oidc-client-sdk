@@ -24,6 +24,15 @@
   color: white;
 }
 
+.app-method-container {
+  margin-bottom: 1rem;
+}
+
+.app-method-label {
+  color: white;
+  margin-right: 1rem;
+}
+
 .app-example-user {
   color: white;
   margin-top: 1rem;

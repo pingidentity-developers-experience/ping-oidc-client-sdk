@@ -30,13 +30,22 @@ export default function OidcExample() {
 function App() {
   const oidcClient = useRef();
   
+  const [authMethod, setAuthMethod] = useState('redirect');
+
   const [token, setToken] = useState();
   const [userInfo, setUserInfo] = useState();
   const [, setOidcReady] = useState(false);
 
   const authorize = async () => {
     try {
-      oidcClient.current.authorize(/* optional login_hint (e.g. username) */)
+      const popup = window.open('about:blank', 'popup', 'popup=true,width=600,height=800')
+      if (authMethod === 'popup') {
+        setToken(await oidcClient.current.authorizeWithPopupRef(popup, /* optional login_hint (e.g. username) */))
+        const userInfo = await oidcClient.current.fetchUserInfo();
+        setUserInfo(userInfo);
+      } else {
+        oidcClient.current.authorize(/* optional login_hint (e.g. username) */)
+      }
     } catch(error) {
       console.log('An error occurred attempting to authorize', error);
     }
@@ -51,9 +60,11 @@ function App() {
     }
   }
 
-  const signOff = () => {
+  const signOff = async () => {
     // Its just an app for testing and example, so we're assuming React's default dev port is available.
-    oidcClient.current.endSession('https://localhost:3000');
+    await oidcClient.current.endSession('https://localhost:3000');
+    setToken(null);
+    setUserInfo(null);
   }
 
   const refreshToken = async () => {
@@ -77,8 +88,9 @@ function App() {
         // response_type: 'token', // defaults to 'code'
         // usePkce: false, // defaults to true
         // state: 'xyz', // will apply a random state as a string, you can pass in a string or object
-        // logLevel: 'debug', // defaults to 'warn'
+        logLevel: 'debug', // defaults to 'warn'
         // storageType: 'worker' // 'local' | 'session' | 'worker'. defaults to 'local'. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present.
+        authMethod: authMethod, // 'redirect' | 'popup'. defaults to 'redirect'
       };
   
       /**
@@ -107,7 +119,7 @@ function App() {
 
     initializeOidc()
       .catch(console.error);
-   }, []);
+   }, [authMethod]);
 
   return (
     <div className="app">
@@ -117,8 +129,15 @@ function App() {
       </header>
       {!token && oidcClient.current &&
         <div>
+          <div className='app-method-container'>
+            <label className='app-method-label' htmlFor="authMethod">Auth Method</label>
+            <select id="authMethod" value={authMethod} onChange={e => setAuthMethod(e.target.value)}>
+              <option value="redirect">Redirect</option>
+              <option value="popup">Popup</option>
+            </select>
+          </div>
           <button className="app-link" onClick={authorize}>
-            Ping OIDC Authorize URL
+            Ping OIDC Authorize
           </button>
           <div className="app-example-user"><strong>Test user:</strong>&nbsp;demouser1 / 2FederateM0re!</div>
         </div>}

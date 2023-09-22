@@ -1,4 +1,6 @@
+import AuthMethod from './auth-method';
 import { ClientOptions } from './client-options';
+import StorageType from './client-storage';
 import ResponseType from './response-type';
 
 /**
@@ -10,4 +12,6 @@ export interface ValidatedClientOptions extends ClientOptions {
   scope: string;
   redirect_uri: string;
   client_id: string;
+  storageType: StorageType;
+  authMethod: AuthMethod;
 }

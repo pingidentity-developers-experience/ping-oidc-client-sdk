@@ -1,6 +1,7 @@
 import ResponseType from './response-type';
 import LogLevel from './log-level';
 import StorageType from './client-storage';
+import AuthMethod from './auth-method';
 
 export interface ClientOptions {
   /** Required - client id to authorize */
@@ -26,4 +27,7 @@ export interface ClientOptions {
 
   /** Optional - defaults to 'local', either local, session, or worker. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present. */
   storageType?: StorageType;
+
+  /** Optional - defaults to 'current-tab' for backwards compatibility, could consider changing this when we publish a major version */
+  authMethod?: AuthMethod;
 }

@@ -6,7 +6,7 @@
  * @description The main entry point for your application's integration.
  */
 
-import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
+import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions, AuthMethod } from './types';
 import { Logger, OAuth, ClientStorageBase, Url, BrowserUrlManager } from './utilities';
 import { LocalClientStorage } from './utilities/local-store';
 import { SessionClientStorage } from './utilities/session-store';
@@ -46,7 +46,7 @@ export class OidcClient {
 
     const clientId = this.clientOptions.client_id;
 
-    switch (clientOptions?.storageType) {
+    switch (this.clientOptions.storageType) {
       case 'local':
         this.logger.info('OidcClient', 'option for storageType was local, using localStorage');
         this.clientStorage = new LocalClientStorage(clientId);
@@ -65,9 +65,7 @@ export class OidcClient {
           break;
         }
       default:
-        this.logger.info('OidcClient', 'option for storageType was not passed, defaulting to localStorage');
-        this.clientStorage = new LocalClientStorage(clientId);
-        break;
+        throw new Error('Invalid storageType encountered, default should be set in ClientOptionsValidator so something is likely wrong in the library source');
     }
 
     this.logger.debug('OidcClient', 'initialized with issuerConfig', issuerConfig);
@@ -93,7 +91,9 @@ export class OidcClient {
 
     // Checking the raw state string against client storage to see if it's for this client instance
     const urlState = client.browserUrlManager.rawState;
-    const tokenReadyForClient = !!urlState && client.clientStorage.getClientState() === urlState;
+
+    // If authMethod is popup, the BrowserUrlManager will see the token or code and handle this
+    const tokenReadyForClient = client.clientOptions.authMethod !== AuthMethod.Popup && !!urlState && client.clientStorage.getClientState() === urlState;
 
     if (tokenReadyForClient) {
       client.clientStorage.removeToken();
@@ -138,15 +138,31 @@ export class OidcClient {
    * @returns {Promise} Will navigate the current browser tab to the authorization url that is generated through the authorizeUrl method
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-3.1
    */
-  async authorize(loginHint?: string, silentAuthN?: boolean): Promise<void> {
+  async authorize(loginHint?: string, silentAuthN?: boolean, popupRef?: Window): Promise<void | TokenResponse> {
     try {
       const authUrl = await this.authorizeUrl(loginHint, silentAuthN);
-      this.browserUrlManager.navigate(authUrl);
+      if (this.clientOptions.authMethod === AuthMethod.Redirect) {
+        if (popupRef) {
+          this.logger.warn('OidcClient', `popupRef provided but authMethod is 'redirect' popupRef will be ignored but user will probably see a new window`);
+        }
+        this.browserUrlManager.navigate(authUrl);
+      } else {
+        const popupFinalUrl = await this.browserUrlManager.navigatePopup(authUrl, this.clientOptions.redirect_uri, popupRef);
+        return await this.getToken(popupFinalUrl);
+      }
     } catch (error) {
       return Promise.reject(error);
     }
 
     return Promise.resolve();
+  }
+
+  authorizeWithPopupRef(popupRef: Window, loginHint?: string): Promise<void | TokenResponse> {
+    if (this.clientOptions.authMethod === AuthMethod.Redirect) {
+      return Promise.reject(Error(`authorizeWithPopupRef called but client is configured with authMethod: 'redirect', please use authorize() instead or update authMethod to 'popup'`));
+    }
+
+    return this.authorize(loginHint, undefined, popupRef);
   }
 
   /**
@@ -220,8 +236,11 @@ export class OidcClient {
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-4.2
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-4.1
    */
-  async getToken(): Promise<TokenResponse> {
+  async getToken(urlOverride?: string): Promise<TokenResponse> {
     this.logger.debug('OidcClient', 'getToken called');
+
+    let code: string;
+    let state: any;
 
     let token = await this.clientStorage.getToken();
 
@@ -237,10 +256,35 @@ export class OidcClient {
       );
     }
 
-    token = this.browserUrlManager.checkUrlForToken();
+    let url: URL;
+
+    if (urlOverride) {
+      url = new URL(urlOverride);
+
+      if (url.searchParams.has('code')) {
+        code = url.searchParams.get('code');
+        state = url.searchParams.get('state');
+      } else {
+        const hashParams = new URLSearchParams(url.hash.charAt(0) === '#' ? url.hash.substring(1) : url.hash);
+
+        if (hashParams.has('access_token')) {
+          token = {
+            access_token: hashParams.get('access_token'),
+            expires_in: +hashParams.get('expires_in'),
+            scope: hashParams.get('scope'),
+            token_type: hashParams.get('token_type'),
+            id_token: hashParams.get('id_token'),
+          };
+        }
+      }
+    } else {
+      token = this.browserUrlManager.checkUrlForToken();
+    }
 
     if (!token) {
-      const code = this.browserUrlManager.checkUrlForCode();
+      if (!code) {
+        code = this.browserUrlManager.checkUrlForCode();
+      }
 
       if (!code) {
         return Promise.reject(Error('An authorization code was not found and a token was not found in storage or the url'));
@@ -272,7 +316,7 @@ export class OidcClient {
       }
     }
 
-    token.state = this.browserUrlManager.checkUrlForState();
+    token.state = state || this.browserUrlManager.checkUrlForState();
 
     this.clientStorage.removeClientState();
     this.clientStorage.storeToken(token);
@@ -387,7 +431,12 @@ export class OidcClient {
     logoutUrl += params ? `?${params}` : '';
 
     this.clientStorage.removeToken();
-    this.browserUrlManager.navigate(logoutUrl);
+
+    if (this.clientOptions.authMethod === AuthMethod.Redirect) {
+      this.browserUrlManager.navigate(logoutUrl);
+    } else {
+      await this.browserUrlManager.navigatePopup(logoutUrl, postLogoutRedirectUri);
+    }
   }
 
   /**

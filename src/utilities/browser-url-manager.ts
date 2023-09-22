@@ -85,6 +85,42 @@ export class BrowserUrlManager {
     window.location.assign(url);
   }
 
+  /**
+   * Navigates to the provided url in a popup window and returns the complete popup's URL when it navigates back to the redirectURI
+   *
+   * @param url Url to navigate the popup window to
+   * @param redirectUri Redirect URI that triggers the interval to clear
+   * @param popup Reference to popup, this can optionally be provided by the user for better support
+   * @returns Promise which resolves the complete url when the redirecURI is found, this url will contain the token or code and state
+   */
+  navigatePopup(url: string, redirectUri: string, popupRef?: Window): Promise<string> {
+    let popup = popupRef;
+
+    if (popup) {
+      popup.location.href = url;
+    } else {
+      popup = window.open(url, 'oidc-popup', 'popup=true,width=600,height=800');
+    }
+
+    return new Promise((resolve) => {
+      const checkPopup = setInterval(() => {
+        try {
+          if (!popup || popup.closed) {
+            clearInterval(checkPopup);
+            return;
+          }
+
+          if (popup.window.location.href.includes(redirectUri)) {
+            resolve(popup.window.location.href);
+            popup.close();
+          }
+        } catch (_) {
+          this.logger.debug('BrowserUrlMananger', 'Error encountered in inverval watching the popup window, this is likely because the window is still navigated to auth server');
+        }
+      }, 150);
+    });
+  }
+
   private getAndRemoveSearchParameter(param: string): string {
     if (this.searchParams.has(param)) {
       const foundParam = this.searchParams.get(param);

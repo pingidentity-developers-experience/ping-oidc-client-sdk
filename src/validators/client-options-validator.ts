@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { ClientOptions, ValidatedClientOptions } from '../types';
+import { AuthMethod, ClientOptions, StorageType, ValidatedClientOptions } from '../types';
 import ResponseType from '../types/response-type';
 import { BrowserUrlManager, Logger } from '../utilities';
 
@@ -49,11 +49,12 @@ export class ClientOptionsValidator {
     const result: ValidatedClientOptions = {
       client_id: options.client_id,
       redirect_uri: options.redirect_uri || currentUrl,
-      response_type: this.getResponseType(options),
+      response_type: this.getValueOrDefaultFromEnum<ResponseType>(ResponseType, 'options.response_type', ResponseType.AuthorizationCode, options.response_type),
       scope: this.getScope(options),
       usePkce: this.getUsePkce(options),
       state: options.state,
-      storageType: options.storageType,
+      storageType: this.getValueOrDefaultFromEnum<StorageType>(StorageType, 'options.storageType', StorageType.Local, options.storageType),
+      authMethod: this.getValueOrDefaultFromEnum<AuthMethod>(AuthMethod, 'options.authMethod', AuthMethod.Redirect, options.authMethod),
     };
 
     return result;
@@ -75,31 +76,6 @@ export class ClientOptionsValidator {
   }
 
   /**
-   * Does verification of response_type sent in through options and sets default of 'code' if not present or invalid
-   *
-   * @param {ClientOptions} options Options sent into authorize method
-   * @returns {string} response_type that will be used
-   */
-  private getResponseType(options: ClientOptions): ResponseType {
-    let { response_type } = options;
-    const validResponseTypes = Object.values(ResponseType);
-
-    if (!validResponseTypes.includes(response_type)) {
-      response_type = ResponseType.AuthorizationCode;
-
-      if (options.response_type) {
-        this.logger.warn('ClientOptionsValidator', `options.ResponseType contained an invalid option, valid options are '${validResponseTypes.join(', ')}'`, options.response_type);
-      } else {
-        this.logger.info('ClientOptionsValidator', `options.ResponseType not provided, defaulting to 'code'`);
-      }
-    } else {
-      this.logger.debug('ClientOptionsValidator', 'options.ResponseType passed and valid', options.response_type);
-    }
-
-    return response_type;
-  }
-
-  /**
    * Does verification of Scope sent in through options and sets default of 'openid profile' if not present or invalid
    *
    * @param {ClientOptions} options Options sent into authorize method
@@ -115,5 +91,24 @@ export class ClientOptionsValidator {
     }
 
     return options.scope || defaultScope;
+  }
+
+  private getValueOrDefaultFromEnum<T>(type: any, parameterName: string, defaultValue: T, providedValue?: T): T {
+    let determinedValue = providedValue;
+    const validValues = Object.values(type);
+
+    if (!validValues.includes(determinedValue)) {
+      determinedValue = defaultValue;
+
+      if (providedValue) {
+        this.logger.warn('ClientOptionsValidator', `${parameterName} contained an invalid option, valid options are '${validValues.join(', ')}'`, defaultValue);
+      } else {
+        this.logger.info('ClientOptionsValidator', `${parameterName} not provided, default to '${defaultValue}'`);
+      }
+    } else {
+      this.logger.debug('ClientOptionsValidator', `${parameterName} passed and valid`, providedValue);
+    }
+
+    return determinedValue;
   }
 }
