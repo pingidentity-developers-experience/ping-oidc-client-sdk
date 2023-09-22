@@ -157,6 +157,18 @@ export class OidcClient {
     return Promise.resolve();
   }
 
+  /**
+   * Used to pass in a window reference to authorize function, this allows popup window to work on safari (iPhone and macOS)
+   *
+   * TODO - window.open triggers Safari's popup blocker if it is called in different context from the main click event (e.g. in a Promise callback)
+   * if we can figure out a way to make the authorizeUrl and thus authorize functions syncronous (the cyrpto call is the problem child here) we can get rid
+   * of this altogether and safari will not attempt to block the popup, the advantage of requiring developers to call window.open is they are able to configure
+   * the popup as they see fit.
+   *
+   * @param popupRef {Window} window reference returned from window.open() call
+   * @param loginHint {string} optional - login_hint url parameter that will be appended to URL in case you have a username/email already
+   * @returns
+   */
   authorizeWithPopupRef(popupRef: Window, loginHint?: string): Promise<void | TokenResponse> {
     if (this.clientOptions.authMethod === AuthMethod.Redirect) {
       return Promise.reject(Error(`authorizeWithPopupRef called but client is configured with authMethod: 'redirect', please use authorize() instead or update authMethod to 'popup'`));
