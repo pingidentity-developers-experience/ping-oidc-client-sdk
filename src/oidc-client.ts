@@ -201,6 +201,12 @@ export class OidcClient {
       urlParams.append('prompt', 'none');
     }
 
+    if (this.clientOptions.customParams) {
+      Object.entries(this.clientOptions.customParams).forEach((param) => {
+        urlParams.append(encodeURIComponent(param[0]), encodeURIComponent(param[1]));
+      });
+    }
+
     return Promise.resolve(`${this.issuerConfiguration?.authorization_endpoint}?${urlParams.toString()}`);
   }
 
