@@ -54,6 +54,7 @@ export class ClientOptionsValidator {
       usePkce: this.getUsePkce(options),
       state: options.state,
       storageType: options.storageType,
+      customParams: options.customParams,
     };
 
     return result;
