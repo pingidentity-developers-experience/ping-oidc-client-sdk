@@ -78,8 +78,9 @@ function App() {
         // usePkce: false, // defaults to true
         // state: 'xyz', // will apply a random state as a string, you can pass in a string or object
         // logLevel: 'debug', // defaults to 'warn'
-        // storageType: 'worker' // 'local' | 'session' | 'worker'. defaults to 'local'. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present.
-      };
+        // storageType: 'worker', // 'local' | 'session' | 'worker'. defaults to 'local'. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present.
+        // customParams: { param1: 'value1', param2: 'value2' } // will append custom parameters to the authorization url.  Expects an object with string key/values.
+     };
   
       /**
        * Dynamically fetches your OAuth authorization servers endpoints from the spec-defied .well-known endpoint.

@@ -26,4 +26,7 @@ export interface ClientOptions {
 
   /** Optional - defaults to 'local', either local, session, or worker. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present. */
   storageType?: StorageType;
+
+  /** Optional - custom parameters object */
+  customParams?: { [key: string]: string };
 }
