@@ -1,10 +1,16 @@
 # OAuth/OIDC SDK
-## From Ping Identity
+## From Ping Identity Technical Enablement
 ### Authors: Technical Enablement Demo Team
 
-This project is an OAuth/OIDC SDK (hosted at npmjs.com), for bootstrapping the [OAuth](https://www.rfc-editor.org/rfc/rfc6749) and [OpenID Connect (OIDC)](https://openid.net/developers/specs/) protocol in your own custom applications, with the intent to automate or simplify steps in the protocol flow and integration of it. This allows you, the developer, to do what you do best, focusing on your company's business apps, while Ping Identity handles what we do best, identity security.
+---
+#### NOTE: For native integration with your Javascript or browser-based apps, please use the NPM package hosted [here](https://www.npmjs.com/package/@pingidentity-developers-experience/ping-oidc-client-sdk?activeTab=readme).
 
-With a developer-first focus and simplicity in design, native Javascript APIs were chosen as much as possible over 3rd-party packages and libraries which may conflict with your company's security standards. Additionally, native Javascript APIs simplify maintenance for Ping Identity and its customers, and reduces the potential attack vectors of this package in your applications. 
+#### You only need to clone or fork this repo if your intent is to contribute to, or extend, the project.
+---
+
+This project is an OAuth/OIDC SDK hosted at [npmjs.com](https://www.npmjs.com/package/@pingidentity-developers-experience/ping-oidc-client-sdk?activeTab=readme), for bootstrapping the [OAuth](https://www.rfc-editor.org/rfc/rfc6749) and [OpenID Connect (OIDC)](https://openid.net/developers/specs/) protocol in your own custom applications, with the intent to automate or simplify steps in the protocol flow and integration of it. This allows you, the developer, to do what you do best, focusing on your company's business apps, while Ping Identity handles what we do best, identity security.
+
+With a developer-first focus and simplicity in design, native Javascript APIs were chosen as much as possible over 3rd-party packages and libraries which incur supply chain risks, and may conflict with your company's security standards. Additionally, native Javascript APIs simplify maintenance for Ping Identity and its customers, and reduces the potential attack vectors of this package in your applications. 
 
 ### Security
 
@@ -18,6 +24,8 @@ NPM transient dependencies can run deep. For this reason, we include a software 
 
 #### Responsible Disclosure
 
+**Please read the contributing guide for reporting security issues.**
+
 Before each release, we run the following commands against our project to ensure a clean project. We make every reasonable effort to resolve category critical and high vulnerabilities.
 
 `npm doctor`
@@ -30,7 +38,7 @@ Because of the as-is offering and license of this project, it is highly recommen
 
 ### Included:
 
-This OAuth/OIDC Library allows you to quickly implement an OIDC flow in your Web Application. Its goal is to make it as easy as possible to authenticate a user and get an access token with as little developer intervention as possible. Currently this library only supports browser implementations.
+This OAuth/OIDC SDK allows you to quickly implement an OIDC flow in your Web Application. Its goal is to make it as easy as possible to authenticate a user and get an access token with as little developer intervention as possible. Currently this SDK only supports browser implementations.
 
 ### Getting Started:
 
@@ -50,7 +58,7 @@ In your js file:
 `import { OidcClient } from '@pingidentity-developers-experience/ping-oidc-client-sdk';`
 
 #### Usage:
-Note these examples show usage against PingOne, but the OidcClient will work against any OAuth/OIDC compliant authentication server. Also, this library is written using TypeScript so you will get typings in your app if needed.
+Note these examples show usage against PingOne, but the OidcClient will work against any OAuth/OIDC compliant authentication server. Also, this SDK is written using TypeScript so you will get typings in your app if needed.
 
 ``` JavaScript
 const clientOptions = {
@@ -65,7 +73,7 @@ const clientOptions = {
   // customParams: { param1: 'value1', param2: 'value2' } // will append custom parameters to the authorization url.  Expects an object with string key/values.
 };
 
-// Initialize the library using an authentication server's well-known endpoint. Note this takes in the base url of the auth server, not the well-known endpoint itself. '/.well-known/openid-configuration' will be appended to the url by the SDK.
+// Initialize the SDK using an authentication server's well-known endpoint. Note this takes in the base url of the auth server, not the well-known endpoint itself. '/.well-known/openid-configuration' will be appended to the url by the SDK.
 const oidcClient = await OidcClient.initializeFromOpenIdConfig('https://auth.pingone.com/<env-id>/as', clientOptions);
 
 // Used to authorize a user. Note this will use window.location.assign, thus redirecting the user after the url is generated.
@@ -81,7 +89,7 @@ const userInfo = await oidcClient.fetchUserInfo();
 if (await oidcClient.hasToken()) {
   const token = await oidcClient.getToken();
 
-  // If you need the state that was passed to the server, you can get it from the TokenResponse managed by the library
+  // If you need the state that was passed to the server, you can get it from the TokenResponse managed by the SDK
   const state = token.state;
 
   // Revoke the token on the server and remove it from storage
@@ -95,7 +103,7 @@ if (await oidcClient.hasToken()) {
 }
 ```
 
-We recommend you initialize the library using the static initializeFromOpenIdConfig method shown above, as this will hit the authorization server's well-known endpoint and use the endpoints defined in the response. Alternatively you can initialize an OidcClient manually.
+We recommend you initialize the SDK using the static initializeFromOpenIdConfig method shown above, as this will hit the authorization server's well-known endpoint and use the endpoints defined in the response. Alternatively you can initialize an OidcClient manually.
 
 ``` JavaScript
 const clientOptions = {
@@ -115,7 +123,7 @@ const client = await OidcClient.initializeClient(clientOptions, openIdConfig);
 
 #### Usage without node/npm:
 
-If you wish to use the library in a web application that does not use node or npm you can import it from unpkg or a similar CDN and use it as follows.
+If you wish to use the SDK in a web application that does not use node or npm you can import it from unpkg or a similar CDN and use it as follows.
 
 ``` HTML
 <!-- NOTE: In most cases you should specify a version in case we release major/breaking changes, see https://www.unpkg.com/ for more information -->
@@ -131,16 +139,16 @@ If you wish to use the library in a web application that does not use node or np
 | Parameter   | Type (TS enum where applicable) | Description  | Options | Default value if not specified |
 | ----------- | ---- |------------- | ------- | ------------- |
 | client_id (required)| string | Client id issued by the auth server for your application | - | - |
-| redirect_uri | string | Redirect URI for server to send user back to | - | Current URL from browser when library was initialized |
+| redirect_uri | string | Redirect URI for server to send user back to | - | Current URL from browser when SDK was initialized |
 | response_type | string | Token response type |`'code'`, `'token'`|`'code'`|
-| usePkce | boolean | Whether the library will add a code challenge to the url | `true`, `false` | `true` |
+| usePkce | boolean | Whether the SDK will add a code challenge to the url | `true`, `false` | `true` |
 | scope | string | Requested scopes for token | - | `'openid profile'` |
 | state | string \| object | State passed to server | - | Random string to act as a nonce token |
 | logLevel | string (LogLevel) | Logging level for statements printed to console | `'debug'`, `'info'`, `'warn'`, `'error'`, `'none'` | `'warn'`
 | storageType | string (StorageType) | Where tokens are stored; localStorage, sessionStorage, Web Worker. Worker is recommended for better security. | `'local'`, `'session'`, `'worker'` | `'local'` (for backwards compatibility) |
 | customParams | object | Custom URI parameters to append to the authorization URL | - | - |
 
-Errors from the library are passed up to your application so that you can handle them gracefully if needed. You can catch them in try/catch block if you are using async/await or you can use the catch() method on the promise returned from the function call.
+Errors from the SDK are passed up to your application so that you can handle them gracefully if needed. You can catch them in try/catch block if you are using async/await or you can use the catch() method on the promise returned from the function call.
 
 ** Note: TokenResponse is as follows (this is a TypeScript interface, `?` indicates an optional property):
 
@@ -161,18 +169,10 @@ The OidcClient supports multiple instances out of the box, allowing you to manag
 
 #### Implementation Details:
 
-When using `authorize()` you can optionally pass in a login_hint parameter as a string if you have already collected a username or email from the user. The authorize function will build the url and navigate the current browser tab to it for you. Alternatively if you would like to get the authorization url ahead of time and trigger the navigation to the server yourself via an anchor href or click event, you can do so using the `authorizeUrl()` function instead. When using PKCE (which is enabled by default) the library will generate a code verifier and challenge for you and use the verifier when getting a token from the token_endpoint on the authentication server.
+When using `authorize()` you can optionally pass in a login_hint parameter as a string if you have already collected a username or email from the user. The authorize function will build the url and navigate the current browser tab to it for you. Alternatively if you would like to get the authorization url ahead of time and trigger the navigation to the server yourself via an anchor href or click event, you can do so using the `authorizeUrl()` function instead. When using PKCE (which is enabled by default) the SDK will generate a code verifier and challenge for you and use the verifier when getting a token from the token_endpoint on the authentication server.
 
-After a user has authorized on the server they will be redirected back to your app with a token in the url fragment (implicit grants) or with a `code` in the query string (`grant_type: 'authorization_code'`). The library will check for both cases when it is initialized and handle getting the token for you. It will also remove the token or code from the url and browser history. If you need the token from the library, use the `getToken()` function, the token response from that call also includes the state you passed through the clientOptions. The library will attempt to `JSON.parse` the state when it received from the authentication server, but if that fails it will be stored as a string.
+After a user has authorized on the server they will be redirected back to your app with a token in the url fragment (implicit grants) or with a `code` in the query string (`grant_type: 'authorization_code'`). The SDK will check for both cases when it is initialized and handle getting the token for you. It will also remove the token or code from the url and browser history. If you need the token from the SDK, use the `getToken()` function, the token response from that call also includes the state you passed through the clientOptions. The SDK will attempt to `JSON.parse` the state when it received from the authentication server, but if that fails it will be stored as a string.
 
-### Miscellany
-
-- Estimated Release Schedule Overview
-  - Planning and development: Q1 2023.
-  - Internal beta testing period: April, 2023.
-  - Feedback/updates sprint: May, 2023.
-  - Early access release: June, 2023.
-  - Productized and GA release: H2, 2023
 
 ### Disclaimer
-THIS ENTIRE PROJECT AND ALL ITS ASSETS IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PING IDENTITY OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) SUSTAINED BY YOU OR A THIRD PARTY, HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT ARISING IN ANY WAY OUT OF THE USE OF THIS SAMPLE CODE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THIS ENTIRE PROJECT AND ALL ITS ASSETS IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PING IDENTITY OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) SUSTAINED BY YOU OR A THIRD PARTY, HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT ARISING IN ANY WAY OUT OF THE USE OF THIS PROJECT CODE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
