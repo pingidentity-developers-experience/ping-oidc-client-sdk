@@ -35,7 +35,7 @@ export class BrowserUrlManager {
   }
 
   get rawState(): string | undefined {
-    return this.searchParams.get('state');
+    return this.searchParams.get('state') || this.hashParams.get('state');
   }
 
   checkUrlForState(): string | any {
@@ -71,7 +71,7 @@ export class BrowserUrlManager {
       this.logger.info('BrowserUrlManager', 'found an access token in the url', token);
 
       // Get rid of hash, so token isn't displayed in browser URL
-      window.history.replaceState(null, null, `${window.location.pathname}?${window.location.search}`);
+      window.history.replaceState(null, null, `${window.location.pathname}${window.location.search ? `?${window.location.search}` : ''}`);
 
       this.hashParams = new URLSearchParams();
 
