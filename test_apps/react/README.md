@@ -2,6 +2,11 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+---
+### This test app is intended for developers contributing to this project. This is not for demos or intended to be a sample app.
+### For an exmaple of integrating this OIDC SDK with your custom app, please check out our OIDC SDK example integration package in our [Ping example integrations library](https://github.com/pingidentity-developers-experience/ping-integration-example-packages).
+---
+
 ## Available Scripts
 
 In the project directory, you can run:

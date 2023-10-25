@@ -2,6 +2,11 @@
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.0.1.
 
+---
+### This test app is intended for developers contributing to this project. This is not for demos or intended to be a sample app.
+### For an exmaple of integrating this OIDC SDK with your custom app, please check out our OIDC SDK example integration package in our [Ping example integrations library](https://github.com/pingidentity-developers-experience/ping-integration-example-packages).
+---
+
 ## Development server
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
