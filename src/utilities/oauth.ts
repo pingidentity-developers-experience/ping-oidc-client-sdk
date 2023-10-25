@@ -3,8 +3,6 @@ import { Logger } from './logger';
 
 interface PkceArtifacts {
   codeVerifier: string;
-  state: string;
-  nonce: string;
   codeChallenge?: string;
 }
 
@@ -84,18 +82,10 @@ export class OAuth {
    * @returns {Promise<PkceArtifacts>} artifacts necessary to be sent through the request body or URL
    */
   static async generatePkceArtifacts(options: ClientOptions, logger: Logger): Promise<PkceArtifacts> {
-    let state: string;
     const codeVerifier = OAuth.getRandomString(128);
-
-    if (options.state) {
-      state = typeof options.state === 'string' ? options.state : JSON.stringify(options.state);
-    } else {
-      state = OAuth.getRandomString(20);
-    }
 
     let codeChallenge: string;
 
-    logger.debug('Utilities.OAuth', 'PKCE Request state generated', state);
     logger.debug('Utilities.OAuth', 'PKCE CodeVerifier generated', codeVerifier);
 
     if (options.usePkce) {
@@ -109,11 +99,22 @@ export class OAuth {
     }
 
     return {
-      nonce: OAuth.getRandomString(10),
       codeVerifier,
       codeChallenge,
-      state,
     };
+  }
+
+  static getOrGenerateState(options: ClientOptions, logger: Logger): string {
+    let state: string;
+
+    if (options.state) {
+      state = typeof options.state === 'string' ? options.state : JSON.stringify(options.state);
+    } else {
+      state = OAuth.getRandomString(20);
+    }
+
+    logger.debug('Utilities.OAuth', 'State determined', state);
+    return state;
   }
 }
 
