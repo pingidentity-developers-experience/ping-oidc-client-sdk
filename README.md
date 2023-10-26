@@ -40,7 +40,7 @@ const clientOptions = {
   // customParams: { param1: 'value1', param2: 'value2' } // will append custom parameters to the authorization url.  Expects an object with string key/values.
 };
 
-// Initialize the SDK using an authentication server's well-known endpoint. Note this takes in the base url of the auth server, not the well-known endpoint itself. '/.well-known/openid-configuration' will be appended to the url by the SDK.
+// Initialize the SDK using an authorization server's well-known endpoint. Note this takes in the base url of the auth server, not the well-known endpoint itself. '/.well-known/openid-configuration' will be appended to the url by the SDK.
 const oidcClient = await OidcClient.initializeFromOpenIdConfig('https://auth.pingone.com/<env-id>/as', clientOptions);
 
 // Authorize a user. Note this will use window.location.assign, thus redirecting the user after the url is generated.
@@ -115,14 +115,14 @@ yarn add @pingidentity-developers-experience/ping-oidc-client-sdk
 `import { OidcClient } from '@pingidentity-developers-experience/ping-oidc-client-sdk';`
 
 #### Usage:
-Note these examples show usage against PingOne, but the OidcClient will work against any OAuth/OIDC compliant authentication server. Also, this SDK is written using TypeScript so you will get typings in your app if needed.
+Note these examples show usage against PingOne, but the OidcClient will work against any OAuth/OIDC compliant authorization server. Also, this SDK is written using TypeScript so you will get typings in your app if needed.
 
 **Errors from the SDK** are passed up to your application so that you can handle them gracefully and manage your UX requirements. You can catch them in a try/catch block if you are using async/await or you can use the catch() method on the promise returned from the function call.
 
 **3) We recommend you initialize the SDK using the static initializeFromOpenIdConfig method shown above, as this will hit the authorization server's well-known endpoint and use the meta data in the response to configure the SDK endpoints for you.**
 
 ``` JavaScript
-// Initialize the SDK using an authentication server's well-known endpoint. Note this takes in the base url of the auth server, not the well-known endpoint itself. '/.well-known/openid-configuration' will be appended to the url by the SDK.
+// Initialize the SDK using an authorization server's well-known endpoint. Note this takes in the base url of the auth server, not the well-known endpoint itself. '/.well-known/openid-configuration' will be appended to the url by the SDK.
 const oidcClient = await OidcClient.initializeFromOpenIdConfig('https://auth.pingone.com/<env-id>/as', clientOptions);
 ```
 
@@ -213,9 +213,9 @@ The OidcClient supports multiple instances out of the box, allowing you to manag
 
 Some authorization servers, such as Ping Identity's, support and take advantage of custom params in the querystring of an /authorize endpoint call. When initiating this SDK, you can optionally pass in an object of name:value pairs that will be parsed, encoded and appended to the querystring. See the [ClientOptions Parameter Details](#options-details) above.
 
-When using `authorize()` you can optionally pass in a login_hint parameter as a string if you have already collected a username or email from the user. The authorize function will build the url and navigate the current browser tab to it for you. Alternatively if you would like to get the authorization url ahead of time and trigger the navigation to the server yourself via an anchor href or click event, you can do so using the `authorizeUrl()` function instead. When using PKCE (which is enabled by default) the SDK will generate a code verifier and challenge for you and use the verifier when getting a token from the token_endpoint on the authentication server.
+When using `authorize()` you can optionally pass in a login_hint parameter as a string if you have already collected a username or email from the user. The authorize function will build the url and navigate the current browser tab to it for you. Alternatively if you would like to get the authorization url ahead of time and trigger the navigation to the server yourself via an anchor href or click event, you can do so using the `authorizeUrl()` function instead. When using PKCE (which is enabled by default) the SDK will generate a code verifier and challenge for you and use the verifier when getting a token from the token_endpoint on the authorization server.
 
-After a user has authorized on the server they will be redirected back to your app with a token in the url fragment (implicit grants) or with a `code` in the query string (`grant_type: 'authorization_code'`). The SDK will check for both cases when it is initialized and handle getting the token for you. It will also remove the token or code from the url and browser history. If you need the token from the SDK, use the `getToken()` function, the token response from that call also includes the state you passed through the clientOptions. The SDK will attempt to `JSON.parse` the state when it received from the authentication server, but if that fails it will be stored as a string.
+After a user has authorized on the server they will be redirected back to your app with a token in the url fragment (implicit grants) or with a `code` in the query string (`grant_type: 'authorization_code'`). The SDK will check for both cases when it is initialized and handle getting the token for you. It will also remove the token or code from the url and browser history. If you need the token from the SDK, use the `getToken()` function, the token response from that call also includes the state you passed through the clientOptions. The SDK will attempt to `JSON.parse` the state when it received from the authorization server, but if that fails it will be stored as a string.
 
 **TokenResponse is as follows (this is a TypeScript interface, `?` indicates an optional property)**
 
