@@ -19,6 +19,7 @@
 - [ClientOptions Parameter Details](#options-details)
 - [Misc. Details](#misc-details)
 - [Requesting enhancements or reporting issues](#requests-issues)
+- [Known Gotchas](#gotchas)
 - [Disclaimer](#disclaimer)
 
 ### tl;dr - I Just Wanna Play<a id="tldr"></a>
@@ -55,7 +56,9 @@ if (await oidcClient.hasToken()) {
 ### Project Details<a id="project-details"></a>
 This project is an OAuth/OIDC SDK hosted at [npmjs.com](https://www.npmjs.com/package/@pingidentity-developers-experience/ping-oidc-client-sdk?activeTab=readme), for bootstrapping the [OAuth](https://www.rfc-editor.org/rfc/rfc6749) and [OpenID Connect (OIDC)](https://openid.net/developers/specs/) protocol in your own custom applications, with the intent to automate or simplify steps in the protocol flow and integration of it. This allows you, the developer, to do what you do best, focusing on your company's business apps, while Ping Identity handles what we do best, identity security.
 
-With a developer-first focus and simplicity in design, native Javascript APIs were chosen as much as possible over 3rd-party packages and libraries which incur supply chain risks, and may conflict with your company's security standards. Additionally, native Javascript APIs simplify maintenance for Ping Identity and its customers, and reduces the potential attack vectors of this package in your applications. 
+With a developer-first focus and simplicity in design, native Javascript APIs were chosen as much as possible over 3rd-party packages and libraries which incur supply chain risks, and may conflict with your company's security standards. Additionally, native Javascript APIs simplify maintenance for Ping Identity and its customers, and reduces the potential attack vectors of this package in your applications.
+
+This project was built to the OAuth/OIDC specs, and is not Ping proprietary. Therefore this SDK will work with any OAuth-compliant authorization server.
 
 ### Security<a id="security"></a>
 
@@ -91,6 +94,7 @@ Because of the as-is offering and license of this project, it is highly recommen
 - End session / Logout
 - User Info
 - Storage Options; *local, session, Worker (in-memory)*
+- Custom params support on the /authorize call.
 
 ### Step-by-step - Package/Module<a id="step-by-step-npm"></a>
 
@@ -140,7 +144,7 @@ const openIdConfig = {
 const client = await OidcClient.initializeClient(clientOptions, openIdConfig);
 ```
 
-**4) Getting a token from storage**
+**4) Getting a token from storage** - plus revoke, refresh, and ending a session
 ``` JavaScript
 if (await oidcClient.hasToken()) {
   const token = await oidcClient.getToken();
@@ -207,6 +211,8 @@ The OidcClient supports multiple instances out of the box, allowing you to manag
 
 #### Implementation Details:
 
+Some authorization servers, such as Ping Identity's, support and take advantage of custom params in the querystring of an /authorize endpoint call. When initiating this SDK, you can optionally pass in an object of name:value pairs that will be parsed, encoded and appended to the querystring. See the [ClientOptions Parameter Details](#options-details) above.
+
 When using `authorize()` you can optionally pass in a login_hint parameter as a string if you have already collected a username or email from the user. The authorize function will build the url and navigate the current browser tab to it for you. Alternatively if you would like to get the authorization url ahead of time and trigger the navigation to the server yourself via an anchor href or click event, you can do so using the `authorizeUrl()` function instead. When using PKCE (which is enabled by default) the SDK will generate a code verifier and challenge for you and use the verifier when getting a token from the token_endpoint on the authentication server.
 
 After a user has authorized on the server they will be redirected back to your app with a token in the url fragment (implicit grants) or with a `code` in the query string (`grant_type: 'authorization_code'`). The SDK will check for both cases when it is initialized and handle getting the token for you. It will also remove the token or code from the url and browser history. If you need the token from the SDK, use the `getToken()` function, the token response from that call also includes the state you passed through the clientOptions. The SDK will attempt to `JSON.parse` the state when it received from the authentication server, but if that fails it will be stored as a string.
@@ -224,9 +230,20 @@ export interface TokenResponse {
 }
 ```
 
-### Requesting Enhancements or Reporting Issues<a id="requests-issues"></a>
+### Requesting Enhancements, community support, or Reporting Issues<a id="requests-issues"></a>
 
 Use the standard [github Issues list](https://github.com/pingidentity-developers-experience/ping-oidc-client-sdk/issues/new) to make these types of requests or reports, and please apply the proper label.
+
+### Known Gotchas<a id="gotchas"></a>
+- **`Error: Missing class properties transform`**
+We've seen this error in React projects where dependencies had been "ejected". (*Could apply to other JS frameworks*). If you get this error, the fix is to apply this package, [babel plugin transform class properties](https://www.npmjs.com/package/babel-plugin-transform-class-properties).
+*If you've ejected your dependencies, you will need to manually configure webpack config file in the babel-loader section.*
+
+- **Salesforce Lightning Development**
+ -- Lightning and static resources with async functions cause known cross-browser compatibility issues. Lightning addresses this in the docs with a solution from babeljs.
+ [Transform async to generator](https://developer.salesforce.com/docs/platform/lwc/guide/security-lwsec-async.html).
+ -- Lightning does not typically allow custom code to access/install external packages or modules, and therefore have to be downloaded and put on their CDN. For this, we recommend you use the `unpkg.com` URL we provide above in the [Usage without node/npm](#usage-without-nodenpm).
+ -- One other consideration, we've seen how the development framework for Salesforce Lightning wraps the operations of the `promise` object. This hasn't been the root cause of any experiences thus far, but is something to consider if you see anomalous behavior.
 
 ### Disclaimer<a id="disclaimer"></a>
 THIS ENTIRE PROJECT AND ALL ITS ASSETS IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PING IDENTITY OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) SUSTAINED BY YOU OR A THIRD PARTY, HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT ARISING IN ANY WAY OUT OF THE USE OF THIS PROJECT CODE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
