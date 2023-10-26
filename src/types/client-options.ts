@@ -1,6 +1,7 @@
 import ResponseType from './response-type';
 import LogLevel from './log-level';
 import StorageType from './client-storage';
+import DPoP from './dpop'; // TODO DPOP - change type name. DPopType? DpopOption? DpopSupport?
 
 export interface ClientOptions {
   /** Required - client id to authorize */
@@ -29,4 +30,8 @@ export interface ClientOptions {
 
   /** Optional - custom parameters object */
   customParams?: { [key: string]: string };
+
+  // TODO DPOP
+  /** Optional - Whether to implement DPoP (Dynamic proof of possession) and enforce. Defaults to false */
+  dpopRequired?: DPoP;
 }

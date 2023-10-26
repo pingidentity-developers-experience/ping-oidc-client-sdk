@@ -6,7 +6,7 @@
  * @description The main entry point for your application's integration.
  */
 
-import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
+import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions, DPoP } from './types';
 import { Logger, OAuth, ClientStorageBase, Url, BrowserUrlManager } from './utilities';
 import { LocalClientStorage } from './utilities/local-store';
 import { SessionClientStorage } from './utilities/session-store';
@@ -40,7 +40,8 @@ export class OidcClient {
 
     this.browserUrlManager = new BrowserUrlManager(this.logger);
 
-    // TODO - validator for issuerConfig?
+    // TODO - validator for issuerConfig
+    // TODO Check for DPoP support in meta data. dpop_signing_alg_values_supported
     this.issuerConfiguration = issuerConfig;
     this.clientOptions = new ClientOptionsValidator(this.logger, this.browserUrlManager).validate(clientOptions);
 
@@ -274,6 +275,8 @@ export class OidcClient {
         }
       }
 
+      // TODO DPoP option checked here and DPoP Proof added here.
+      // also need to check for nonce in response and add to DPoP proof JWT with token.
       try {
         token = await this.authenticationServerApiCall<TokenResponse>(this.issuerConfiguration.token_endpoint, body);
       } catch (error) {
@@ -489,4 +492,14 @@ export class OidcClient {
       return undefined;
     }
   }
+
+  // TODO DPOP
+  /**
+   * Need to check for invalid_dpop_proof error response from AS. https://datatracker.ietf.org/doc/html/rfc9449#token-request-code
+   * Need to make sure we got back token_type=DPoP in the token response. https://datatracker.ietf.org/doc/html/rfc9449#token-response
+   * ... if token_type=bearer, DPoP for ATs is not supported. Client-options include dpopRequired, based on the enum type called
+   * ... DPoP with values of true, optional, false. True means DPoP is required and must be enforced. So if token_type=bearer is
+   * .. returned instead, we must throw an error. If optional, a downgrade to a bearer token is acceptable. False means no DPoP.
+   *
+   */
 }

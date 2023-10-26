@@ -6,6 +6,25 @@ interface PkceArtifacts {
   codeChallenge?: string;
 }
 
+// TODO DPOP
+interface DpopHeader {
+  typ: string;
+  alg: string;
+  jwk: string;
+}
+
+// TODO DPOP
+interface DpopPayload {
+  jti: string;
+  htm: string;
+  htu: string;
+  iat: string;
+  ath: string;
+  nonce: string;
+}
+
+
+
 export class OAuth {
   /**
    *
@@ -116,6 +135,77 @@ export class OAuth {
     logger.debug('Utilities.OAuth', 'State determined', state);
     return state;
   }
-}
 
-export default OAuth;
+  // TODO DPOP
+  // do we pull random algorithm from meta data dpop_signing_alg_values_supported???
+  // Do we allow passing alg as an arg to force a specific alg? Think FinTech. The AS may support algs FinTech doesnt allow.
+  /**
+   * Generates DPoP proof JWTs
+   * https://datatracker.ietf.org/doc/html/rfc9449#name-the-dpop-http-header
+   */
+  static generateDpopProof(htuClaim: string, alg?: string, nonce?: string): string {
+    let dpopProofJwt: string;
+
+    // create unique Id
+    const jti = this.generateJtiClaim();
+    // Get public key
+    const publicKey = this.generatePublicKeyPair();
+    // create timestamp
+    const iat = new Date().getTime();
+
+    // {
+    //   "typ": "dpop+jwt",
+    //     "alg": "RSA-OAEP",
+    //       "jwk": {
+    //     "kty": "EC",
+    //       "x": "l8tFrhx-34tV3hRICRDY9zCkDlpBhF42UQUfWVAWBFs",
+    //         "y": "9VE4jf_Ok_o64zbTTlcuNJajHmt6v9TDVrU0CdvGRDA",
+    //           "crv": "P-256"
+    //   }
+    // }
+    // .
+    // {
+    //   "jti": jti,
+    //     "htm": "POST",
+    //       "htu": htuClaim,
+    //         "iat": iat
+    // }
+    return dpopProofJwt;
+  }
+
+  // TODO DPOP
+  /**
+   * Generates jti claim for DPoP proof JWT
+   * https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID
+   */
+  static generateJtiClaim(): string {
+    const v4uuid = window.crypto.randomUUID();
+    return v4uuid;
+  }
+
+  // TODO DPoP
+  /**
+   * Generates public-key pair for DPoP proof JWTs
+   * https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/generateKey
+   */
+  static async generatePublicKeyPair(alg?: string): Promise<Object> {
+    const publicKeyPair = await window.crypto.subtle.generateKey(
+      {
+        name: 'ECDSA',
+        namedCurve: 'P-384',
+      },
+      true,
+      ['sign', 'verify'],
+    ),
+    return publicKeyPair;
+  }
+
+  /**
+   * Export Crypto Key
+   * https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/exportKey#json_web_key_export
+   */
+  static async exportCryptoKey(cryptoKey) {
+    const exportedKey = await window.crypto.subtle.exportKey('jwk', cryptoKey);
+    return JSON.stringify(exportedKey, null, ' ');
+  }
+}
