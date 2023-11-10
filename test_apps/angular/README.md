@@ -7,12 +7,12 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 ### For an example of integrating this OIDC SDK with your custom app, please check out our OIDC SDK example integration package in our [Ping example integrations library](https://github.com/pingidentity-developers-experience/ping-integration-example-packages).
 ---
 
-##Prepping the project for your development
+## Prepping the project for your development
 
 1. If you plan to contribute and submit pull requests, be sure to read the contributor's guide found in the root .github folder, or online at [CONTRIBUTING.MD](https://github.com/pingidentity-developers-experience/ping-oidc-client-sdk/blob/main/.github/CONTRIBUTING.md)
 1. `cd` into the project/repo root folder and run, `npm install`
 1. Then run, `npm run build`
-1. `cd` into the test_apps/react directory and run, `npm install`
+1. `cd` into the test_apps/angular directory and run, `npm install`
 1. Then run, `npm link ../../`
 1. Your project is now ready to spin up. Just run, `ng serve`
 
