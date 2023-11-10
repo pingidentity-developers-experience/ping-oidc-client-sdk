@@ -1,14 +1,15 @@
 /**
- * OAuth/OIDC SDK implementation example app 
+ * OAuth/OIDC SDK testing app 
  * Ping Identity
  * @author Technical Enablement Demo Team
- * @description A bare-bones test app built with create-react-app (CRA) to show an implementation example. 
- * The SDK is not based on React. CRA just makes it easy to bootstrap a quick Javascript app to prototype or test.
+ * @description A bare-bones test app built with create-react-app (CRA) for developers to test with. 
+ * The SDK is NOT based on React. CRA just makes it easy to bootstrap a quick Javascript app with which to test and prototype.
  * @see https://react.dev/learn/start-a-new-react-project
  */
 
 import { OidcClient } from '@pingidentity-developers-experience/ping-oidc-client-sdk';
-import logo from './logo.svg';
+// import logo from './logo.svg';
+import logo from './Pingy_Still.png';
 import './App.css';
 
 import { useState, useEffect, useRef } from 'react';
@@ -76,7 +77,7 @@ function App() {
         scope: 'openid profile email revokescope', // defaults to 'openid profile email'
         // response_type: 'token', // defaults to 'code'
         // usePkce: false, // defaults to true
-        // state: 'xyz', // will apply a random state as a string, you can pass in a string or object
+        // state: 'aad23b3c5f91a14fcef2fa48994478be857576ad', // will apply a random state as a string, you can pass in a string or object
         // logLevel: 'debug', // defaults to 'warn'
         // storageType: 'worker', // 'local' | 'session' | 'worker'. defaults to 'local'. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present.
         // customParams: { param1: 'value1', param2: 'value2' } // will append custom parameters to the authorization url.  Expects an object with string key/values.
@@ -113,13 +114,13 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <img src={logo} className="app-logo" alt="logo" />
-        <h1>OIDC Client Test App</h1>
+        <img src={logo} className="app-logo" alt="logo" title="You're using the React test app!" />
+        <h1>OIDC Client Testing App</h1>
       </header>
       {!token && oidcClient.current &&
         <div>
           <button className="app-link" onClick={authorize}>
-            Ping OIDC Authorize URL
+            Click this to test your changes <br /> against a Ping OIDC authorize endpoint
           </button>
           <div className="app-example-user"><strong>Test user:</strong>&nbsp;demouser1 / 2FederateM0re!</div>
         </div>}
