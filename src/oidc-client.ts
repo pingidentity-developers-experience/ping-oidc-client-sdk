@@ -356,7 +356,7 @@ export class OidcClient {
         this.logger.error('OidcClient', 'Refresh token is invalid or expired, attempting a silent authentication request.');
       }
     } else {
-      this.logger.warn('OidcClient', 'No refresh token found, the Authentication Server may not support refresh tokens, attempting a silent authentication request.');
+      this.logger.warn('OidcClient', 'No refresh token found, the authorization Server may not support refresh tokens, attempting a silent authentication request.');
     }
 
     return this.authorize(undefined, true);
