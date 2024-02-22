@@ -122,7 +122,7 @@ function App() {
           <button className="app-link" onClick={authorize}>
             Click this to test your changes <br /> against a Ping OIDC authorize endpoint
           </button>
-          <div className="app-example-user"><strong>Test user:</strong>&nbsp;demouser1 / 2FederateM0re!</div>
+          <div className="app-example-user"><strong>Test user:</strong>&nbsp;demouser1 / 2OrchestrateM0re!</div>
         </div>}
       {token &&
         <>
