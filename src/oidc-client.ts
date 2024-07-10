@@ -206,7 +206,7 @@ export class OidcClient {
 
     if (this.clientOptions.customParams) {
       Object.entries(this.clientOptions.customParams).forEach((param) => {
-        urlParams.append(encodeURIComponent(param[0]), encodeURIComponent(param[1]));
+        urlParams.append(param[0], param[1]);
       });
     }
 
