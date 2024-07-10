@@ -197,7 +197,7 @@ export class OidcClient {
     }
 
     if (loginHint) {
-      urlParams.append('login_hint', encodeURIComponent(loginHint));
+      urlParams.append('login_hint', loginHint);
     }
 
     if (silentAuthN) {
