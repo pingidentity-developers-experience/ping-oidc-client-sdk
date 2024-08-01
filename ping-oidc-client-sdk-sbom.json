@@ -3,18 +3,18 @@
   "bomFormat": "CycloneDX",
   "specVersion": "1.4",
   "version": 1,
-  "serialNumber": "urn:uuid:3748eaf1-2604-4646-858e-2a6139df4572",
+  "serialNumber": "urn:uuid:cd712af0-dfbc-4a28-80a6-310215ccd083",
   "metadata": {
-    "timestamp": "2024-05-02T19:06:31.606Z",
+    "timestamp": "2024-08-01T18:42:24.094Z",
     "tools": [
       {
         "name": "npm",
-        "version": "9.5.1"
+        "version": "10.7.0"
       },
       {
         "vendor": "@cyclonedx",
         "name": "cyclonedx-npm",
-        "version": "1.17.0",
+        "version": "1.19.3",
         "externalReferences": [
           {
             "url": "git+https://github.com/CycloneDX/cyclonedx-node-npm.git",
@@ -36,7 +36,7 @@
       {
         "vendor": "@cyclonedx",
         "name": "cyclonedx-library",
-        "version": "6.6.0",
+        "version": "6.11.0",
         "externalReferences": [
           {
             "url": "git+https://github.com/CycloneDX/cyclonedx-javascript-library.git",
@@ -60,8 +60,8 @@
       "type": "library",
       "name": "ping-oidc-client-sdk",
       "group": "@pingidentity-developers-experience",
-      "version": "2.3.3",
-      "bom-ref": "@pingidentity-developers-experience/ping-oidc-client-sdk@2.3.3",
+      "version": "2.3.4",
+      "bom-ref": "@pingidentity-developers-experience/ping-oidc-client-sdk@2.3.4",
       "author": "Ping Identity Technical Enablement",
       "description": "An OAuth/OIDC SDK to simplify and fastrack integration with OAuth/OIDC protocol endpoints in SPAs (browser-based apps). AuthCode and implicit grant types. PKCE, state, userInfo, revoke, configurable logging, and token storage options.",
       "licenses": [
@@ -71,7 +71,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40pingidentity-developers-experience/ping-oidc-client-sdk@2.3.3?vcs_url=git%2Bhttps%3A//github.com/pingidentity-developers-experience/ping-oidc-client-sdk.git",
+      "purl": "pkg:npm/%40pingidentity-developers-experience/ping-oidc-client-sdk@2.3.4?vcs_url=git%2Bhttps%3A//github.com/pingidentity-developers-experience/ping-oidc-client-sdk.git",
       "externalReferences": [
         {
           "url": "git+https://github.com/pingidentity-developers-experience/ping-oidc-client-sdk.git",
@@ -23417,7 +23417,7 @@
         {
           "license": {
             "id": "MIT",
-            "url": "http%20 : //www.opensource.org/licenses/MIT"
+            "url": "http%20%20:%20//www.opensource.org/licenses/MIT"
           }
         }
       ],
@@ -28952,7 +28952,7 @@
   ],
   "dependencies": [
     {
-      "ref": "@pingidentity-developers-experience/ping-oidc-client-sdk@2.3.3",
+      "ref": "@pingidentity-developers-experience/ping-oidc-client-sdk@2.3.4",
       "dependsOn": [
         "@babel/cli@7.24.1",
         "@babel/core@7.24.4",
