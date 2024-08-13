@@ -31,7 +31,7 @@ export default function OidcExample() {
 function App() {
   const oidcClient = useRef();
 
-  const [authMethod, setAuthMethod] = useState('redirect');
+  const authWithPopup = true;
 
   const [token, setToken] = useState();
   const [userInfo, setUserInfo] = useState();
@@ -39,9 +39,9 @@ function App() {
 
   const authorize = async () => {
     try {
-      const popup = window.open('about:blank', 'popup', 'popup=true,width=600,height=800');
-      if (authMethod === 'popup') {
-        setToken(await oidcClient.current.authorizeWithPopupRef(popup /* optional login_hint (e.g. username) */));
+      if (authWithPopup) {
+        const popup = window.open('about:blank', 'popup', 'popup=true,width=400,height=600');
+        setToken(await oidcClient.current.authorizeWithPopup(popup /*, optional login_hint (e.g. username) */));
         const userInfo = await oidcClient.current.fetchUserInfo();
         setUserInfo(userInfo);
       } else {
@@ -63,7 +63,7 @@ function App() {
 
   const signOff = async () => {
     // Its just an app for testing and example, so we're assuming React's default dev port is available.
-    await oidcClient.current.endSession('https://localhost:3000');
+    await oidcClient.current.endSession('https://192.168.1.32:3000');
     setToken(null);
     setUserInfo(null);
   };
@@ -84,7 +84,7 @@ function App() {
     async function initializeOidc() {
       const clientOptions = {
         client_id: '6e610880-8e52-4ba7-a2dc-c5f9bd80f3ee',
-        redirect_uri: 'https://localhost:3000',
+        redirect_uri: 'https://192.168.1.32:3000',
         scope: 'openid profile email revokescope', // defaults to 'openid profile email'
         // response_type: 'token', // defaults to 'code'
         // usePkce: false, // defaults to true
@@ -92,7 +92,6 @@ function App() {
         // logLevel: 'debug', // defaults to 'warn'
         // storageType: 'worker', // 'local' | 'session' | 'worker'. defaults to 'local'. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present.
         // customParams: { param1: 'value1', param2: 'value2' } // will append custom parameters to the authorization url.  Expects an object with string key/values.
-        authMethod: authMethod, // 'redirect' | 'popup'. defaults to 'redirect'
       };
 
       /**
@@ -120,7 +119,7 @@ function App() {
     }
 
     initializeOidc().catch(console.error);
-  }, [authMethod]);
+  }, []);
 
   return (
     <div className="app">
@@ -130,15 +129,6 @@ function App() {
       </header>
       {!token && oidcClient.current && (
         <div>
-          <div className="app-method-container">
-            <label className="app-method-label" htmlFor="authMethod">
-              Auth Method
-            </label>
-            <select id="authMethod" value={authMethod} onChange={(e) => setAuthMethod(e.target.value)}>
-              <option value="redirect">Redirect</option>
-              <option value="popup">Popup</option>
-            </select>
-          </div>
           <button className="app-link" onClick={authorize}>
             Click this to test your changes <br /> against a Ping OIDC authorize endpoint
           </button>

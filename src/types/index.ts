@@ -1,4 +1,3 @@
-export * from './auth-method';
 export * from './client-options';
 export * from './client-storage';
 export * from './log-level';

@@ -1,7 +1,6 @@
 import ResponseType from './response-type';
 import LogLevel from './log-level';
 import StorageType from './client-storage';
-import AuthMethod from './auth-method';
 
 export interface ClientOptions {
   /** Required - client id to authorize */
@@ -30,7 +29,4 @@ export interface ClientOptions {
 
   /** Optional - custom parameters object */
   customParams?: { [key: string]: string };
-
-  /** Optional - defaults to 'current-tab' for backwards compatibility, could consider changing this when we publish a major version */
-  authMethod?: AuthMethod;
 }

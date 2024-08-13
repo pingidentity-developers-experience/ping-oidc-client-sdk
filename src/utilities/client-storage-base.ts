@@ -6,12 +6,14 @@ export abstract class ClientStorageBase {
   protected readonly REFRESH_TOKEN_KEY: string;
   protected readonly CODE_VERIFIER_KEY: string;
   protected readonly STATE_KEY: string;
+  protected readonly POPUP_KEY: string;
 
   constructor(clientId: string) {
     this.TOKEN_KEY = `oidc-client:response:${clientId}`;
     this.REFRESH_TOKEN_KEY = `oidc-client:refresh_token:${clientId}`;
     this.CODE_VERIFIER_KEY = `oidc-client:code_verifier:${clientId}`;
     this.STATE_KEY = `oidc-client:state:${clientId}`;
+    this.POPUP_KEY = `oidc-client:used-popup:${clientId}`;
 
     this.migrateTokens?.(clientId);
   }
@@ -50,5 +52,22 @@ export abstract class ClientStorageBase {
 
   removeClientState(): void {
     sessionStorage.removeItem(this.STATE_KEY);
+  }
+
+  setPopupFlag(): void {
+    sessionStorage.setItem(this.POPUP_KEY, 'true');
+  }
+
+  getPopupFlag(): boolean {
+    const flag = sessionStorage.getItem(this.POPUP_KEY) === 'true';
+
+    // This is only used when endSession is called, so it can self destruct on retrieval to prevent edge cases
+    this.removePopupFlag();
+
+    return flag;
+  }
+
+  removePopupFlag(): void {
+    sessionStorage.removeItem(this.POPUP_KEY);
   }
 }

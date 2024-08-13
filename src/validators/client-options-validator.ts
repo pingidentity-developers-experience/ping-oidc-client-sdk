@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { AuthMethod, ClientOptions, StorageType, ValidatedClientOptions } from '../types';
+import { ClientOptions, StorageType, ValidatedClientOptions } from '../types';
 import ResponseType from '../types/response-type';
 import { BrowserUrlManager, Logger } from '../utilities';
 
@@ -55,7 +55,6 @@ export class ClientOptionsValidator {
       state: options.state,
       storageType: this.getValueOrDefaultFromEnum<StorageType>(StorageType, 'options.storageType', StorageType.Local, options.storageType),
       customParams: options.customParams,
-      authMethod: this.getValueOrDefaultFromEnum<AuthMethod>(AuthMethod, 'options.authMethod', AuthMethod.Redirect, options.authMethod),
     };
 
     return result;

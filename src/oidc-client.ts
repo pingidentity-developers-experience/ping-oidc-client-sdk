@@ -6,7 +6,7 @@
  * @description The main entry point for your application's integration.
  */
 
-import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions, AuthMethod } from './types';
+import { ClientOptions, ResponseType, OpenIdConfiguration, TokenResponse, ValidatedClientOptions } from './types';
 import { Logger, OAuth, ClientStorageBase, Url, BrowserUrlManager } from './utilities';
 import { LocalClientStorage } from './utilities/local-store';
 import { SessionClientStorage } from './utilities/session-store';
@@ -92,8 +92,7 @@ export class OidcClient {
     // Checking the raw state string against client storage to see if it's for this client instance
     const urlState = client.browserUrlManager.rawState;
 
-    // If authMethod is popup, the BrowserUrlManager will see the token or code and handle this
-    const tokenReadyForClient = client.clientOptions.authMethod !== AuthMethod.Popup && !!urlState && client.clientStorage.getClientState() === urlState;
+    const tokenReadyForClient = !!urlState && client.clientStorage.getClientState() === urlState;
 
     if (tokenReadyForClient) {
       client.clientStorage.removeToken();
@@ -139,14 +138,14 @@ export class OidcClient {
    * @see https://www.rfc-editor.org/rfc/rfc6749#section-3.1
    */
   async authorize(loginHint?: string, silentAuthN?: boolean, popupRef?: Window): Promise<void | TokenResponse> {
+    this.clientStorage.removePopupFlag();
+
     try {
       const authUrl = await this.authorizeUrl(loginHint, silentAuthN);
-      if (this.clientOptions.authMethod === AuthMethod.Redirect) {
-        if (popupRef) {
-          this.logger.warn('OidcClient', `popupRef provided but authMethod is 'redirect' popupRef will be ignored but user will probably see a new window`);
-        }
+      if (!popupRef) {
         this.browserUrlManager.navigate(authUrl);
       } else {
+        this.clientStorage.setPopupFlag();
         const popupFinalUrl = await this.browserUrlManager.navigatePopup(authUrl, this.clientOptions.redirect_uri, popupRef);
         return await this.getToken(popupFinalUrl);
       }
@@ -159,19 +158,15 @@ export class OidcClient {
 
   /**
    * Used to pass in a window reference to authorize function, this allows popup window to work on safari (iPhone and macOS)
-   *
-   * TODO - window.open triggers Safari's popup blocker if it is called in different context from the main click event (e.g. in a Promise callback)
-   * if we can figure out a way to make the authorizeUrl and thus authorize functions syncronous (the cyrpto call is the problem child here) we can get rid
-   * of this altogether and safari will not attempt to block the popup, the advantage of requiring developers to call window.open is they are able to configure
-   * the popup as they see fit.
+   * this is basically a convience method to make the public API cleaner
    *
    * @param popupRef {Window} window reference returned from window.open() call
    * @param loginHint {string} optional - login_hint url parameter that will be appended to URL in case you have a username/email already
    * @returns
    */
-  authorizeWithPopupRef(popupRef: Window, loginHint?: string): Promise<void | TokenResponse> {
-    if (this.clientOptions.authMethod === AuthMethod.Redirect) {
-      return Promise.reject(Error(`authorizeWithPopupRef called but client is configured with authMethod: 'redirect', please use authorize() instead or update authMethod to 'popup'`));
+  authorizeWithPopup(popupRef: Window, loginHint?: string): Promise<void | TokenResponse> {
+    if (!popupRef) {
+      return Promise.reject(Error(`A popup window reference is required to use this method to ensure the popup is not blocked by users' browsers.`));
     }
 
     return this.authorize(loginHint, undefined, popupRef);
@@ -453,10 +448,10 @@ export class OidcClient {
 
     this.clientStorage.removeToken();
 
-    if (this.clientOptions.authMethod === AuthMethod.Redirect) {
-      this.browserUrlManager.navigate(logoutUrl);
-    } else {
+    if (this.clientStorage.getPopupFlag()) {
       await this.browserUrlManager.navigatePopup(logoutUrl, postLogoutRedirectUri);
+    } else {
+      this.browserUrlManager.navigate(logoutUrl);
     }
   }
 
