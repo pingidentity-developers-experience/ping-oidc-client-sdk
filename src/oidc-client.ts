@@ -204,14 +204,17 @@ export class OidcClient {
     urlParams.append('redirect_uri', this.clientOptions.redirect_uri);
     urlParams.append('scope', this.clientOptions.scope);
 
+    const state = OAuth.getOrGenerateState(this.clientOptions, this.logger);
+
+    // We need to store state so we have a unique value to compare with the token/code returned from the Auth Server
+    // so that the correct instance of OidcClient can grab and store the token
+    this.clientStorage.setClientState(state);
+
+    urlParams.append('state', state);
+    urlParams.append('nonce', OAuth.getRandomString(10));
+
     if (this.clientOptions.response_type === ResponseType.AuthorizationCode) {
       const pkceArtifacts = await OAuth.generatePkceArtifacts(this.clientOptions, this.logger);
-      urlParams.append('state', pkceArtifacts.state);
-      urlParams.append('nonce', pkceArtifacts.nonce);
-
-      // We need to store state so we have something to compare the state returned from the auth server
-      // against to see if code applies to current client instance
-      this.clientStorage.setClientState(pkceArtifacts.state);
 
       if (this.clientOptions.usePkce) {
         urlParams.append('code_challenge', pkceArtifacts.codeChallenge);
@@ -222,11 +225,17 @@ export class OidcClient {
     }
 
     if (loginHint) {
-      urlParams.append('login_hint', encodeURIComponent(loginHint));
+      urlParams.append('login_hint', loginHint);
     }
 
     if (silentAuthN) {
       urlParams.append('prompt', 'none');
+    }
+
+    if (this.clientOptions.customParams) {
+      Object.entries(this.clientOptions.customParams).forEach((param) => {
+        urlParams.append(param[0], param[1]);
+      });
     }
 
     return Promise.resolve(`${this.issuerConfiguration?.authorization_endpoint}?${urlParams.toString()}`);
@@ -400,7 +409,7 @@ export class OidcClient {
         this.logger.error('OidcClient', 'Refresh token is invalid or expired, attempting a silent authentication request.');
       }
     } else {
-      this.logger.warn('OidcClient', 'No refresh token found, the Authentication Server may not support refresh tokens, attempting a silent authentication request.');
+      this.logger.warn('OidcClient', 'No refresh token found, the authorization Server may not support refresh tokens, attempting a silent authentication request.');
     }
 
     return this.authorize(undefined, true);

@@ -1,74 +1,51 @@
-# Getting Started with Create React App
+# Getting Started with the React Test App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This testing app was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+---
+### This test app is intended for developers contributing to this project. This is not for demos or intended to be a sample app.
+### For an example of integrating this OIDC SDK with your custom app, please check out our OIDC SDK example integration package in our [Ping example integrations library](https://create-react-app.dev/).
+---
 
-In the project directory, you can run:
+##Prepping the project for your development
 
-### `npm start`
+1. If you plan to contribute and submit pull requests, be sure to read the contributor's guide found in the root .github folder, or online at [CONTRIBUTING.MD](https://github.com/pingidentity-developers-experience/ping-oidc-client-sdk/blob/main/.github/CONTRIBUTING.md)
+1. `cd` into the project/repo root folder and run, `npm install`
+1. Then run, `npm run build`
+1. `cd` into the test_apps/react directory and run, `npm install`
+1. Then run, `npm link ../../`
+1. Your project is now ready to spin up. Just run, `npm start`
 
-Runs the app in the development mode.\
+This runs the app in development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-The page will reload when you make changes.\
+The page will reload if you make changes to the test app.\
 You may also see any lint errors in the console.
 
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+When you make changes to the SDK source code, be sure to re-run step #3 above in the project/repo root folder.
 
 ## Customizing the Test App
-You can point the test app to your own environment by updating the client_id and client values in `/src/App.js`.
-After you've made your changes, save the file and the app should reload with the new values. 
+You can point the test app to your own environment or authorization server by updating the `clientOptions` param 
 
-## Learn More
+``` Javascript
+const clientOptions = {
+        client_id: '6e610880-8e52-4ba7-a2dc-c5f9bd80f3ee',
+        redirect_uri: 'https://localhost:3000',
+        scope: 'openid profile email revokescope', // defaults to 'openid profile email'
+        // response_type: 'token', // defaults to 'code'
+        // usePkce: false, // defaults to true
+        // state: 'aad23b3c5f91a14fcef2fa48994478be857576ad', // will apply a random state as a string, you can pass in a string or object
+        // logLevel: 'debug', // defaults to 'warn'
+        // storageType: 'worker', // 'local' | 'session' | 'worker'. defaults to 'local'. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present.
+        // customParams: { param1: 'value1', param2: 'value2' } // will append custom parameters to the authorization url.  Expects an object with string key/values.
+     };
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+and the host path to your .well-known endpoint
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+``` Javascript
+const client = await OidcClient.initializeFromOpenIdConfig('https://auth.pingone.com/b28c6458-9fc0-49cf-bf19-b7aaab1e7be7/as', clientOptions);
+```
+in `/src/App.js`.
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+After you've made your changes, save the file and the app should reload with the new values.

@@ -54,6 +54,7 @@ export class ClientOptionsValidator {
       usePkce: this.getUsePkce(options),
       state: options.state,
       storageType: this.getValueOrDefaultFromEnum<StorageType>(StorageType, 'options.storageType', StorageType.Local, options.storageType),
+      customParams: options.customParams,
       authMethod: this.getValueOrDefaultFromEnum<AuthMethod>(AuthMethod, 'options.authMethod', AuthMethod.Redirect, options.authMethod),
     };
 
