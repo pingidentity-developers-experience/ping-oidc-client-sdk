@@ -219,9 +219,15 @@ The OidcClient supports multiple instances out of the box, allowing you to manag
 
 #### Authenticating with a Popup Window
 
-The OidcClient supports authentication through a popup window if you do not wish to redirect your users away from your app. Just use the `authorizeWithPopup()` function instead of `authorize()`. Please note certain browsers block popups that are triggered in asyncronous code, to get around this we require you to trigger the popup yourself and pass a reference to the authorizeWithPopup function. This ensures the best compatibility with all browsers and allows for flexibility in customizing the of the popup window if desired, see the [MDN Doc](https://developer.mozilla.org/en-US/docs/Web/API/Window/open#windowfeatures) for more details. The endSession() function will also trigger through a popup window if the authorize call was done via a popup.
+The OidcClient supports authentication through a popup window if you do not wish to redirect your users away from your app. Just use the `authorizeWithPopup()` function instead of `authorize()`. Please note certain browsers block popups that are triggered in asyncronous code, to get around this we require you to trigger the popup yourself and pass a reference to the authorizeWithPopup function. This ensures the best compatibility with all browsers and allows for flexibility in customizing the of the popup window if desired, see the [MDN Docs](https://developer.mozilla.org/en-US/docs/Web/API/Window/open#windowfeatures) for more details. The endSession() function will also trigger through a popup window if the authorize call was done via a popup.
 
-Also note phones don't support popups so they will open the authentication page in a new tab. On iPhones, the "Save Password" prompt breaks the ability for the SDK to close the window. So if you anticipate having phone users, consider redirecting the user back to a static page in your app that lets them know they can close the tab.
+Also note phones don't support popups so they will open the authentication page in a new tab. On iPhones, the "Save Password" prompt breaks the ability for the SDK to close the window. So if you anticipate having phone users, consider redirecting the user back to a page in your app that self closes after a short timeout period to prevent this edge case. The timeout is required or the window may close before the SDK receives the URL containing the code and state from the authentication server.
+
+``` JavaScript
+setTimeout(() => {
+  if (!window.closed) window.close();
+}, 500);
+```
 
 #### Implementation Details:
 

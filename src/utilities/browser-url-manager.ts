@@ -105,7 +105,7 @@ export class BrowserUrlManager {
     return new Promise((resolve) => {
       const checkPopup = setInterval(() => {
         try {
-          if (!popup || popup.closed) {
+          if (!popup) {
             clearInterval(checkPopup);
             return;
           }
@@ -113,6 +113,7 @@ export class BrowserUrlManager {
           if (popup.window.location.href.includes(redirectUri)) {
             resolve(popup.window.location.href);
             popup.close();
+            clearInterval(checkPopup);
           }
         } catch (_) {
           this.logger.debug('BrowserUrlMananger', 'Error encountered in inverval watching the popup window, this is likely because the window is still navigated to auth server');
