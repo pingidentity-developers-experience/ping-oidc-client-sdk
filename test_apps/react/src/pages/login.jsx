@@ -12,7 +12,6 @@ export function Login({ authWithPopup }) {
       if (authWithPopup) {
         const popup = window.open('about:blank', 'popup', 'popup=true,width=400,height=600');
         await oidcClient.current.authorizeWithPopup(popup /*, optional login_hint (e.g. username) */);
-        console.log('here');
         navigate({
           pathname: '/dashboard',
           search: createSearchParams({ popup: true }).toString(),
