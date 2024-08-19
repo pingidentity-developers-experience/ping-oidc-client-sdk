@@ -49,7 +49,7 @@ oidcClient.authorize(/* optional login_hint */);
 // --- OR --- //
 
 // Authorize a user with a popup window. Note you MUST provide a popup window object for the SDK to be able to properly interact with the popup.
-const popup = window.open('about:blank', 'popup', 'popup=true,width=400,height=600'); // Adjust popups options as needed, the SDK will navigate the popup to the authorization URL
+const popup = window.open('about:blank', 'popup', 'popup=true,width=400,height=600'); // Adjust popup options as needed, the SDK will navigate the popup to the authorization URL
 oidcClient.authorizeWithPopup(popup, /* optional login_hint */)
 
 // Get the token from storage
