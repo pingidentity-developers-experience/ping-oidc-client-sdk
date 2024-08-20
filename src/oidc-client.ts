@@ -157,19 +157,19 @@ export class OidcClient {
   }
 
   /**
-   * Used to pass in a window reference to authorize function, this allows popup window to work on safari (iPhone and macOS)
+   * Used to pass in a window reference to authorize function which allows popup window to work on safari (iPhone and macOS)
    * this is basically a convience method to make the public API cleaner
    *
    * @param popupRef {Window} window reference returned from window.open() call
    * @param loginHint {string} optional - login_hint url parameter that will be appended to URL in case you have a username/email already
-   * @returns
+   * @returns {Promise<TokenResponse>} - Will return a TokenResponse after after authentication is completed through the popup
    */
-  authorizeWithPopup(popupRef: Window, loginHint?: string): Promise<void | TokenResponse> {
+  authorizeWithPopup(popupRef: Window, loginHint?: string): Promise<TokenResponse> {
     if (!popupRef) {
       return Promise.reject(Error(`A popup window reference is required to use this method to ensure the popup is not blocked by users' browsers.`));
     }
 
-    return this.authorize(loginHint, undefined, popupRef);
+    return this.authorize(loginHint, undefined, popupRef) as Promise<TokenResponse>;
   }
 
   /**

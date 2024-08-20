@@ -86,7 +86,7 @@ export class BrowserUrlManager {
   }
 
   /**
-   * Navigates to the provided url in a popup window and returns the complete popup's URL when it navigates back to the redirectURI
+   * Navigates to the provided url in a popup window and returns the popup's URL when it navigates back to the redirectURI
    *
    * @param url Url to navigate the popup window to
    * @param redirectUri Redirect URI that triggers the interval to clear
