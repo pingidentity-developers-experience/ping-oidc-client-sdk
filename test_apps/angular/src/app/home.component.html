@@ -5,26 +5,29 @@
   </header>
   <div *ngIf="!token && oidcClient">
     <button class="app-link" (click)="authorizeUser()">
-      Click this to test your changes <br /> against a Ping OIDC authorize endpoint
+      Click this to test your changes <br />
+      against a Ping OIDC authorize endpoint
     </button>
-    <div class="app-example-user"><strong>Test user:</strong>&nbsp;demouser1 / 2OrchestrateM0re!</div>
+    <div class="app-example-user"><strong>Test user:</strong>&nbsp;demouser1 / 2FederateM0re!</div>
   </div>
   <ng-container *ngIf="token">
     <div class="app-content">
       <h3 class="app-token-label">Token:</h3>
       <div class="app-token-container">
         <strong>Access Token:</strong>
-        <div>{{token.access_token}}</div>
+        <div>{{ token.access_token }}</div>
       </div>
       <div class="app-token-container">
-        <strong>ID Token:</strong> 
-        <div>{{token.id_token}}</div> 
+        <strong>ID Token:</strong>
+        <div>{{ token.id_token }}</div>
       </div>
       <ng-container *ngIf="userInfo">
         <hr />
         <div>
           <h3 class="app-token-label">User Info:</h3>
-          <div *ngFor="let item of userInfo | keyvalue"><span class="app-userinfo-label">{{item.key}}:</span>{{item.value}}</div>
+          <div *ngFor="let item of userInfo | keyvalue">
+            <span class="app-userinfo-label">{{ item.key }}:</span>{{ item.value }}
+          </div>
         </div>
       </ng-container>
       <ng-container *ngIf="oidcClient">
