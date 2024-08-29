@@ -37,7 +37,7 @@ const clientOptions = {
   // state: 'xyz', 
   // logLevel: 'debug',
   // storageType: 'worker',  // defaults to 'local'. Also falls back to 'local' for backwards compatibility when choosing 'worker' and the Worker object is not present.
-  // customParams: { param1: 'value1', param2: 'value2' } // will append custom parameters to the authorization url.  Expects an object with string key/values.
+  // customParams: { param1: 'value1', param2: 'value2' }, // will append custom parameters to the authorization url.  Expects an object with string key/values.
 };
 
 // Initialize the SDK using an authorization server's well-known endpoint. Note this takes in the base url of the auth server, not the well-known endpoint itself. '/.well-known/openid-configuration' will be appended to the url by the SDK.
@@ -45,6 +45,12 @@ const oidcClient = await OidcClient.initializeFromOpenIdConfig('https://auth.pin
 
 // Authorize a user. Note this will use window.location.assign, thus redirecting the user after the url is generated.
 oidcClient.authorize(/* optional login_hint */);
+
+// --- OR --- //
+
+// Authorize a user with a popup window. Note you MUST provide a popup window object for the SDK to be able to properly interact with the popup.
+const popup = window.open('about:blank', 'popup', 'popup=true,width=400,height=600'); // Adjust popup options as needed, the SDK will navigate the popup to the authorization URL
+oidcClient.authorizeWithPopup(popup, /* optional login_hint */);
 
 // Get the token from storage
 if (await oidcClient.hasToken()) {
@@ -95,6 +101,7 @@ Because of the as-is offering and license of this project, it is highly recommen
 - User Info
 - Storage Options; *local, session, Worker (in-memory)*
 - Custom params support on the /authorize call.
+- Ability to authorize in a popup window instead of redirecting the user away from app
 
 ### Step-by-step - Package/Module<a id="step-by-step-npm"></a>
 
@@ -208,6 +215,19 @@ If you wish to use the SDK in a web application that does not use node or npm yo
 #### Multiple Clients on a Page
 
 The OidcClient supports multiple instances out of the box, allowing you to manage multiple tokens on the same page. Please note that the OidcClient class uses state to ensure that the correct client instance is processing the token or authorization code when the user is redirected back to the app from the authorization server. If you do not provide state through the ClientOptions a random string is created for you.
+
+
+#### Authenticating with a Popup Window
+
+The OidcClient supports authentication through a popup window if you do not wish to redirect your users away from your app. Just use the `authorizeWithPopup()` function instead of `authorize()`. Please note certain browsers block popups that are triggered in asyncronous code, to get around this we require you to trigger the popup yourself and pass a reference to the authorizeWithPopup function. This ensures the best compatibility with all browsers and allows for flexibility in customizing the popup window if desired, see the [MDN Docs](https://developer.mozilla.org/en-US/docs/Web/API/Window/open#windowfeatures) for more details. The endSession() function will also trigger through a popup window if the authorize call was done via a popup.
+
+Also note phones don't support popups so they will open the authentication page in a new tab. On iPhones, the "Save Password" prompt breaks the ability for the SDK to close the window. So if you anticipate having phone users, consider redirecting the user back to a page in your app that self closes after a short timeout period to prevent this edge case. The timeout is required or the window may close before the SDK receives the URL containing the code and state from the authentication server.
+
+``` JavaScript
+setTimeout(() => {
+  if (!window.closed) window.close();
+}, 500);
+```
 
 #### Implementation Details:
 

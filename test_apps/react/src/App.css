@@ -24,6 +24,15 @@
   color: white;
 }
 
+.app-method-container {
+  margin-bottom: 1rem;
+}
+
+.app-method-label {
+  color: white;
+  margin-right: 1rem;
+}
+
 .app-example-user {
   color: white;
   margin-top: 1rem;
@@ -31,7 +40,7 @@
 
 .app-content {
   background-color: white;
-  width: 90%; 
+  width: 90%;
   color: black;
   text-align: left;
   font-size: 10px;
@@ -57,19 +66,28 @@
 }
 
 .app-userinfo-label {
-  display: inline-block; 
+  display: inline-block;
   min-width: 120px;
 }
 
-button.app-link {
-  background: none; 
-  border: none; 
-  font-size: 1.5rem; 
-  cursor: pointer;
+.app-subheader {
+  color: white;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .app-link {
   color: #61dafb;
+  text-decoration: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
+a.app-link {
+  display: block;
 }
 
 @keyframes app-logo-spin {
@@ -79,4 +97,9 @@ button.app-link {
   to {
     transform: rotate(360deg);
   }
+}
+
+.close-msg {
+  color: white;
+  padding-top: 1rem;
 }
