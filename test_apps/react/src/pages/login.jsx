@@ -53,7 +53,7 @@ export function Login({ authWithPopup }) {
           Click this to test your changes <br /> against a Ping OIDC authorize endpoint
         </button>
         <div className="app-example-user">
-          <strong>Test user:</strong>&nbsp;demouser1 / 2FederateM0re!
+          <strong>Test user:</strong>&nbsp;demouser1 / 3FederateM0re!
         </div>
       </div>
       {/* )} */}
