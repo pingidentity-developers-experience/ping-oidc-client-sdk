@@ -1,6 +1,6 @@
 {
   "name": "@pingidentity-developers-experience/ping-oidc-client-sdk",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "An OAuth/OIDC SDK to simplify and fastrack integration with OAuth/OIDC protocol endpoints in SPAs (browser-based apps). AuthCode and implicit grant types. PKCE, state, userInfo, revoke, configurable logging, and token storage options.",
   "main": "lib/ping-oidc.js",
   "types": "lib/index.d.ts",
@@ -37,8 +37,8 @@
     "@babel/core": "^7.17.2",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.18.6",
-    "@typescript-eslint/eslint-plugin": "^7.5.0",
-    "@typescript-eslint/parser": "^7.5.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "babel-loader": "^9.1.2",
     "eslint": "^8.19.0",
     "eslint-config-airbnb-base": "^15.0.0",
